@@ -12,33 +12,12 @@ import java.util.List;
 @RequestMapping("/api/productos")
 public class ProductoController {
     private final ProductoService productoService;
-
-    public ProductoController(ProductoService productoService) {
-        this.productoService = productoService;
-    }
+    public ProductoController(ProductoService productoService) { this.productoService = productoService; }
 
     @GetMapping
-    public List<Producto> listar(@RequestParam(required = false) String categoria) {
-        return productoService.listar(categoria);
-    }
-
-    @GetMapping("/{id}")
-    public Producto obtener(@PathVariable Long id) {
-        return productoService.obtener(id);
-    }
-
-    @PostMapping
-    public Producto crear(@Valid @RequestBody ProductoRequest request) {
-        return productoService.crear(request);
-    }
-
-    @PutMapping("/{id}")
-    public Producto actualizar(@PathVariable Long id, @Valid @RequestBody ProductoRequest request) {
-        return productoService.actualizar(id, request);
-    }
-
-    @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Long id) {
-        productoService.eliminar(id);
-    }
+    public List<Producto> listar(@RequestParam(required = false) Boolean oferta, @RequestParam(required = false) Boolean destacado) { return productoService.listar(oferta, destacado); }
+    @GetMapping("/{id}") public Producto obtener(@PathVariable Long id) { return productoService.obtener(id); }
+    @PostMapping public Producto crear(@Valid @RequestBody ProductoRequest request) { return productoService.crear(request); }
+    @PutMapping("/{id}") public Producto actualizar(@PathVariable Long id, @Valid @RequestBody ProductoRequest request) { return productoService.actualizar(id, request); }
+    @DeleteMapping("/{id}") public void eliminar(@PathVariable Long id) { productoService.eliminar(id); }
 }

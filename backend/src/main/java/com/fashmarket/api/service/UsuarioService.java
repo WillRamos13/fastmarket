@@ -6,10 +6,8 @@ import com.fashmarket.api.model.Direccion;
 import com.fashmarket.api.model.Usuario;
 import com.fashmarket.api.repository.DireccionRepository;
 import com.fashmarket.api.repository.UsuarioRepository;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,12 +15,10 @@ import java.util.List;
 public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final DireccionRepository direccionRepository;
-    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, DireccionRepository direccionRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository, DireccionRepository direccionRepository) {
         this.usuarioRepository = usuarioRepository;
         this.direccionRepository = direccionRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     public List<AuthDtos.UsuarioResponse> listar() {
@@ -30,59 +26,31 @@ public class UsuarioService {
     }
 
     public AuthDtos.UsuarioResponse obtener(Long id) {
-        return DtoMapper.toUsuarioResponse(buscarUsuario(id));
+        return DtoMapper.toUsuarioResponse(obtenerEntidad(id));
     }
 
     @Transactional
     public AuthDtos.UsuarioResponse actualizar(Long id, UsuarioDtos.ActualizarUsuarioRequest request) {
-        Usuario usuario = buscarUsuario(id);
-        String nuevoCorreo = request.correo().trim().toLowerCase();
-
-        usuarioRepository.findByCorreoIgnoreCase(nuevoCorreo).ifPresent(existente -> {
-            if (!existente.getId().equals(id)) {
-                throw new IllegalArgumentException("Ese correo ya pertenece a otro usuario");
-            }
-        });
-
-        usuario.setNombre(request.nombre().trim());
-        usuario.setCorreo(nuevoCorreo);
-        usuario.setTelefono(request.telefono().trim());
+        Usuario usuario = obtenerEntidad(id);
+        if (request.nombre() != null && !request.nombre().isBlank()) usuario.setNombre(request.nombre());
+        usuario.setTelefono(request.telefono());
+        usuario.setDocumento(request.documento());
         return DtoMapper.toUsuarioResponse(usuarioRepository.save(usuario));
     }
 
     @Transactional
     public AuthDtos.UsuarioResponse agregarDireccion(Long id, UsuarioDtos.AgregarDireccionRequest request) {
-        Usuario usuario = buscarUsuario(id);
-        usuario.agregarDireccion(new Direccion(request.direccion().trim()));
-        return DtoMapper.toUsuarioResponse(usuarioRepository.save(usuario));
-    }
-
-    @Transactional
-    public void eliminarDireccion(Long usuarioId, Long direccionId) {
-        Direccion direccion = direccionRepository.findById(direccionId)
-                .orElseThrow(() -> new EntityNotFoundException("Dirección no encontrada"));
-
-        if (!direccion.getUsuario().getId().equals(usuarioId)) {
-            throw new IllegalArgumentException("La dirección no pertenece a este usuario");
+        Usuario usuario = obtenerEntidad(id);
+        if (Boolean.TRUE.equals(request.principal())) {
+            usuario.getDirecciones().forEach(direccion -> direccion.setPrincipal(false));
         }
-
-        direccionRepository.delete(direccion);
+        Direccion direccion = new Direccion(usuario, request.direccion(), request.referencia(), request.distrito(), request.ciudad(), Boolean.TRUE.equals(request.principal()));
+        usuario.getDirecciones().add(direccion);
+        direccionRepository.save(direccion);
+        return DtoMapper.toUsuarioResponse(usuario);
     }
 
-    @Transactional
-    public void cambiarPassword(Long id, UsuarioDtos.CambiarPasswordRequest request) {
-        Usuario usuario = buscarUsuario(id);
-
-        if (!passwordEncoder.matches(request.actual(), usuario.getPassword())) {
-            throw new IllegalArgumentException("La contraseña actual es incorrecta");
-        }
-
-        usuario.setPassword(passwordEncoder.encode(request.nueva()));
-        usuarioRepository.save(usuario);
-    }
-
-    private Usuario buscarUsuario(Long id) {
-        return usuarioRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+    private Usuario obtenerEntidad(Long id) {
+        return usuarioRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
     }
 }

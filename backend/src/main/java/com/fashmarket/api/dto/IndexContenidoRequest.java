@@ -2,9 +2,13 @@ package com.fashmarket.api.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record BannerRequest(
+public record IndexContenidoRequest(
+        @NotBlank String tipo,
+        @NotBlank String clave,
         @NotBlank String titulo,
         String descripcion,
         String imagen,
-        Boolean activo
+        String enlace,
+        Boolean activo,
+        Integer orden
 ) {}

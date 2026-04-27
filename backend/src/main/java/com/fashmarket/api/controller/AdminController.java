@@ -25,15 +25,15 @@ public class AdminController {
     @GetMapping("/indices")
     public Map<String, Object> indices() {
         long totalProductos = productoRepository.count();
+        long totalOfertas = productoRepository.countByOfertaTrue();
+        long totalStock = productoRepository.sumarStockTotal();
         long totalPedidos = pedidoRepository.count();
         long totalUsuarios = usuarioRepository.count();
-        long productosOferta = productoRepository.findAll().stream().filter(p -> Boolean.TRUE.equals(p.getOferta())).count();
-        int stockTotal = productoRepository.findAll().stream().mapToInt(p -> p.getStock() == null ? 0 : p.getStock()).sum();
 
         return Map.of(
                 "totalProductos", totalProductos,
-                "productosOferta", productosOferta,
-                "stockTotal", stockTotal,
+                "totalOfertas", totalOfertas,
+                "totalStock", totalStock,
                 "totalPedidos", totalPedidos,
                 "totalUsuarios", totalUsuarios
         );

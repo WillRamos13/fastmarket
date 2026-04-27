@@ -1,2 +1,6 @@
 package com.fashmarket.api.model;
-public enum EstadoUsuario { ACTIVO, INACTIVO }
+
+public enum EstadoUsuario {
+    ACTIVO,
+    INACTIVO
+}

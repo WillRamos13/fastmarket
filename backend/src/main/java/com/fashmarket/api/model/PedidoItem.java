@@ -1,6 +1,5 @@
 package com.fashmarket.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
@@ -9,35 +8,27 @@ import java.math.BigDecimal;
 public class PedidoItem {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private Long productoId;
-
-    @Column(nullable = false)
-    private String nombre;
-
-    @Column(nullable = false)
-    private Integer cantidad;
-
-    @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal precio;
-
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pedido_id", nullable = false)
     private Pedido pedido;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "producto_id", nullable = false)
+    private Producto producto;
+    @Column(nullable = false, length = 160)
+    private String productoNombre;
+    @Column(nullable = false)
+    private Integer cantidad;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal precioUnitario;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal subtotal;
 
     public PedidoItem() {}
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Long getProductoId() { return productoId; }
-    public void setProductoId(Long productoId) { this.productoId = productoId; }
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public Integer getCantidad() { return cantidad; }
-    public void setCantidad(Integer cantidad) { this.cantidad = cantidad; }
-    public BigDecimal getPrecio() { return precio; }
-    public void setPrecio(BigDecimal precio) { this.precio = precio; }
-    public Pedido getPedido() { return pedido; }
-    public void setPedido(Pedido pedido) { this.pedido = pedido; }
+    public Long getId(){return id;} public void setId(Long id){this.id=id;}
+    public Pedido getPedido(){return pedido;} public void setPedido(Pedido pedido){this.pedido=pedido;}
+    public Producto getProducto(){return producto;} public void setProducto(Producto producto){this.producto=producto;}
+    public String getProductoNombre(){return productoNombre;} public void setProductoNombre(String productoNombre){this.productoNombre=productoNombre;}
+    public Integer getCantidad(){return cantidad;} public void setCantidad(Integer cantidad){this.cantidad=cantidad;}
+    public BigDecimal getPrecioUnitario(){return precioUnitario;} public void setPrecioUnitario(BigDecimal precioUnitario){this.precioUnitario=precioUnitario;}
+    public BigDecimal getSubtotal(){return subtotal;} public void setSubtotal(BigDecimal subtotal){this.subtotal=subtotal;}
 }

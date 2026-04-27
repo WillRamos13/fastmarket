@@ -5,97 +5,74 @@ import com.fashmarket.api.model.*;
 import com.fashmarket.api.repository.PedidoRepository;
 import com.fashmarket.api.repository.ProductoRepository;
 import com.fashmarket.api.repository.UsuarioRepository;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class PedidoService {
     private final PedidoRepository pedidoRepository;
-    private final UsuarioRepository usuarioRepository;
     private final ProductoRepository productoRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public PedidoService(PedidoRepository pedidoRepository, UsuarioRepository usuarioRepository, ProductoRepository productoRepository) {
+    public PedidoService(PedidoRepository pedidoRepository, ProductoRepository productoRepository, UsuarioRepository usuarioRepository) {
         this.pedidoRepository = pedidoRepository;
-        this.usuarioRepository = usuarioRepository;
         this.productoRepository = productoRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
-    public List<PedidoDtos.PedidoResponse> listarTodos() {
-        return pedidoRepository.findAll().stream().map(DtoMapper::toPedidoResponse).toList();
+    public List<PedidoDtos.PedidoResponse> listar() {
+        return pedidoRepository.findAllByOrderByFechaDesc().stream().map(DtoMapper::toPedidoResponse).toList();
     }
 
     public List<PedidoDtos.PedidoResponse> listarPorUsuario(Long usuarioId) {
-        return pedidoRepository.findByUsuarioIdOrderByIdDesc(usuarioId).stream().map(DtoMapper::toPedidoResponse).toList();
+        return pedidoRepository.findByUsuarioIdOrderByFechaDesc(usuarioId).stream().map(DtoMapper::toPedidoResponse).toList();
     }
 
     @Transactional
     public PedidoDtos.PedidoResponse crear(Long usuarioId, PedidoDtos.CrearPedidoRequest request) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         Pedido pedido = new Pedido();
         pedido.setUsuario(usuario);
-        pedido.setCodigo("P" + System.currentTimeMillis());
-        pedido.setFecha(LocalDate.now());
+        pedido.setCodigo("PED-" + System.currentTimeMillis());
+        pedido.setDireccionEntrega(request.direccionEntrega());
+        pedido.setFecha(LocalDateTime.now());
         pedido.setEstado(EstadoPedido.PENDIENTE);
-        pedido.setMetodo(request.metodo());
-        pedido.setDireccion(request.direccion());
-        pedido.setReferencia(request.referencia());
-        pedido.setHorario(request.horario());
-        pedido.setEntregaEstimada("Pendiente de confirmación");
 
         BigDecimal total = BigDecimal.ZERO;
 
-        for (PedidoDtos.ItemRequest itemRequest : request.productos()) {
-            Producto producto = productoRepository.findById(itemRequest.productoId())
-                    .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + itemRequest.productoId()));
+        for (PedidoDtos.ItemRequest itemRequest : request.items()) {
+            Producto producto = productoRepository.findById(itemRequest.productoId()).orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
+            int cantidad = itemRequest.cantidad();
+            if (cantidad <= 0) throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
+            if (producto.getStock() < cantidad) throw new IllegalArgumentException("Stock insuficiente para " + producto.getNombre());
 
-            if (producto.getStock() < itemRequest.cantidad()) {
-                throw new IllegalArgumentException("Stock insuficiente para: " + producto.getNombre());
-            }
-
-            producto.setStock(producto.getStock() - itemRequest.cantidad());
+            producto.setStock(producto.getStock() - cantidad);
             productoRepository.save(producto);
 
+            BigDecimal subtotal = producto.getPrecio().multiply(BigDecimal.valueOf(cantidad));
             PedidoItem item = new PedidoItem();
-            item.setProductoId(producto.getId());
-            item.setNombre(producto.getNombre());
-            item.setCantidad(itemRequest.cantidad());
-            item.setPrecio(producto.getPrecio());
-            pedido.agregarItem(item);
-
-            total = total.add(producto.getPrecio().multiply(BigDecimal.valueOf(itemRequest.cantidad())));
+            item.setPedido(pedido);
+            item.setProducto(producto);
+            item.setProductoNombre(producto.getNombre());
+            item.setCantidad(cantidad);
+            item.setPrecioUnitario(producto.getPrecio());
+            item.setSubtotal(subtotal);
+            pedido.getItems().add(item);
+            total = total.add(subtotal);
         }
 
-        BigDecimal envio = BigDecimal.valueOf(8.00);
-        pedido.setTotal(total.add(envio));
-
-        Pedido guardado = pedidoRepository.save(pedido);
-        return DtoMapper.toPedidoResponse(guardado);
-    }
-
-    @Transactional
-    public PedidoDtos.PedidoResponse actualizarEstado(Long pedidoId, EstadoPedido estado) {
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() -> new EntityNotFoundException("Pedido no encontrado"));
-
-        pedido.setEstado(estado);
-        pedido.setEntregaEstimada(entregaPorEstado(estado));
+        pedido.setTotal(total);
         return DtoMapper.toPedidoResponse(pedidoRepository.save(pedido));
     }
 
-    private String entregaPorEstado(EstadoPedido estado) {
-        return switch (estado) {
-            case PENDIENTE -> "Pendiente de confirmación";
-            case CAMINO -> "Pedido en camino";
-            case REPARTO -> "En reparto hacia tu dirección";
-            case ENTREGADO -> "Entregado";
-            case CANCELADO -> "Pedido cancelado";
-        };
+    @Transactional
+    public PedidoDtos.PedidoResponse actualizarEstado(Long id, EstadoPedido estado) {
+        Pedido pedido = pedidoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
+        pedido.setEstado(estado);
+        return DtoMapper.toPedidoResponse(pedidoRepository.save(pedido));
     }
 }

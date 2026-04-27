@@ -1,2 +1,10 @@
 package com.fashmarket.api.model;
-public enum EstadoPedido { PENDIENTE, CAMINO, REPARTO, ENTREGADO, CANCELADO }
+
+public enum EstadoPedido {
+    PENDIENTE,
+    CONFIRMADO,
+    PREPARANDO,
+    CAMINO,
+    ENTREGADO,
+    CANCELADO
+}

@@ -1,47 +1,17 @@
 package com.fashmarket.api.dto;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
+import com.fashmarket.api.model.EstadoPedido;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class PedidoDtos {
-    public record CrearPedidoRequest(
-            @NotBlank String metodo,
-            @NotBlank String direccion,
-            String referencia,
-            String horario,
-            @NotEmpty List<ItemRequest> productos
-    ) {}
-
-    public record ItemRequest(
-            @NotNull Long productoId,
-            @NotNull @Min(1) Integer cantidad
-    ) {}
-
-    public record PedidoResponse(
-            Long id,
-            String codigo,
-            LocalDate fecha,
-            String estado,
-            String metodo,
-            String direccion,
-            String referencia,
-            String horario,
-            String entregaEstimada,
-            BigDecimal total,
-            String cliente,
-            List<ItemResponse> productos
-    ) {}
-
-    public record ItemResponse(
-            Long id,
-            Long productoId,
-            String nombre,
-            Integer cantidad,
-            BigDecimal precio
-    ) {}
+    public record ItemRequest(@NotNull Long productoId, @NotNull @Positive Integer cantidad) {}
+    public record CrearPedidoRequest(String direccionEntrega, @NotEmpty List<ItemRequest> items) {}
+    public record ItemResponse(Long productoId, String productoNombre, Integer cantidad, BigDecimal precioUnitario, BigDecimal subtotal) {}
+    public record PedidoResponse(Long id, String codigo, Long usuarioId, String usuarioNombre, BigDecimal total, EstadoPedido estado, String direccionEntrega, LocalDateTime fecha, List<ItemResponse> items) {}
 }
