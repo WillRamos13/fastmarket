@@ -1,60 +1,6 @@
-const productosIniciales = [
-    {
-        id: 1,
-        nombre: "Audífonos inalámbricos",
-        categoria: "tecnologia",
-        precio: 79.90,
-        precioAntes: 99.90,
-        stock: 12,
-        imagen: "img/productos/audifonos.png",
-        descripcion: "Audífonos cómodos para música, clases y llamadas.",
-        oferta: true
-    },
-    {
-        id: 2,
-        nombre: "Smartwatch básico",
-        categoria: "tecnologia",
-        precio: 99.90,
-        precioAntes: 129.90,
-        stock: 8,
-        imagen: "img/productos/smartwatch.png",
-        descripcion: "Reloj inteligente para uso diario.",
-        oferta: true
-    },
-    {
-        id: 3,
-        nombre: "Casaca ligera",
-        categoria: "moda",
-        precio: 119.90,
-        precioAntes: 149.90,
-        stock: 6,
-        imagen: "img/productos/casaca.png",
-        descripcion: "Casaca cómoda y fácil de combinar.",
-        oferta: true
-    },
-    {
-        id: 4,
-        nombre: "Lámpara LED",
-        categoria: "hogar",
-        precio: 39.90,
-        precioAntes: 49.90,
-        stock: 15,
-        imagen: "img/productos/lampara.png",
-        descripcion: "Ideal para escritorio, dormitorio o sala.",
-        oferta: true
-    },
-    {
-        id: 5,
-        nombre: "Mochila compacta",
-        categoria: "accesorios",
-        precio: 69.90,
-        precioAntes: null,
-        stock: 10,
-        imagen: "img/productos/mochila.png",
-        descripcion: "Mochila ligera para clases o uso diario.",
-        oferta: false
-    }
-];
+const API_URL = "https://fastmarket-573w.onrender.com/api";
+
+/* DATOS SIMULADOS QUE TODAVÍA NO ESTÁN CONECTADOS A BACKEND */
 
 const pedidosIniciales = [
     {
@@ -125,16 +71,18 @@ const usuariosIniciales = [
     },
     {
         nombre: "Administrador",
-        correo: "admin@fashmarket.com",
+        correo: "admin@fastmarket.com",
         rol: "Administrador",
         estado: "activo"
     }
 ];
 
-let productos = cargarStorage("fashmarket_productos", productosIniciales);
-let pedidos = cargarStorage("fashmarket_pedidos", pedidosIniciales);
-let usuarios = cargarStorage("fashmarket_usuarios", usuariosIniciales);
-let banners = cargarStorage("fashmarket_banners", bannersIniciales);
+let productos = [];
+let pedidos = cargarStorage("fastmarket_pedidos", pedidosIniciales);
+let usuarios = cargarStorage("fastmarket_usuarios", usuariosIniciales);
+let banners = cargarStorage("fastmarket_banners", bannersIniciales);
+
+/* SELECTORES GENERALES */
 
 const btnMenuAdmin = document.getElementById("btn-menu-admin");
 const opcionesAdmin = document.getElementById("opciones-admin");
@@ -142,6 +90,8 @@ const nombreAdmin = document.getElementById("nombre-admin");
 
 const paneles = document.querySelectorAll(".panel-admin");
 const botonesPanel = document.querySelectorAll("[data-panel]");
+
+/* SELECTORES PRODUCTOS */
 
 const formProducto = document.getElementById("form-producto");
 const productoId = document.getElementById("producto-id");
@@ -160,16 +110,23 @@ const oferta = document.getElementById("oferta");
 const tituloForm = document.getElementById("titulo-form");
 const btnLimpiar = document.getElementById("btn-limpiar");
 const tablaProductos = document.getElementById("tabla-productos");
-const tablaPedidos = document.getElementById("tabla-pedidos");
-const tablaUsuarios = document.getElementById("tabla-usuarios");
 
 const buscarAdmin = document.getElementById("buscar-admin");
 const filtroCategoria = document.getElementById("filtro-categoria");
+
+/* SELECTORES TABLAS */
+
+const tablaPedidos = document.getElementById("tabla-pedidos");
+const tablaUsuarios = document.getElementById("tabla-usuarios");
+
+/* SELECTORES POWER BI */
 
 const powerbiUrl = document.getElementById("powerbi-url");
 const btnGuardarPowerbi = document.getElementById("btn-guardar-powerbi");
 const btnLimpiarPowerbi = document.getElementById("btn-limpiar-powerbi");
 const powerbiReporte = document.getElementById("powerbi-reporte");
+
+/* SELECTORES BANNERS */
 
 const formBanner = document.getElementById("form-banner");
 const bannerId = document.getElementById("banner-id");
@@ -189,18 +146,21 @@ document.addEventListener("DOMContentLoaded", () => {
     iniciarAdmin();
 });
 
-function iniciarAdmin() {
+async function iniciarAdmin() {
     mostrarNombreAdmin();
     activarMenuAdmin();
     activarCambioPaneles();
-    guardarDatosBase();
-    mostrarProductos();
+
+    await cargarProductosDesdeBackend();
+
     mostrarPedidos();
     mostrarUsuarios();
     mostrarBanners();
     actualizarEstadisticas();
     cargarPowerBI();
 }
+
+/* CAMBIO DE PANELES */
 
 function activarCambioPaneles() {
     botonesPanel.forEach((boton) => {
@@ -227,7 +187,9 @@ function mostrarPanel(panelId) {
         });
     }
 
-    opcionesAdmin.classList.remove("activo");
+    if (opcionesAdmin) {
+        opcionesAdmin.classList.remove("activo");
+    }
 }
 
 function mostrarNombreAdmin() {
@@ -252,9 +214,9 @@ function activarMenuAdmin() {
 
 /* EVENTOS PRODUCTOS */
 
-formProducto.addEventListener("submit", (e) => {
+formProducto.addEventListener("submit", async (e) => {
     e.preventDefault();
-    guardarProducto();
+    await guardarProducto();
 });
 
 btnLimpiar.addEventListener("click", limpiarFormulario);
@@ -264,7 +226,7 @@ imagenProducto.addEventListener("change", cargarImagenProducto);
 buscarAdmin.addEventListener("input", mostrarProductos);
 filtroCategoria.addEventListener("change", mostrarProductos);
 
-tablaProductos.addEventListener("click", (e) => {
+tablaProductos.addEventListener("click", async (e) => {
     const botonEditar = e.target.closest(".btn-editar");
     const botonEliminar = e.target.closest(".btn-eliminar");
 
@@ -273,7 +235,7 @@ tablaProductos.addEventListener("click", (e) => {
     }
 
     if (botonEliminar) {
-        eliminarProducto(Number(botonEliminar.dataset.id));
+        await eliminarProducto(Number(botonEliminar.dataset.id));
     }
 });
 
@@ -306,7 +268,25 @@ listaBanners.addEventListener("click", (e) => {
 btnGuardarPowerbi.addEventListener("click", guardarPowerBI);
 btnLimpiarPowerbi.addEventListener("click", limpiarPowerBI);
 
-/* PRODUCTOS */
+/* PRODUCTOS CON BACKEND */
+
+async function cargarProductosDesdeBackend() {
+    try {
+        const respuesta = await fetch(`${API_URL}/productos`);
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron cargar los productos");
+        }
+
+        productos = await respuesta.json();
+        mostrarProductos();
+        actualizarEstadisticas();
+
+    } catch (error) {
+        console.error("Error al cargar productos:", error);
+        mostrarToast("Error al cargar productos desde la base de datos");
+    }
+}
 
 function cargarImagenProducto() {
     const archivo = imagenProducto.files[0];
@@ -330,7 +310,7 @@ function cargarImagenProducto() {
     lector.readAsDataURL(archivo);
 }
 
-function guardarProducto() {
+async function guardarProducto() {
     const nombreValor = nombre.value.trim();
     const categoriaValor = categoria.value;
     const precioValor = Number(precio.value);
@@ -345,43 +325,51 @@ function guardarProducto() {
         return;
     }
 
-    if (productoId.value) {
-        const id = Number(productoId.value);
-        const producto = productos.find((item) => item.id === id);
+    const productoEnviar = {
+        nombre: nombreValor,
+        categoria: categoriaValor,
+        precio: precioValor,
+        precioAntes: precioAntesValor,
+        stock: stockValor,
+        imagen: imagenValor,
+        descripcion: descripcionValor,
+        oferta: ofertaValor
+    };
 
-        if (!producto) return;
+    try {
+        let respuesta;
 
-        producto.nombre = nombreValor;
-        producto.categoria = categoriaValor;
-        producto.precio = precioValor;
-        producto.precioAntes = precioAntesValor;
-        producto.stock = stockValor;
-        producto.imagen = imagenValor;
-        producto.descripcion = descripcionValor;
-        producto.oferta = ofertaValor;
+        if (productoId.value) {
+            respuesta = await fetch(`${API_URL}/productos/${productoId.value}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(productoEnviar)
+            });
+        } else {
+            respuesta = await fetch(`${API_URL}/productos`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(productoEnviar)
+            });
+        }
 
-        mostrarToast("Producto actualizado");
-    } else {
-        const nuevoProducto = {
-            id: Date.now(),
-            nombre: nombreValor,
-            categoria: categoriaValor,
-            precio: precioValor,
-            precioAntes: precioAntesValor,
-            stock: stockValor,
-            imagen: imagenValor,
-            descripcion: descripcionValor,
-            oferta: ofertaValor
-        };
+        if (!respuesta.ok) {
+            throw new Error("No se pudo guardar el producto");
+        }
 
-        productos.push(nuevoProducto);
-        mostrarToast("Producto agregado");
+        mostrarToast(productoId.value ? "Producto actualizado en PostgreSQL" : "Producto guardado en PostgreSQL");
+
+        await cargarProductosDesdeBackend();
+        limpiarFormulario();
+
+    } catch (error) {
+        console.error("Error al guardar producto:", error);
+        mostrarToast("Error al conectar con el backend");
     }
-
-    guardarDatosBase();
-    mostrarProductos();
-    actualizarEstadisticas();
-    limpiarFormulario();
 }
 
 function mostrarProductos() {
@@ -450,7 +438,7 @@ function mostrarProductos() {
 }
 
 function editarProducto(id) {
-    const producto = productos.find((item) => item.id === id);
+    const producto = productos.find((item) => Number(item.id) === Number(id));
 
     if (!producto) return;
 
@@ -470,17 +458,28 @@ function editarProducto(id) {
     mostrarPanel("panel-productos");
 }
 
-function eliminarProducto(id) {
+async function eliminarProducto(id) {
     const confirmar = confirm("¿Seguro que deseas eliminar este producto?");
 
     if (!confirmar) return;
 
-    productos = productos.filter((producto) => producto.id !== id);
+    try {
+        const respuesta = await fetch(`${API_URL}/productos/${id}`, {
+            method: "DELETE"
+        });
 
-    guardarDatosBase();
-    mostrarProductos();
-    actualizarEstadisticas();
-    mostrarToast("Producto eliminado");
+        if (!respuesta.ok) {
+            throw new Error("No se pudo eliminar el producto");
+        }
+
+        mostrarToast("Producto eliminado de PostgreSQL");
+
+        await cargarProductosDesdeBackend();
+
+    } catch (error) {
+        console.error("Error al eliminar producto:", error);
+        mostrarToast("Error al eliminar producto");
+    }
 }
 
 function limpiarFormulario() {
@@ -494,7 +493,7 @@ function limpiarFormulario() {
     tituloForm.textContent = "Agregar producto";
 }
 
-/* BANNERS */
+/* BANNERS EN LOCALSTORAGE */
 
 function cargarImagenBanner() {
     const archivo = bannerImagen.files[0];
@@ -702,7 +701,7 @@ function mostrarUsuarios() {
     });
 }
 
-/* ESTADISTICAS */
+/* ESTADÍSTICAS */
 
 function actualizarEstadisticas() {
     const totalProductos = productos.length;
@@ -733,7 +732,7 @@ function guardarPowerBI() {
         return;
     }
 
-    localStorage.setItem("fashmarket_powerbi", url);
+    localStorage.setItem("fastmarket_powerbi", url);
     mostrarReportePowerBI(url);
     mostrarToast("Reporte Power BI guardado");
 }
@@ -753,7 +752,7 @@ function obtenerUrlPowerBI(texto) {
 }
 
 function cargarPowerBI() {
-    const urlGuardada = localStorage.getItem("fashmarket_powerbi");
+    const urlGuardada = localStorage.getItem("fastmarket_powerbi");
 
     if (urlGuardada) {
         powerbiUrl.value = urlGuardada;
@@ -773,7 +772,7 @@ function mostrarReportePowerBI(url) {
 }
 
 function limpiarPowerBI() {
-    localStorage.removeItem("fashmarket_powerbi");
+    localStorage.removeItem("fastmarket_powerbi");
     powerbiUrl.value = "";
 
     powerbiReporte.classList.add("powerbi-placeholder");
@@ -788,10 +787,9 @@ function limpiarPowerBI() {
 /* UTILIDADES */
 
 function guardarDatosBase() {
-    localStorage.setItem("fashmarket_productos", JSON.stringify(productos));
-    localStorage.setItem("fashmarket_pedidos", JSON.stringify(pedidos));
-    localStorage.setItem("fashmarket_usuarios", JSON.stringify(usuarios));
-    localStorage.setItem("fashmarket_banners", JSON.stringify(banners));
+    localStorage.setItem("fastmarket_pedidos", JSON.stringify(pedidos));
+    localStorage.setItem("fastmarket_usuarios", JSON.stringify(usuarios));
+    localStorage.setItem("fastmarket_banners", JSON.stringify(banners));
 }
 
 function cargarStorage(clave, datosIniciales) {
