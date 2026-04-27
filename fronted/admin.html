@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrador | FashMarket</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+
+    <header id="header">
+        <div id="cabeza-admin">
+
+            <a href="admin.html" id="logo-admin">
+                <img src="img/logo.png" alt="Logo FashMarket">
+            </a>
+
+            <h2 id="bienvenida-admin">
+                Bienvenido al Panel de administrador, <span id="nombre-admin">Administrador</span>
+            </h2>
+
+            <div id="menu-admin">
+                <button id="btn-menu-admin">Funciones ▾</button>
+
+                <div id="opciones-admin">
+                    <button class="opcion-admin" data-panel="panel-inicio">Panel principal</button>
+                    <button class="opcion-admin" data-panel="panel-ventas">Revisar ventas</button>
+                    <button class="opcion-admin" data-panel="panel-productos">Agregar productos</button>
+                    <button class="opcion-admin" data-panel="panel-banners">Cambiar banners</button>
+                    <button class="opcion-admin" data-panel="panel-indices">Ver índices</button>
+                    <button class="opcion-admin" data-panel="panel-usuarios">Ver usuarios</button>
+                    <button class="opcion-admin" data-panel="panel-powerbi">Gráficos Power BI</button>
+                    <a href="login.html" id="cerrar-sesion">Salir</a>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <main id="admin-main">
+
+        <section id="panel-inicio" class="panel-admin activo">
+            <div class="panel-bienvenida">
+                <p class="subtitulo">Panel interno</p>
+                <h1>Gestión de tienda FashMarket</h1>
+                <p>
+                    Usa el menú de funciones para administrar productos, revisar ventas,
+                    cambiar banners, ver usuarios, consultar índices o integrar reportes.
+                </p>
+
+                <div class="atajos-admin">
+                    <button class="atajo" data-panel="panel-productos">
+                        <span>📦</span>
+                        <h3>Productos</h3>
+                        <p>Agregar, editar o eliminar productos.</p>
+                    </button>
+
+                    <button class="atajo" data-panel="panel-ventas">
+                        <span>🧾</span>
+                        <h3>Ventas</h3>
+                        <p>Revisar pedidos registrados.</p>
+                    </button>
+
+                    <button class="atajo" data-panel="panel-banners">
+                        <span>🖼️</span>
+                        <h3>Banners</h3>
+                        <p>Cambiar imágenes del carrusel de ofertas.</p>
+                    </button>
+
+                    <button class="atajo" data-panel="panel-indices">
+                        <span>📊</span>
+                        <h3>Índices</h3>
+                        <p>Ver cantidades y datos generales.</p>
+                    </button>
+
+                    <button class="atajo" data-panel="panel-usuarios">
+                        <span>👤</span>
+                        <h3>Usuarios</h3>
+                        <p>Revisar usuarios registrados.</p>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="panel-indices" class="panel-admin">
+            <div class="titulo-section">
+                <h2>Índices generales</h2>
+                <p>Resumen básico del estado actual de la tienda.</p>
+            </div>
+
+            <div id="estadisticas">
+                <article class="card-estadistica">
+                    <h3>Total productos</h3>
+                    <strong id="total-productos">0</strong>
+                    <p>Registrados en catálogo</p>
+                </article>
+
+                <article class="card-estadistica">
+                    <h3>Productos en oferta</h3>
+                    <strong id="total-ofertas">0</strong>
+                    <p>Promociones activas</p>
+                </article>
+
+                <article class="card-estadistica">
+                    <h3>Stock total</h3>
+                    <strong id="total-stock">0</strong>
+                    <p>Unidades disponibles</p>
+                </article>
+
+                <article class="card-estadistica">
+                    <h3>Ventas registradas</h3>
+                    <strong id="total-pedidos">0</strong>
+                    <p>Pedidos simulados</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="panel-productos" class="panel-admin">
+
+            <div class="titulo-section">
+                <h2>Gestión de productos</h2>
+                <p>
+                    Agrega nuevos productos, sube imágenes, actualiza precios,
+                    cambia stock, marca ofertas o elimina productos del catálogo.
+                </p>
+            </div>
+
+            <div class="admin-layout">
+
+                <form id="form-producto">
+                    <input type="hidden" id="producto-id">
+
+                    <h3 id="titulo-form">Agregar producto</h3>
+
+                    <label for="nombre">Nombre del producto</label>
+                    <input type="text" id="nombre" placeholder="Ej: Audífonos inalámbricos">
+
+                    <label for="categoria">Categoría</label>
+                    <select id="categoria">
+                        <option value="moda">Moda</option>
+                        <option value="tecnologia">Tecnología</option>
+                        <option value="hogar">Hogar</option>
+                        <option value="accesorios">Accesorios</option>
+                        <option value="estudio">Estudio</option>
+                    </select>
+
+                    <div class="form-doble">
+                        <div>
+                            <label for="precio">Precio actual</label>
+                            <input type="number" id="precio" placeholder="79.90" step="0.01">
+                        </div>
+
+                        <div>
+                            <label for="precioAntes">Precio anterior</label>
+                            <input type="number" id="precioAntes" placeholder="99.90" step="0.01">
+                        </div>
+                    </div>
+
+                    <label for="stock">Stock</label>
+                    <input type="number" id="stock" placeholder="10">
+
+                    <label for="imagen-producto">Imagen del producto</label>
+                    <input type="file" id="imagen-producto" accept="image/*">
+
+                    <input type="hidden" id="imagen-producto-valor">
+
+                    <div id="preview-producto" class="preview-producto oculto">
+                        <img id="preview-producto-img" src="img/logo.png" alt="Vista previa del producto">
+                    </div>
+
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" placeholder="Descripción corta del producto"></textarea>
+
+                    <label class="check-oferta">
+                        <input type="checkbox" id="oferta">
+                        Producto en oferta
+                    </label>
+
+                    <div class="botones-form">
+                        <button type="submit" id="btn-guardar">Guardar</button>
+                        <button type="button" id="btn-limpiar">Limpiar</button>
+                    </div>
+                </form>
+
+                <div class="tabla-contenedor">
+
+                    <div class="acciones-tabla">
+                        <input type="text" id="buscar-admin" placeholder="Buscar producto...">
+
+                        <select id="filtro-categoria">
+                            <option value="todos">Todas las categorías</option>
+                            <option value="moda">Moda</option>
+                            <option value="tecnologia">Tecnología</option>
+                            <option value="hogar">Hogar</option>
+                            <option value="accesorios">Accesorios</option>
+                            <option value="estudio">Estudio</option>
+                        </select>
+                    </div>
+
+                    <div class="tabla-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Imagen</th>
+                                    <th>Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Precio</th>
+                                    <th>Stock</th>
+                                    <th>Oferta</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tabla-productos"></tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <section id="panel-banners" class="panel-admin">
+
+            <div class="titulo-section">
+                <h2>Banners de ofertas</h2>
+                <p>
+                    Cambia las imágenes que aparecen en el carrusel automático de la página de productos.
+                    Puedes agregar imágenes desde tu computadora.
+                </p>
+            </div>
+
+            <div class="admin-layout banners-layout">
+
+                <form id="form-banner">
+                    <input type="hidden" id="banner-id">
+
+                    <h3 id="titulo-form-banner">Agregar banner</h3>
+
+                    <label for="banner-titulo">Título del banner</label>
+                    <input type="text" id="banner-titulo" placeholder="Ej: Oferta de verano">
+
+                    <label for="banner-descripcion">Descripción corta</label>
+                    <textarea id="banner-descripcion" placeholder="Ej: Descuentos especiales por tiempo limitado"></textarea>
+
+                    <label for="banner-imagen">Imagen del banner</label>
+                    <input type="file" id="banner-imagen" accept="image/*">
+
+                    <input type="hidden" id="banner-imagen-valor">
+
+                    <div id="preview-banner" class="preview-banner oculto">
+                        <img id="preview-banner-img" src="img/logo.png" alt="Vista previa del banner">
+                    </div>
+
+                    <label class="check-oferta">
+                        <input type="checkbox" id="banner-activo" checked>
+                        Banner activo
+                    </label>
+
+                    <div class="botones-form">
+                        <button type="submit" id="btn-guardar-banner">Guardar banner</button>
+                        <button type="button" id="btn-limpiar-banner">Limpiar</button>
+                    </div>
+                </form>
+
+                <div class="tabla-contenedor">
+                    <div class="acciones-tabla acciones-banner">
+                        <input type="text" id="buscar-banner" placeholder="Buscar banner...">
+                    </div>
+
+                    <div id="lista-banners" class="lista-banners"></div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section id="panel-ventas" class="panel-admin">
+
+            <div class="titulo-section">
+                <h2>Revisar ventas</h2>
+                <p>Control básico de pedidos realizados por los clientes.</p>
+            </div>
+
+            <div class="pedidos-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N° Pedido</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tabla-pedidos"></tbody>
+                </table>
+            </div>
+
+        </section>
+
+        <section id="panel-usuarios" class="panel-admin">
+
+            <div class="titulo-section">
+                <h2>Usuarios registrados</h2>
+                <p>Vista básica de los usuarios relacionados con la tienda.</p>
+            </div>
+
+            <div class="usuarios-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tabla-usuarios"></tbody>
+                </table>
+            </div>
+
+        </section>
+
+        <section id="panel-powerbi" class="panel-admin">
+
+            <div class="titulo-section">
+                <h2>Gráficos Power BI</h2>
+                <p>
+                    Aquí puedes integrar un reporte de Power BI para visualizar ventas,
+                    productos más vendidos, usuarios o crecimiento de la tienda.
+                </p>
+            </div>
+
+            <div class="powerbi-contenedor">
+
+                <div class="powerbi-info">
+                    <h3>Integrar reporte</h3>
+                    <p>
+                        Pega el enlace del reporte o el iframe generado desde Power BI.
+                    </p>
+
+                    <input type="text" id="powerbi-url" placeholder="Pega aquí el enlace o iframe de Power BI">
+
+                    <div class="powerbi-botones">
+                        <button id="btn-guardar-powerbi">Guardar reporte</button>
+                        <button id="btn-limpiar-powerbi">Limpiar</button>
+                    </div>
+                </div>
+
+                <div id="powerbi-reporte" class="powerbi-placeholder">
+                    <p>Espacio para reporte Power BI</p>
+                    <small>Cuando pegues el enlace, el reporte aparecerá aquí.</small>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer id="pie-de-pagina">
+        <div>
+            <h3>FashMarket Admin</h3>
+            <p>Panel de administración para productos, banners, ventas, usuarios e indicadores.</p>
+        </div>
+
+        <div>
+            <h3>Funciones</h3>
+            <button class="footer-link" data-panel="panel-productos">Productos</button>
+            <button class="footer-link" data-panel="panel-ventas">Ventas</button>
+            <button class="footer-link" data-panel="panel-banners">Banners</button>
+            <button class="footer-link" data-panel="panel-usuarios">Usuarios</button>
+            <button class="footer-link" data-panel="panel-powerbi">Power BI</button>
+        </div>
+
+        <div>
+            <h3>Contacto</h3>
+            <p>📞 999999999</p>
+            <p>✉️ FastMarket@gmail.com</p>
+            <p>📍 Ica, Perú</p>
+        </div>
+    </footer>
+
+    <div id="toast"></div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

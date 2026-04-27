@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de producto | FashMarket</title>
+    <link rel="stylesheet" href="detalle-producto.css">
+</head>
+
+<body>
+
+    <header id="header">
+        <div id="cabeza">
+            <a href="index.html">
+                <img class="barra" src="img/logo.png" id="logo" alt="Logo FashMarket">
+            </a>
+
+            <nav class="barra" id="nav-menu">
+                <ul>
+                    <li class="barra"><a href="index.html">Inicio</a></li>
+                    <li class="barra"><a href="productos.html">Productos</a></li>
+                    <li class="barra"><a href="nosotros.html">Nosotros</a></li>
+                    <li class="barra"><a href="#pie-de-pagina">Contacto</a></li>
+
+                    <li class="barra" id="busqueda">
+                        <img src="img/lupa.png" alt="Buscar" class="icono-menu">
+                        <input type="text" placeholder="Buscar..." id="buscador">
+                    </li>
+
+                    <li class="barra" id="carrito">
+                        <a href="productos.html">
+                            <img class="icono-menu" src="img/carrito.png" alt="Carrito">
+                        </a>
+                    </li>
+
+                    <li class="barra" id="cliente-area">
+                        <a href="login.html" id="login-btn">Login</a>
+
+                        <div id="cliente-menu" class="oculto">
+                            <button id="btn-cliente">
+                                👤 <span id="nombre-cliente">Cliente</span> ▾
+                            </button>
+
+                            <div id="opciones-cliente">
+                                <a href="perfil.html">Mi perfil</a>
+                                <a href="pedidos.html">Mis pedidos</a>
+                                <a href="perfil.html#direcciones">Direcciones</a>
+                                <a href="perfil.html#seguridad">Seguridad</a>
+                                <button id="cerrar-sesion-cliente">Cerrar sesión</button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="detalle-main">
+
+        <section id="detalle-producto">
+
+            <div id="imagen-producto">
+                <img id="producto-img" src="img/logo.png" alt="Producto">
+                <span id="etiqueta-oferta" class="oculto">Oferta</span>
+            </div>
+
+            <div id="info-producto">
+                <p id="producto-categoria">Categoría</p>
+                <h1 id="producto-nombre">Producto</h1>
+                <p id="producto-descripcion">Descripción del producto.</p>
+
+                <div id="precio-producto">
+                    <strong id="producto-precio">S/ 0.00</strong>
+                    <span id="producto-precio-antes"></span>
+                </div>
+
+                <div id="cantidad-box">
+                    <button id="restar">-</button>
+                    <span id="cantidad">1</span>
+                    <button id="sumar">+</button>
+                </div>
+
+                <button id="agregar-carrito">Agregar al carrito</button>
+                <button id="comprar-ahora">Comprar ahora</button>
+
+                <p id="mensaje-detalle"></p>
+
+                <div id="beneficios-producto">
+                    <article>
+                        <h3>🚚 Envío rápido</h3>
+                        <p>Entrega coordinada dentro de Ica.</p>
+                    </article>
+
+                    <article>
+                        <h3>🔒 Compra segura</h3>
+                        <p>Pedido registrado en tu cuenta.</p>
+                    </article>
+
+                    <article>
+                        <h3>💬 Soporte</h3>
+                        <p>Consulta disponibilidad antes de comprar.</p>
+                    </article>
+                </div>
+            </div>
+
+        </section>
+
+        <section id="relacionados-section">
+            <div class="titulo-section">
+                <h2>Productos relacionados</h2>
+                <p>También podrían interesarte estos productos.</p>
+            </div>
+
+            <div id="productos-relacionados"></div>
+        </section>
+
+    </main>
+
+    <footer id="pie-de-pagina">
+        <div>
+            <h3>FashMarket</h3>
+            <p>Productos variados, ofertas y atención rápida.</p>
+        </div>
+
+        <div>
+            <h3>Enlaces</h3>
+            <a href="productos.html">Productos</a>
+            <a href="checkout.html">Finalizar compra</a>
+            <a href="ayuda.html">Ayuda</a>
+        </div>
+
+        <div>
+            <h3>Legal</h3>
+            <a href="terminos.html">Términos</a>
+            <a href="politicas.html">Políticas</a>
+        </div>
+    </footer>
+
+    <script src="detalle-producto.js"></script>
+</body>
+</html>

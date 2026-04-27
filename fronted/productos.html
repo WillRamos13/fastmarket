@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos | FashMarket</title>
+    <link rel="stylesheet" href="productos.css">
+</head>
+
+<body>
+
+    <header id="header">
+        <div id="cabeza">
+            <a href="index.html">
+                <img class="barra" src="img/logo.png" id="logo" alt="Logo FashMarket">
+            </a>
+
+            <nav class="barra" id="nav-menu">
+                <ul>
+                    <li class="barra"><a href="index.html">Inicio</a></li>
+                    <li class="barra"><a href="productos.html">Productos</a></li>
+                    <li class="barra"><a href="nosotros.html">Nosotros</a></li>
+                    <li class="barra"><a href="#pie-de-pagina">Contacto</a></li>
+
+                    <li class="barra" id="busqueda">
+                        <img src="img/lupa.png" alt="Buscar" class="icono-menu">
+                        <input type="text" placeholder="Buscar..." id="buscador-header">
+                    </li>
+
+                    <li class="barra" id="carrito">
+                        <img class="icono-menu" src="img/carrito.png" alt="Carrito">
+                        <span id="contador-carrito">0</span>
+                    </li>
+
+                    <li class="barra" id="cliente-area">
+
+                        <a href="login.html" id="login-btn">Login</a>
+
+                        <div id="cliente-menu" class="oculto">
+                            <button id="btn-cliente">
+                                👤 <span id="nombre-cliente">Cliente</span> ▾
+                            </button>
+
+                            <div id="opciones-cliente">
+                                <a href="perfil.html">Mi perfil</a>
+                                <a href="pedidos.html">Mis pedidos</a>
+                                <button data-cliente-panel="direcciones">Direcciones</button>
+                                <button data-cliente-panel="seguridad">Seguridad</button>
+                                <button id="cerrar-sesion-cliente">Cerrar sesión</button>
+                            </div>
+                        </div>
+
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="cuerpo-productos">
+
+        <section id="ofertas-slider">
+            <div class="slider-texto">
+                <h1>Ofertas disponibles</h1>
+                <p>Revisa nuestras promociones y productos destacados.</p>
+            </div>
+
+            <div class="slider">
+                <div class="slider-contenedor" id="slider-contenedor">
+                    <!-- Los banners se cargan desde el panel de administrador -->
+                </div>
+
+                <button class="slider-btn" id="anterior">‹</button>
+                <button class="slider-btn" id="siguiente">›</button>
+
+                <div class="puntos" id="puntos"></div>
+            </div>
+        </section>
+
+        <section id="productos-section">
+
+            <div class="titulo-productos">
+                <h2>Productos</h2>
+                <p>Busca productos por nombre o filtra por categoría.</p>
+            </div>
+
+            <div class="barra-productos">
+                <input type="text" id="buscar-producto" placeholder="Buscar producto...">
+
+                <select id="ordenar-producto">
+                    <option value="normal">Ordenar</option>
+                    <option value="menor">Menor precio</option>
+                    <option value="mayor">Mayor precio</option>
+                </select>
+            </div>
+
+            <div class="categorias">
+                <button class="categoria-btn activo" data-categoria="todos">Todos</button>
+                <button class="categoria-btn" data-categoria="moda">Moda</button>
+                <button class="categoria-btn" data-categoria="tecnologia">Tecnología</button>
+                <button class="categoria-btn" data-categoria="hogar">Hogar</button>
+                <button class="categoria-btn" data-categoria="accesorios">Accesorios</button>
+            </div>
+
+            <div id="productos-contenedor" class="productos-contenedor"></div>
+
+            <div id="mensaje-vacio">
+                <h3>No se encontraron productos</h3>
+                <p>Intenta con otra búsqueda o categoría.</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <div id="overlay-carrito"></div>
+
+    <aside id="panel-carrito">
+        <div id="carrito-header">
+            <div>
+                <h2>Mi carrito</h2>
+                <p id="carrito-subtitulo">Productos agregados</p>
+            </div>
+
+            <button id="cerrar-carrito">×</button>
+        </div>
+
+        <div id="carrito-lista">
+            <p class="carrito-vacio">Tu carrito está vacío.</p>
+        </div>
+
+        <div id="carrito-total">
+            <div>
+                <span>Total:</span>
+                <strong id="total-carrito">S/ 0.00</strong>
+            </div>
+
+            <button id="finalizar-compra">Finalizar compra</button>
+            <button id="vaciar-carrito">Vaciar carrito</button>
+        </div>
+    </aside>
+
+    <div id="overlay-cliente"></div>
+
+    <aside id="panel-cliente">
+        <div id="cliente-panel-header">
+            <h2 id="titulo-panel-cliente">Mi perfil</h2>
+            <button id="cerrar-panel-cliente">×</button>
+        </div>
+
+        <div id="contenido-panel-cliente"></div>
+    </aside>
+
+    <div id="chat-soporte">
+        <spline-viewer
+            class="robot-3d"
+            url="https://prod.spline.design/TeR6aLB5yvJrR1j8/scene.splinecode">
+        </spline-viewer>
+    </div>
+
+    <div id="chat-box">
+        <div id="chat-header">
+            <span>Chat rápido</span>
+            <button id="cerrar-chat">×</button>
+        </div>
+
+        <div id="chat-mensajes">
+            <div class="mensaje bot">Hola soy Fastmarki ¿En qué puedo ayudarte?</div>
+        </div>
+
+        <div id="chat-input">
+            <input type="text" id="mensaje" placeholder="Escribe tu consulta">
+            <button id="enviar">Enviar</button>
+        </div>
+    </div>
+
+    <footer id="pie-de-pagina">
+        <div id="footer-contenedor">
+
+            <div class="footer-caja">
+                <h3>FashMarket</h3>
+                <p>Productos variados, ofertas y atención rápida para tus compras.</p>
+            </div>
+
+            <div class="footer-caja">
+                <h3>Contacto</h3>
+                <a href="https://www.instagram.com/" target="_blank">📞 999999999</a>
+                <a href="https://www.instagram.com/" target="_blank">✉️ FastMarket@gmail.com</a>
+                <a href="https://www.instagram.com/" target="_blank">📍 Ica, Perú</a>
+            </div>
+
+            <div class="footer-caja">
+                <h3>Síguenos</h3>
+                <a href="https://www.instagram.com/" target="_blank">Instagram</a>
+                <a href="https://www.facebook.com/?locale=es_LA" target="_blank">Facebook</a>
+                <a href="https://web.whatsapp.com/" target="_blank">WhatsApp</a>
+                <a href="https://www.tiktok.com/es-419/" target="_blank">Tik Tok</a>
+            </div>
+
+        </div>
+    </footer>
+
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.88/build/spline-viewer.js"></script>
+    <script src="productos.js"></script>
+
+</body>
+</html>

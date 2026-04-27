@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FashMarket</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+    <div id="despliegue">
+        <img src="img/intro.png" alt="Imagen de inicio" id="despliegue-img">
+    </div>
+
+    <header id="header">
+        <div id="cabeza">
+            <img class="barra" src="img/logo.png" id="logo" alt="Logo FashMarket">
+
+            <nav class="barra" id="nav-menu">
+                <ul>
+                    <li class="barra"><a href="#inicio">Inicio</a></li>
+                    <li class="barra"><a href="productos.html">Productos</a></li>
+                    <li class="barra"><a href="nosotros.html">Nosotros</a></li>
+                    <li class="barra"><a href="#ofertas">Ofertas</a></li>
+                    <li class="barra"><a href="#pie-de-pagina">Contacto</a></li>
+
+                    <li class="barra" id="busqueda">
+                        <img src="img/lupa.png" alt="Buscar" class="icono-menu">
+                        <input type="text" placeholder="Buscar..." id="buscador">
+                    </li>
+
+                    <li class="barra" id="carrito">
+                        <a href="productos.html">
+                            <img class="icono-menu" src="img/carrito.png" alt="Carrito de compras">
+                        </a>
+                    </li>
+
+                    <li class="barra" id="cliente-area">
+
+                        <a href="login.html" id="login-btn">Login</a>
+
+                        <div id="cliente-menu" class="oculto">
+                            <button id="btn-cliente">
+                                👤 <span id="nombre-cliente">Cliente</span> ▾
+                            </button>
+
+                            <div id="opciones-cliente">
+                                <a href="perfil.html">Mi perfil</a>
+                                <a href="pedidos.html">Mis pedidos</a>
+                                <button data-cliente-panel="direcciones">Direcciones</button>
+                                <button data-cliente-panel="seguridad">Seguridad</button>
+                                <button id="cerrar-sesion-cliente">Cerrar sesión</button>
+                            </div>
+                        </div>
+
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- PANEL LATERAL DEL CLIENTE -->
+    <div id="overlay-cliente"></div>
+
+    <aside id="panel-cliente">
+        <div id="cliente-panel-header">
+            <h2 id="titulo-panel-cliente">Mi perfil</h2>
+            <button id="cerrar-panel-cliente">×</button>
+        </div>
+
+        <div id="contenido-panel-cliente"></div>
+    </aside>
+
+    <main id="cuerpo">
+
+        <!-- SECCIÓN 1: INICIO -->
+        <section id="inicio" class="seccion seccion-inicio">
+            <div class="hero-contenido">
+                <div class="hero-texto">
+                    <h3 id="cuadro1">- Bienvenido a FashMarket</h3>
+
+                    <h1 id="cuadro2">
+                        Todo lo que necesitas<br>
+                        en un solo lugar<br>
+                        fácil y rápido
+                    </h1>
+
+                    <p id="cuadro3">
+                        Encuentra productos modernos, ofertas exclusivas y envíos rápidos
+                        para que comprar sea más simple, seguro y cómodo.
+                    </p>
+
+                    <div id="cuadro4">
+                        <a href="productos.html" id="figura1">🛒 Ver productos</a>
+                        <a href="#ofertas" id="figura2">🏷️ Ver ofertas</a>
+                    </div>
+                </div>
+
+                <div id="extras">
+                    <section class="section-extra">
+                        <img class="extras-img" src="img/envios.png" alt="Envíos rápidos">
+                        <div class="cubitos">
+                            <h3>Envíos rápidos</h3>
+                            <p>a todo Ica</p>
+                        </div>
+                    </section>
+
+                    <hr class="separacion">
+
+                    <section class="section-extra">
+                        <img class="extras-img" src="img/seguridad.png" alt="Compras seguras">
+                        <div class="cubitos">
+                            <h3>Compra segura</h3>
+                            <p>datos protegidos</p>
+                        </div>
+                    </section>
+
+                    <hr class="separacion">
+
+                    <section class="section-extra">
+                        <img class="extras-img" src="img/atencion.png" alt="Atención personalizada">
+                        <div class="cubitos">
+                            <h3>Atención personalizada</h3>
+                            <p>las 24 horas</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <img id="png" src="img/abrir.png" alt="Imagen principal de tienda">
+        </section>
+
+        <!-- SECCIÓN 2: PRESENTACIÓN -->
+        <section id="presentacion" class="seccion seccion-presentacion">
+            <div class="titulo-section">
+                <span class="etiqueta">Nuestra tienda</span>
+                <h2>Una experiencia de compra rápida, moderna y confiable</h2>
+                <p>
+                    FashMarket es una tienda pensada para personas que buscan productos útiles,
+                    precios accesibles y una atención directa. Nuestro objetivo es que encuentres
+                    lo que necesitas sin perder tiempo.
+                </p>
+            </div>
+
+            <div class="presentacion-grid">
+                <article>
+                    <h3>Compra desde cualquier lugar</h3>
+                    <p>
+                        Revisa productos desde tu celular, laptop o computadora. Nuestra página está
+                        organizada para que encuentres categorías, ofertas y contacto rápidamente.
+                    </p>
+                </article>
+
+                <article>
+                    <h3>Productos para el día a día</h3>
+                    <p>
+                        Tenemos artículos pensados para moda, tecnología, hogar, regalos y accesorios.
+                        La idea es reunir variedad en un solo espacio.
+                    </p>
+                </article>
+
+                <article>
+                    <h3>Atención cercana</h3>
+                    <p>
+                        Puedes escribirnos para consultar precios, disponibilidad, colores, tallas,
+                        formas de entrega y detalles antes de confirmar tu compra.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: CATEGORÍAS -->
+        <section id="categorias" class="seccion seccion-categorias">
+            <div class="titulo-section titulo-claro">
+                <span class="etiqueta">Categorías</span>
+                <h2>Explora productos según lo que necesitas</h2>
+                <p>
+                    Organizamos nuestros productos por categorías para que comprar sea más fácil,
+                    ordenado y rápido.
+                </p>
+            </div>
+
+            <div class="cards-index">
+                <article class="card-index">
+                    <div class="icono-card">👕</div>
+                    <h3>Moda</h3>
+                    <p>Ropa, accesorios y productos para mejorar tu estilo diario.</p>
+                </article>
+
+                <article class="card-index">
+                    <div class="icono-card">📱</div>
+                    <h3>Tecnología</h3>
+                    <p>Accesorios útiles para estudiar, trabajar, jugar o entretenerte.</p>
+                </article>
+
+                <article class="card-index">
+                    <div class="icono-card">🏠</div>
+                    <h3>Hogar</h3>
+                    <p>Artículos para organizar, decorar y hacer más cómodo tu espacio.</p>
+                </article>
+
+                <article class="card-index">
+                    <div class="icono-card">🎁</div>
+                    <h3>Regalos</h3>
+                    <p>Opciones prácticas para cumpleaños, detalles y ocasiones especiales.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 4: PRODUCTOS DESTACADOS -->
+        <section id="destacados" class="seccion seccion-destacados">
+            <div class="titulo-section">
+                <span class="etiqueta">Destacados</span>
+                <h2>Productos recomendados para ti</h2>
+                <p>
+                    Estos productos representan la idea de FashMarket: artículos útiles, llamativos
+                    y con buena relación entre precio y calidad.
+                </p>
+            </div>
+
+            <div class="productos-grid">
+                <article class="producto-card">
+                    <div class="producto-img">🎧</div>
+                    <h3>Audífonos inalámbricos</h3>
+                    <p>Ideales para clases, música, llamadas y entretenimiento.</p>
+                    <span>S/ 79.90</span>
+                </article>
+
+                <article class="producto-card">
+                    <div class="producto-img">👜</div>
+                    <h3>Bolso urbano</h3>
+                    <p>Diseño moderno para salir, estudiar o trabajar.</p>
+                    <span>S/ 59.90</span>
+                </article>
+
+                <article class="producto-card">
+                    <div class="producto-img">⌚</div>
+                    <h3>Smartwatch básico</h3>
+                    <p>Control de actividad, notificaciones y diseño cómodo.</p>
+                    <span>S/ 99.90</span>
+                </article>
+
+                <article class="producto-card">
+                    <div class="producto-img">💡</div>
+                    <h3>Lámpara decorativa</h3>
+                    <p>Perfecta para dormitorios, escritorios y espacios modernos.</p>
+                    <span>S/ 39.90</span>
+                </article>
+            </div>
+
+            <div class="boton-centro">
+                <a href="productos.html" class="boton-principal">Ver catálogo completo</a>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 5: OFERTAS -->
+        <section id="ofertas" class="seccion seccion-ofertas">
+            <div class="oferta-texto">
+                <span class="etiqueta etiqueta-clara">Promociones</span>
+                <h2>Ofertas que no puedes dejar pasar</h2>
+                <p>
+                    Aprovecha descuentos especiales en productos seleccionados. Nuestras ofertas
+                    pueden cambiar según temporada, disponibilidad y novedades de la tienda.
+                </p>
+
+                <div class="oferta-lista">
+                    <p>✔ Descuentos por lanzamiento</p>
+                    <p>✔ Promociones semanales</p>
+                    <p>✔ Productos con stock limitado</p>
+                </div>
+
+                <a href="productos.html" class="boton-oferta">Ver ofertas disponibles</a>
+            </div>
+
+            <div class="oferta-caja">
+                <h3>Hasta 30%</h3>
+                <p>de descuento en productos seleccionados.</p>
+                <small>Promoción válida hasta agotar stock.</small>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 6: BENEFICIOS -->
+        <section id="beneficios" class="seccion seccion-beneficios">
+            <div class="titulo-section">
+                <span class="etiqueta">Beneficios</span>
+                <h2>¿Por qué comprar en FashMarket?</h2>
+                <p>
+                    Queremos que cada compra sea sencilla, clara y segura. Por eso nos enfocamos
+                    en atención, rapidez y confianza.
+                </p>
+            </div>
+
+            <div class="beneficios-grid">
+                <article class="beneficio">
+                    <h3>🚚 Envíos rápidos</h3>
+                    <p>
+                        Coordinamos entregas dentro de Ica para que recibas tus productos sin complicaciones.
+                    </p>
+                </article>
+
+                <article class="beneficio">
+                    <h3>🔒 Compra segura</h3>
+                    <p>
+                        Confirmamos los detalles de tu pedido y cuidamos la información que compartes.
+                    </p>
+                </article>
+
+                <article class="beneficio">
+                    <h3>💬 Soporte personalizado</h3>
+                    <p>
+                        Te ayudamos a elegir productos según tu necesidad, presupuesto o preferencia.
+                    </p>
+                </article>
+
+                <article class="beneficio">
+                    <h3>🏷️ Precios accesibles</h3>
+                    <p>
+                        Buscamos ofrecer productos atractivos con precios competitivos para el público.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 7: CÓMO COMPRAR -->
+        <section id="como-comprar" class="seccion seccion-como-comprar">
+            <div class="titulo-section">
+                <span class="etiqueta">Proceso</span>
+                <h2>Comprar es muy sencillo</h2>
+                <p>
+                    Sigue estos pasos para realizar tu pedido de manera rápida y ordenada.
+                </p>
+            </div>
+
+            <div class="pasos-grid">
+                <article class="paso">
+                    <span>1</span>
+                    <h3>Explora</h3>
+                    <p>
+                        Ingresa al catálogo y revisa las categorías disponibles.
+                    </p>
+                </article>
+
+                <article class="paso">
+                    <span>2</span>
+                    <h3>Elige</h3>
+                    <p>
+                        Selecciona el producto que más te guste y revisa sus detalles.
+                    </p>
+                </article>
+
+                <article class="paso">
+                    <span>3</span>
+                    <h3>Consulta</h3>
+                    <p>
+                        Escríbenos para confirmar stock, colores, tallas o disponibilidad.
+                    </p>
+                </article>
+
+                <article class="paso">
+                    <span>4</span>
+                    <h3>Recibe</h3>
+                    <p>
+                        Coordina la entrega y recibe tu compra de forma segura.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 8: TESTIMONIOS -->
+        <section id="testimonios" class="seccion seccion-testimonios">
+            <div class="titulo-section titulo-claro">
+                <span class="etiqueta etiqueta-clara">Opiniones</span>
+                <h2>Lo que valoran nuestros clientes</h2>
+                <p>
+                    La confianza se construye con buena atención, claridad y cumplimiento en cada pedido.
+                </p>
+            </div>
+
+            <div class="testimonios-grid">
+                <article class="testimonio">
+                    <p>
+                        “Me atendieron rápido y pude consultar antes de hacer mi compra. El proceso fue sencillo.”
+                    </p>
+                    <h4>- Cliente de Ica</h4>
+                </article>
+
+                <article class="testimonio">
+                    <p>
+                        “Encontré productos bonitos y con buen precio. Me gustó que respondieran mis dudas.”
+                    </p>
+                    <h4>- Comprador frecuente</h4>
+                </article>
+
+                <article class="testimonio">
+                    <p>
+                        “La página se ve ordenada y es fácil encontrar ofertas, productos y medios de contacto.”
+                    </p>
+                    <h4>- Usuario FashMarket</h4>
+                </article>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 9: PREGUNTAS FRECUENTES -->
+        <section id="preguntas" class="seccion seccion-preguntas">
+            <div class="titulo-section">
+                <span class="etiqueta">Ayuda</span>
+                <h2>Preguntas frecuentes</h2>
+                <p>
+                    Antes de comprar, revisa estas respuestas rápidas sobre productos, envíos y atención.
+                </p>
+            </div>
+
+            <div class="faq-contenedor">
+                <article class="faq-item">
+                    <h3>¿Hacen envíos a todo Ica?</h3>
+                    <p>Sí, los envíos se coordinan según la zona, disponibilidad y horario acordado.</p>
+                </article>
+
+                <article class="faq-item">
+                    <h3>¿Puedo preguntar antes de comprar?</h3>
+                    <p>Sí. Puedes escribir por el chat, redes sociales o el contacto de la tienda.</p>
+                </article>
+
+                <article class="faq-item">
+                    <h3>¿Las ofertas siempre están disponibles?</h3>
+                    <p>No siempre. Algunas promociones dependen del stock y pueden cambiar durante la semana.</p>
+                </article>
+
+                <article class="faq-item">
+                    <h3>¿Puedo ver más productos?</h3>
+                    <p>Sí. En la página de productos podrás revisar el catálogo completo de FashMarket.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 10: CONTACTO RÁPIDO -->
+        <section id="contacto-rapido" class="seccion seccion-contacto">
+            <div class="contacto-texto">
+                <span class="etiqueta etiqueta-clara">Contacto</span>
+                <h2>¿Tienes dudas sobre un producto?</h2>
+                <p>
+                    Escríbenos y te ayudaremos a elegir la mejor opción. También puedes consultar por
+                    ofertas, disponibilidad, métodos de entrega y novedades.
+                </p>
+            </div>
+
+            <div class="contacto-panel">
+                <h3>Atención FashMarket</h3>
+                <p>📞 Teléfono: 999999999</p>
+                <p>✉️ Correo: FastMarket@gmail.com</p>
+                <p>📍 Ubicación: Ica, Perú</p>
+
+                <div class="contacto-botones">
+                    <a href="#chat-soporte" class="boton-principal boton-blanco">Abrir chat</a>
+                    <a href="#pie-de-pagina" class="boton-secundario">Ver redes</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer id="pie-de-pagina">
+            <div id="contactos-redes">
+
+                <div id="contactos-redes1">
+                    <h3 id="redes">Síguenos en</h3>
+
+                    <nav class="redes nav-redes">
+                        <ul>
+                            <li class="redes">
+                                <a href="https://www.instagram.com/" target="_blank">
+                                    <img class="logo-redes" src="img/instagram.png" alt="Instagram"> Instagram
+                                </a>
+                            </li>
+
+                            <li class="redes">
+                                <a href="https://www.facebook.com/?locale=es_LA" target="_blank">
+                                    <img class="logo-redes" src="img/facebook.png" alt="Facebook"> Facebook
+                                </a>
+                            </li>
+
+                            <li class="redes">
+                                <a href="https://web.whatsapp.com/" target="_blank">
+                                    <img class="logo-redes" src="img/whatsapp.png" alt="WhatsApp"> WhatsApp
+                                </a>
+                            </li>
+
+                            <li class="redes">
+                                <a href="https://www.tiktok.com/es-419/" target="_blank">
+                                    <img class="logo-redes" src="img/tiktok.png" alt="TikTok"> Tik Tok
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div id="contactos-redes2">
+                    <h3 class="footer-titulo">Contacto</h3>
+
+                    <nav class="redes nav-redes contacto-footer">
+                        <ul>
+                            <li class="redes"><a href="https://www2.claro.com.pe/institucional/centro-de-prensa/ampliacion-sms/">📞 999999999</a></li>
+                            <li class="redes"><a href="https://mail.google.com/mail/u/0/#inbox">✉️ FastMarket@gmail.com</a></li>
+                            <li class="redes"><a href="https://maps.app.goo.gl/H98FeKnEgCrhqcXd9">📍 Ica, Perú</a></li>
+                        </ul>
+                    </nav>
+                </div>
+
+            </div>
+        </footer>
+
+        <!-- BOTÓN CHAT -->
+        <div id="chat-soporte">
+            <spline-viewer
+                class="robot-3d"
+                url="https://prod.spline.design/TeR6aLB5yvJrR1j8/scene.splinecode">
+            </spline-viewer>
+        </div>
+
+        <!-- CAJA CHAT -->
+        <div id="chat-box">
+            <div id="chat-header">
+                <span>Chat rápido</span>
+                <button id="cerrar-chat">×</button>
+            </div>
+
+            <div id="chat-mensajes">
+                <div class="mensaje bot">Hola, soy Fastmarki. ¿En qué puedo ayudarte?</div>
+            </div>
+
+            <div id="chat-input">
+                <input type="text" id="mensaje" placeholder="Escribe tu consulta">
+                <button id="enviar">Enviar</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.88/build/spline-viewer.js"></script>
+    <script src="index.js"></script>
+
+</body>
+</html>

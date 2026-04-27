@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar contraseña | FashMarket</title>
+    <link rel="stylesheet" href="recuperar-contrasena.css">
+</head>
+
+<body>
+
+    <main id="recuperar-main">
+
+        <section id="recuperar-card">
+
+            <div id="recuperar-info">
+                <h1>Recuperar contraseña</h1>
+                <p>
+                    Ingresa el correo con el que te registraste y crea una nueva contraseña
+                    para volver a acceder a tu cuenta.
+                </p>
+
+                <div class="info-pasos">
+                    <p>🔎 Verificamos tu correo</p>
+                    <p>🔐 Cambias tu contraseña</p>
+                    <p>✅ Vuelves a iniciar sesión</p>
+                </div>
+            </div>
+
+            <form id="form-recuperar">
+
+                <h2>Cambiar contraseña</h2>
+
+                <label for="correo">Correo registrado</label>
+                <input type="email" id="correo" placeholder="cliente@gmail.com">
+
+                <label for="nueva-password">Nueva contraseña</label>
+                <input type="password" id="nueva-password" placeholder="Nueva contraseña">
+
+                <label for="confirmar-password">Confirmar contraseña</label>
+                <input type="password" id="confirmar-password" placeholder="Repite la contraseña">
+
+                <button type="submit">Actualizar contraseña</button>
+
+                <p id="mensaje-recuperar"></p>
+
+                <div class="links">
+                    <a href="login.html">Volver al login</a>
+                    <a href="productos.html">Ir a productos</a>
+                </div>
+
+            </form>
+
+        </section>
+
+    </main>
+
+    <script src="recuperar-contrasena.js"></script>
+</body>
+</html>

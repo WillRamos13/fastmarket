@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ayuda | FashMarket</title>
+    <link rel="stylesheet" href="ayuda.css">
+</head>
+
+<body>
+
+    <header id="header">
+        <div id="cabeza">
+            <a href="index.html">
+                <img src="img/logo.png" id="logo" alt="Logo FashMarket">
+            </a>
+
+            <nav id="nav-menu">
+                <ul>
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="productos.html">Productos</a></li>
+                    <li><a href="nosotros.html">Nosotros</a></li>
+                    <li><a href="terminos.html">Términos</a></li>
+                    <li><a href="login.html" id="login-btn">Login</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="ayuda-main">
+
+        <section id="ayuda-hero">
+            <p class="subtitulo">Centro de ayuda</p>
+            <h1>¿Necesitas ayuda?</h1>
+            <p>
+                Encuentra respuestas sobre compras, pedidos, entregas,
+                recuperación de contraseña y uso de tu cuenta.
+            </p>
+        </section>
+
+        <section id="ayuda-contenido">
+
+            <div id="buscador-ayuda">
+                <input type="text" id="buscar-ayuda" placeholder="Buscar una pregunta...">
+            </div>
+
+            <div id="faq-lista">
+
+                <article class="faq-item">
+                    <h2>¿Cómo puedo registrarme?</h2>
+                    <p>
+                        Ingresa a la página de login, selecciona “Registrarse” y completa tus datos:
+                        nombre, correo, teléfono, dirección y contraseña.
+                    </p>
+                </article>
+
+                <article class="faq-item">
+                    <h2>¿Cómo inicio sesión?</h2>
+                    <p>
+                        Entra a login.html, escribe tu correo y contraseña registrados, y presiona
+                        el botón “Entrar”.
+                    </p>
+                </article>
+
+                <article class="faq-item">
+                    <h2>¿Qué hago si olvidé mi contraseña?</h2>
+                    <p>
+                        Ingresa a recuperar-contrasena.html, coloca tu correo registrado y crea una
+                        nueva contraseña.
+                    </p>
+                </article>
+
+                <article class="faq-item">
+                    <h2>¿Cómo agrego productos al carrito?</h2>
+                    <p>
+                        En la página de productos, presiona “Agregar al carrito”. También puedes entrar
+                        al detalle del producto y seleccionar la cantidad.
+                    </p>
+                </article>
+
+                <article class="faq-item">
+                    <h2>¿Cómo finalizo una compra?</h2>
+                    <p>
+                        Dirígete a checkout.html, confirma tus productos, dirección de entrega y método
+                        de pago. Luego presiona “Confirmar pedido”.
+                    </p>
+                </article>
+
+                <article class="faq-item">
+                    <h2>¿Dónde veo mis pedidos?</h2>
+                    <p>
+                        Desde el menú del cliente entra a “Mis pedidos”. Ahí verás estado, productos,
+                        total, dirección y mapa de seguimiento.
+                    </p>
+                </article>
+
+                <article class="faq-item">
+                    <h2>¿Dónde se guardan mis datos?</h2>
+                    <p>
+                        Actualmente se guardan en localStorage del navegador porque el proyecto está
+                        en etapa frontend. Luego se conectará con Spring Boot.
+                    </p>
+                </article>
+
+                <article class="faq-item">
+                    <h2>¿El mapa muestra mi ubicación real?</h2>
+                    <p>
+                        El mapa muestra una ubicación aproximada según la dirección escrita por el cliente.
+                    </p>
+                </article>
+
+            </div>
+
+            <div id="sin-resultados" class="oculto">
+                <h2>No encontramos resultados</h2>
+                <p>Intenta buscar con otra palabra.</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer id="pie-de-pagina">
+        <div>
+            <h3>FashMarket</h3>
+            <p>Centro de ayuda para clientes y usuarios.</p>
+        </div>
+
+        <div>
+            <h3>Cuenta</h3>
+            <a href="login.html">Login</a>
+            <a href="perfil.html">Mi perfil</a>
+            <a href="pedidos.html">Mis pedidos</a>
+        </div>
+
+        <div>
+            <h3>Legal</h3>
+            <a href="terminos.html">Términos</a>
+            <a href="politicas.html">Políticas</a>
+        </div>
+    </footer>
+
+    <script src="ayuda.js"></script>
+</body>
+</html>

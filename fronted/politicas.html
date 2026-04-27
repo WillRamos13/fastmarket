@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Políticas de privacidad | FashMarket</title>
+    <link rel="stylesheet" href="politicas.css">
+</head>
+
+<body>
+
+    <header id="header">
+        <div id="cabeza">
+            <a href="index.html">
+                <img src="img/logo.png" id="logo" alt="Logo FashMarket">
+            </a>
+
+            <nav id="nav-menu">
+                <ul>
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="productos.html">Productos</a></li>
+                    <li><a href="nosotros.html">Nosotros</a></li>
+                    <li><a href="ayuda.html">Ayuda</a></li>
+                    <li><a href="login.html" id="login-btn">Login</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="legal-main">
+
+        <section id="legal-hero">
+            <p class="subtitulo">Privacidad</p>
+            <h1>Políticas de privacidad</h1>
+            <p>
+                Conoce cómo FashMarket utiliza y protege la información del cliente
+                dentro del sistema frontend.
+            </p>
+        </section>
+
+        <section id="legal-contenido">
+
+            <article>
+                <h2>1. Datos que se solicitan</h2>
+                <p>
+                    FashMarket puede solicitar nombre, correo, teléfono y dirección de entrega
+                    para simular el registro, inicio de sesión, compras y seguimiento de pedidos.
+                </p>
+            </article>
+
+            <article>
+                <h2>2. Almacenamiento actual</h2>
+                <p>
+                    Actualmente los datos se almacenan en localStorage del navegador. Esto permite
+                    simular el funcionamiento del sistema mientras se desarrolla el backend.
+                </p>
+            </article>
+
+            <article>
+                <h2>3. Uso de la información</h2>
+                <p>
+                    Los datos se utilizan para mostrar el perfil del cliente, guardar direcciones,
+                    registrar pedidos y permitir el seguimiento de compras.
+                </p>
+            </article>
+
+            <article>
+                <h2>4. Seguridad</h2>
+                <p>
+                    El almacenamiento actual es solo para pruebas frontend. En una versión real,
+                    las contraseñas no deben guardarse directamente en el navegador ni en texto plano.
+                    Con Spring Boot se debe implementar seguridad adecuada.
+                </p>
+            </article>
+
+            <article>
+                <h2>5. Eliminación de datos</h2>
+                <p>
+                    El usuario puede cerrar sesión o borrar los datos desde el navegador. Más adelante,
+                    con backend, se podrá implementar eliminación de cuenta desde la base de datos.
+                </p>
+            </article>
+
+            <article>
+                <h2>6. Uso de mapas</h2>
+                <p>
+                    La página de pedidos utiliza una integración visual de Google Maps para mostrar
+                    una ubicación aproximada basada en la dirección ingresada por el cliente.
+                </p>
+            </article>
+
+        </section>
+
+    </main>
+
+    <footer id="pie-de-pagina">
+        <div>
+            <h3>FashMarket</h3>
+            <p>Protección de datos y transparencia para el cliente.</p>
+        </div>
+
+        <div>
+            <h3>Legal</h3>
+            <a href="terminos.html">Términos</a>
+            <a href="politicas.html">Políticas</a>
+        </div>
+
+        <div>
+            <h3>Ayuda</h3>
+            <a href="ayuda.html">Centro de ayuda</a>
+            <a href="productos.html">Productos</a>
+        </div>
+    </footer>
+
+    <script src="politicas.js"></script>
+</body>
+</html>

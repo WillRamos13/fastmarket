@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi perfil | FashMarket</title>
+    <link rel="stylesheet" href="perfil.css">
+</head>
+
+<body>
+
+    <header id="header">
+        <div id="cabeza">
+            <a href="index.html">
+                <img class="barra" src="img/logo.png" id="logo" alt="Logo FashMarket">
+            </a>
+
+            <nav class="barra" id="nav-menu">
+                <ul>
+                    <li class="barra"><a href="index.html">Inicio</a></li>
+                    <li class="barra"><a href="productos.html">Productos</a></li>
+                    <li class="barra"><a href="nosotros.html">Nosotros</a></li>
+                    <li class="barra"><a href="#pie-de-pagina">Contacto</a></li>
+
+                    <li class="barra" id="busqueda">
+                        <img src="img/lupa.png" alt="Buscar" class="icono-menu">
+                        <input type="text" placeholder="Buscar..." id="buscador">
+                    </li>
+
+                    <li class="barra" id="carrito">
+                        <a href="productos.html">
+                            <img class="icono-menu" src="img/carrito.png" alt="Carrito">
+                        </a>
+                    </li>
+
+                    <li class="barra" id="cliente-area">
+                        <a href="login.html" id="login-btn">Login</a>
+
+                        <div id="cliente-menu" class="oculto">
+                            <button id="btn-cliente">
+                                👤 <span id="nombre-cliente">Cliente</span> ▾
+                            </button>
+
+                            <div id="opciones-cliente">
+                                <a href="pedidos.html">Mis pedidos</a>
+                                <a href="#direcciones">Direcciones</a>
+                                <a href="#seguridad">Seguridad</a>
+                                <button id="cerrar-sesion-cliente">Cerrar sesión</button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="perfil-main">
+
+        <section id="perfil-hero">
+            <div>
+                <p class="subtitulo">Área del cliente</p>
+                <h1>Mi perfil</h1>
+                <p>
+                    Administra tus datos personales, direcciones de entrega,
+                    seguridad de cuenta y revisa accesos rápidos a tus pedidos.
+                </p>
+            </div>
+        </section>
+
+        <section id="perfil-resumen">
+
+            <article>
+                <h3>Cliente</h3>
+                <strong id="resumen-nombre">---</strong>
+                <p>Nombre registrado</p>
+            </article>
+
+            <article>
+                <h3>Correo</h3>
+                <strong id="resumen-correo">---</strong>
+                <p>Correo principal</p>
+            </article>
+
+            <article>
+                <h3>Direcciones</h3>
+                <strong id="resumen-direcciones">0</strong>
+                <p>Direcciones guardadas</p>
+            </article>
+
+            <article>
+                <h3>Pedidos</h3>
+                <strong id="resumen-pedidos">0</strong>
+                <p>Pedidos registrados</p>
+            </article>
+
+        </section>
+
+        <section id="zona-perfil">
+
+            <div id="perfil-layout">
+
+                <aside id="perfil-menu-lateral">
+                    <h2>Mi cuenta</h2>
+
+                    <a href="#datos-personales">Datos personales</a>
+                    <a href="#direcciones">Direcciones</a>
+                    <a href="#seguridad">Seguridad</a>
+                    <a href="pedidos.html">Mis pedidos</a>
+                    <button id="btn-cerrar-lateral">Cerrar sesión</button>
+                </aside>
+
+                <section id="perfil-contenido">
+
+                    <div id="mensaje-sin-sesion" class="oculto">
+                        <h2>No has iniciado sesión</h2>
+                        <p>Para ver tu perfil, primero debes iniciar sesión o crear una cuenta.</p>
+                        <a href="login.html">Ir al login</a>
+                    </div>
+
+                    <section id="datos-personales" class="perfil-card">
+                        <div class="titulo-card">
+                            <h2>Datos personales</h2>
+                            <p>Actualiza tu nombre, correo y teléfono.</p>
+                        </div>
+
+                        <form id="form-perfil">
+                            <label for="perfil-nombre">Nombre completo</label>
+                            <input type="text" id="perfil-nombre" placeholder="Ej: Juan Pérez">
+
+                            <label for="perfil-correo">Correo</label>
+                            <input type="email" id="perfil-correo" placeholder="cliente@gmail.com">
+
+                            <label for="perfil-telefono">Teléfono</label>
+                            <input type="text" id="perfil-telefono" placeholder="999999999">
+
+                            <button type="submit">Guardar cambios</button>
+
+                            <p id="mensaje-perfil" class="mensaje"></p>
+                        </form>
+                    </section>
+
+                    <section id="direcciones" class="perfil-card">
+                        <div class="titulo-card">
+                            <h2>Direcciones de entrega</h2>
+                            <p>Agrega, revisa o elimina tus direcciones guardadas.</p>
+                        </div>
+
+                        <form id="form-direccion">
+                            <label for="nueva-direccion">Nueva dirección</label>
+                            <input type="text" id="nueva-direccion" placeholder="Ej: Av. Principal 123, Ica">
+
+                            <button type="submit">Agregar dirección</button>
+
+                            <p id="mensaje-direccion" class="mensaje"></p>
+                        </form>
+
+                        <div id="lista-direcciones"></div>
+                    </section>
+
+                    <section id="seguridad" class="perfil-card">
+                        <div class="titulo-card">
+                            <h2>Seguridad</h2>
+                            <p>Cambia tu contraseña de acceso.</p>
+                        </div>
+
+                        <form id="form-password">
+                            <label for="password-actual">Contraseña actual</label>
+                            <input type="password" id="password-actual" placeholder="Contraseña actual">
+
+                            <label for="password-nueva">Nueva contraseña</label>
+                            <input type="password" id="password-nueva" placeholder="Nueva contraseña">
+
+                            <label for="password-confirmar">Confirmar contraseña</label>
+                            <input type="password" id="password-confirmar" placeholder="Repite la nueva contraseña">
+
+                            <button type="submit">Cambiar contraseña</button>
+
+                            <p id="mensaje-password" class="mensaje"></p>
+                        </form>
+                    </section>
+
+                    <section id="acceso-pedidos" class="perfil-card">
+                        <div class="titulo-card">
+                            <h2>Mis pedidos</h2>
+                            <p>Revisa el seguimiento, estado y mapa de tus pedidos.</p>
+                        </div>
+
+                        <div class="pedido-acceso">
+                            <div>
+                                <h3>Seguimiento de pedidos</h3>
+                                <p>
+                                    Consulta si tu pedido está pendiente, en camino, en reparto
+                                    o entregado.
+                                </p>
+                            </div>
+
+                            <a href="pedidos.html">Ver mis pedidos</a>
+                        </div>
+                    </section>
+
+                </section>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <div id="chat-soporte">
+        <spline-viewer
+            class="robot-3d"
+            url="https://prod.spline.design/TeR6aLB5yvJrR1j8/scene.splinecode">
+        </spline-viewer>
+    </div>
+
+    <div id="chat-box">
+        <div id="chat-header">
+            <span>Chat rápido</span>
+            <button id="cerrar-chat">×</button>
+        </div>
+
+        <div id="chat-mensajes">
+            <div class="mensaje-chat bot">Hola, soy Fastmarki. ¿En qué puedo ayudarte?</div>
+        </div>
+
+        <div id="chat-input">
+            <input type="text" id="mensaje" placeholder="Escribe tu consulta">
+            <button id="enviar">Enviar</button>
+        </div>
+    </div>
+
+    <footer id="pie-de-pagina">
+        <div>
+            <h3>FashMarket</h3>
+            <p>Perfil del cliente, direcciones, seguridad y seguimiento de compras.</p>
+        </div>
+
+        <div>
+            <h3>Enlaces</h3>
+            <a href="index.html">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="pedidos.html">Mis pedidos</a>
+        </div>
+
+        <div>
+            <h3>Contacto</h3>
+            <p>📞 999999999</p>
+            <p>✉️ FastMarket@gmail.com</p>
+            <p>📍 Ica, Perú</p>
+        </div>
+    </footer>
+
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.88/build/spline-viewer.js"></script>
+    <script src="perfil.js"></script>
+</body>
+</html>

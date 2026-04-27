@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nosotros | FashMarket</title>
+    <link rel="stylesheet" href="nosotros.css">
+</head>
+
+<body>
+
+    <header id="header">
+        <div id="cabeza">
+            <a href="index.html">
+                <img class="barra" src="img/logo.png" id="logo" alt="Logo FashMarket">
+            </a>
+
+            <nav class="barra" id="nav-menu">
+                <ul>
+                    <li class="barra"><a href="index.html">Inicio</a></li>
+                    <li class="barra"><a href="productos.html">Productos</a></li>
+                    <li class="barra"><a href="nosotros.html">Nosotros</a></li>
+                    <li class="barra"><a href="#pie-de-pagina">Contacto</a></li>
+
+                    <li class="barra" id="busqueda">
+                        <img src="img/lupa.png" alt="Buscar" class="icono-menu">
+                        <input type="text" placeholder="Buscar..." id="buscador">
+                    </li>
+
+                    <li class="barra" id="carrito">
+                        <a href="productos.html">
+                            <img class="icono-menu" src="img/carrito.png" alt="Carrito">
+                        </a>
+                    </li>
+
+                    <li class="barra" id="cliente-area">
+                        <a href="login.html" id="login-btn">Login</a>
+
+                        <div id="cliente-menu" class="oculto">
+                            <button id="btn-cliente">
+                                👤 <span id="nombre-cliente">Cliente</span> ▾
+                            </button>
+
+                            <div id="opciones-cliente">
+                                <a href="perfil.html">Mi perfil</a>
+                                <a href="pedidos.html">Mis pedidos</a>
+                                <button data-cliente-panel="direcciones">Direcciones</button>
+                                <button data-cliente-panel="seguridad">Seguridad</button>
+                                <button id="cerrar-sesion-cliente">Cerrar sesión</button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div id="overlay-cliente"></div>
+
+    <aside id="panel-cliente">
+        <div id="cliente-panel-header">
+            <h2 id="titulo-panel-cliente">Mi perfil</h2>
+            <button id="cerrar-panel-cliente">×</button>
+        </div>
+
+        <div id="contenido-panel-cliente"></div>
+    </aside>
+
+    <main id="nosotros-main">
+
+        <section id="hero-nosotros">
+            <div class="hero-texto">
+                <p class="subtitulo">Sobre nosotros</p>
+                <h1>Somos FashMarket</h1>
+                <p>
+                    Una tienda digital creada para ofrecer productos útiles, modernos
+                    y accesibles, con atención rápida y una experiencia de compra sencilla.
+                </p>
+
+                <div class="hero-botones">
+                    <a href="productos.html">Ver productos</a>
+                    <a href="#historia">Conocer más</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="historia" class="seccion">
+            <div class="titulo-section">
+                <span>Nuestra historia</span>
+                <h2>Una tienda pensada para comprar sin complicaciones</h2>
+                <p>
+                    FashMarket nace con la idea de reunir diferentes productos en un solo lugar,
+                    facilitando la búsqueda, comparación y compra para clientes que valoran rapidez,
+                    atención personalizada y precios accesibles.
+                </p>
+            </div>
+
+            <div class="historia-grid">
+                <article>
+                    <h3>Inicio del proyecto</h3>
+                    <p>
+                        El proyecto empezó como una propuesta de tienda online moderna,
+                        enfocada en mostrar productos de forma clara, ordenada y atractiva.
+                    </p>
+                </article>
+
+                <article>
+                    <h3>Atención cercana</h3>
+                    <p>
+                        Buscamos que cada cliente pueda consultar detalles antes de comprar:
+                        stock, tallas, colores, precios, entregas y promociones disponibles.
+                    </p>
+                </article>
+
+                <article>
+                    <h3>Crecimiento digital</h3>
+                    <p>
+                        La tienda está preparada para seguir creciendo con nuevas categorías,
+                        carrito de compras, panel de administrador y backend con Spring Boot.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section id="mision-vision" class="seccion seccion-oscura">
+            <div class="titulo-section claro">
+                <span>Misión y visión</span>
+                <h2>Lo que queremos lograr</h2>
+                <p>
+                    Trabajamos para que comprar por internet sea más fácil, rápido y confiable.
+                </p>
+            </div>
+
+            <div class="mv-grid">
+                <article>
+                    <h3>Misión</h3>
+                    <p>
+                        Ofrecer productos variados y accesibles mediante una plataforma amigable,
+                        brindando atención rápida y clara para mejorar la experiencia de compra.
+                    </p>
+                </article>
+
+                <article>
+                    <h3>Visión</h3>
+                    <p>
+                        Convertirnos en una tienda digital reconocida por su organización,
+                        confianza, variedad de productos y servicio cercano al cliente.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section id="valores" class="seccion">
+            <div class="titulo-section">
+                <span>Valores</span>
+                <h2>Principios que guían nuestra tienda</h2>
+                <p>
+                    Cada parte de FashMarket está pensada para generar confianza y facilidad.
+                </p>
+            </div>
+
+            <div class="valores-grid">
+                <article>
+                    <div>🤝</div>
+                    <h3>Confianza</h3>
+                    <p>Buscamos comunicar información clara sobre productos, precios y entregas.</p>
+                </article>
+
+                <article>
+                    <div>⚡</div>
+                    <h3>Rapidez</h3>
+                    <p>Queremos que el cliente encuentre y consulte productos sin perder tiempo.</p>
+                </article>
+
+                <article>
+                    <div>💬</div>
+                    <h3>Atención</h3>
+                    <p>La comunicación con el cliente es parte importante de cada compra.</p>
+                </article>
+
+                <article>
+                    <div>🏷️</div>
+                    <h3>Accesibilidad</h3>
+                    <p>Ofrecemos opciones variadas y promociones según disponibilidad.</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="equipo" class="seccion seccion-naranja">
+            <div class="equipo-texto">
+                <span>Equipo FashMarket</span>
+                <h2>Una tienda con enfoque moderno</h2>
+                <p>
+                    Nuestro objetivo es que la página no solo se vea bien, sino que también
+                    funcione como un sistema completo: productos, usuarios, pedidos, administrador
+                    y próximamente backend con Spring Boot.
+                </p>
+            </div>
+
+            <div class="equipo-card">
+                <h3>¿Qué ofrecemos?</h3>
+                <p>✔ Catálogo organizado</p>
+                <p>✔ Carrito de compras</p>
+                <p>✔ Registro de clientes</p>
+                <p>✔ Seguimiento de pedidos</p>
+                <p>✔ Panel de administrador</p>
+            </div>
+        </section>
+
+        <section id="proceso" class="seccion">
+            <div class="titulo-section">
+                <span>Proceso de compra</span>
+                <h2>Comprar en FashMarket es sencillo</h2>
+                <p>
+                    La experiencia está diseñada para que el cliente avance paso a paso.
+                </p>
+            </div>
+
+            <div class="proceso-grid">
+                <article>
+                    <span>1</span>
+                    <h3>Explora</h3>
+                    <p>Revisa productos y categorías disponibles.</p>
+                </article>
+
+                <article>
+                    <span>2</span>
+                    <h3>Agrega</h3>
+                    <p>Añade productos al carrito de compras.</p>
+                </article>
+
+                <article>
+                    <span>3</span>
+                    <h3>Coordina</h3>
+                    <p>Confirma dirección, disponibilidad y entrega.</p>
+                </article>
+
+                <article>
+                    <span>4</span>
+                    <h3>Recibe</h3>
+                    <p>Haz seguimiento y recibe tu pedido.</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="confianza" class="seccion seccion-oscura">
+            <div class="titulo-section claro">
+                <span>Confianza</span>
+                <h2>Una tienda preparada para seguir creciendo</h2>
+                <p>
+                    Actualmente el proyecto funciona con frontend y almacenamiento local,
+                    pero está listo para conectarse a un backend real con Spring Boot.
+                </p>
+            </div>
+
+            <div class="confianza-grid">
+                <article>
+                    <h3>Frontend completo</h3>
+                    <p>Páginas diseñadas con HTML, CSS y JavaScript.</p>
+                </article>
+
+                <article>
+                    <h3>Datos simulados</h3>
+                    <p>Uso de localStorage para usuarios, carrito, productos y pedidos.</p>
+                </article>
+
+                <article>
+                    <h3>Backend futuro</h3>
+                    <p>Conexión posterior con API REST en Spring Boot y base de datos.</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="preguntas" class="seccion">
+            <div class="titulo-section">
+                <span>Preguntas</span>
+                <h2>Dudas frecuentes sobre FashMarket</h2>
+            </div>
+
+            <div class="faq-grid">
+                <article>
+                    <h3>¿FashMarket ya tiene backend?</h3>
+                    <p>
+                        Por ahora estamos trabajando el frontend. Luego se conectará con Spring Boot.
+                    </p>
+                </article>
+
+                <article>
+                    <h3>¿Dónde se guardan los datos?</h3>
+                    <p>
+                        Actualmente se guardan en localStorage del navegador para simular el sistema.
+                    </p>
+                </article>
+
+                <article>
+                    <h3>¿Se pueden agregar productos?</h3>
+                    <p>
+                        Sí. El panel administrador permite agregar, editar y eliminar productos.
+                    </p>
+                </article>
+
+                <article>
+                    <h3>¿Los pedidos tienen seguimiento?</h3>
+                    <p>
+                        Sí. La página de pedidos muestra estado, detalles y mapa de seguimiento.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section id="cta-nosotros">
+            <h2>¿Listo para ver nuestros productos?</h2>
+            <p>
+                Explora el catálogo, revisa ofertas y encuentra artículos útiles para tu día a día.
+            </p>
+            <a href="productos.html">Ir a productos</a>
+        </section>
+
+    </main>
+
+    <div id="chat-soporte">
+        <spline-viewer
+            class="robot-3d"
+            url="https://prod.spline.design/TeR6aLB5yvJrR1j8/scene.splinecode">
+        </spline-viewer>
+    </div>
+
+    <div id="chat-box">
+        <div id="chat-header">
+            <span>Chat rápido</span>
+            <button id="cerrar-chat">×</button>
+        </div>
+
+        <div id="chat-mensajes">
+            <div class="mensaje bot">Hola, soy Fastmarki. ¿En qué puedo ayudarte?</div>
+        </div>
+
+        <div id="chat-input">
+            <input type="text" id="mensaje" placeholder="Escribe tu consulta">
+            <button id="enviar">Enviar</button>
+        </div>
+    </div>
+
+    <footer id="pie-de-pagina">
+        <div>
+            <h3>FashMarket</h3>
+            <p>Tienda digital moderna con productos, pedidos y atención rápida.</p>
+        </div>
+
+        <div>
+            <h3>Enlaces</h3>
+            <a href="index.html">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="pedidos.html">Mis pedidos</a>
+        </div>
+
+        <div>
+            <h3>Contacto</h3>
+            <p>📞 999999999</p>
+            <p>✉️ FastMarket@gmail.com</p>
+            <p>📍 Ica, Perú</p>
+        </div>
+    </footer>
+
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.88/build/spline-viewer.js"></script>
+    <script src="nosotros.js"></script>
+</body>
+</html>

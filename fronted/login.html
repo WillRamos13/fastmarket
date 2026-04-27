@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | FashMarket</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+
+<body>
+
+    <main id="login-main">
+
+        <section id="login-card">
+
+            <div id="login-info">
+                <h1>FashMarket</h1>
+                <p>
+                    Crea tu cuenta o inicia sesión para ver tu perfil,
+                    tus pedidos y tus direcciones de entrega.
+                </p>
+
+                <div class="info-extra">
+                    <p>🛒 Compra rápida</p>
+                    <p>📦 Seguimiento de pedidos</p>
+                    <p>📍 Direcciones guardadas</p>
+                </div>
+            </div>
+
+            <div id="login-contenido">
+
+                <div id="tabs">
+                    <button id="tab-login" class="tab activo">Iniciar sesión</button>
+                    <button id="tab-registro" class="tab">Registrarse</button>
+                </div>
+
+                <form id="form-login" class="formulario activo-form">
+                    <h2>Iniciar sesión</h2>
+
+                    <label for="login-correo">Correo</label>
+                    <input type="email" id="login-correo" placeholder="cliente@gmail.com">
+
+                    <label for="login-password">Contraseña</label>
+                    <input type="password" id="login-password" placeholder="Ingresa tu contraseña">
+
+                    <a href="recuperar-contrasena.html" class="link-recuperar">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+
+                    <button type="submit">Entrar</button>
+
+                    <p id="mensaje-login" class="mensaje"></p>
+
+                    <p class="cambiar-form">
+                        ¿No tienes cuenta?
+                        <span id="ir-registro">Regístrate aquí</span>
+                    </p>
+                </form>
+
+                <form id="form-registro" class="formulario">
+                    <h2>Crear cuenta</h2>
+
+                    <label for="registro-nombre">Nombre completo</label>
+                    <input type="text" id="registro-nombre" placeholder="Ej: Juan Pérez">
+
+                    <label for="registro-correo">Correo</label>
+                    <input type="email" id="registro-correo" placeholder="cliente@gmail.com">
+
+                    <label for="registro-telefono">Teléfono</label>
+                    <input type="text" id="registro-telefono" placeholder="999999999">
+
+                    <label for="registro-direccion">Dirección de entrega</label>
+                    <input type="text" id="registro-direccion" placeholder="Ej: Av. Principal 123, Ica">
+
+                    <label for="registro-password">Contraseña</label>
+                    <input type="password" id="registro-password" placeholder="Crea una contraseña">
+
+                    <label for="registro-confirmar">Confirmar contraseña</label>
+                    <input type="password" id="registro-confirmar" placeholder="Repite tu contraseña">
+
+                    <button type="submit">Crear cuenta</button>
+
+                    <p id="mensaje-registro" class="mensaje"></p>
+
+                    <p class="cambiar-form">
+                        ¿Ya tienes cuenta?
+                        <span id="ir-login">Inicia sesión aquí</span>
+                    </p>
+                </form>
+
+                <a href="productos.html" id="volver-productos">Volver a productos</a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="login.js"></script>
+</body>
+</html>
