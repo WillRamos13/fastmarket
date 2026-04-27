@@ -1,8 +1,6 @@
-const productosGuardados = JSON.parse(localStorage.getItem("fashmarket_productos"));
+const API_URL = "https://fastmarket-573w.onrender.com/api";
 
-const productos = productosGuardados || [
-    
-];
+let productos = [];
 
 let categoriaActual = "todos";
 let busquedaActual = "";
@@ -161,11 +159,34 @@ const ordenarProducto = document.getElementById("ordenar-producto");
 const mensajeVacio = document.getElementById("mensaje-vacio");
 const contadorCarrito = document.getElementById("contador-carrito");
 
-document.addEventListener("DOMContentLoaded", () => {
-    mostrarProductos();
+document.addEventListener("DOMContentLoaded", async () => {
+    await cargarProductosDesdeBackend();
     actualizarCarrito();
     actualizarVistaCliente();
 });
+
+async function cargarProductosDesdeBackend() {
+    try {
+        const respuesta = await fetch(`${API_URL}/productos`);
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron cargar los productos");
+        }
+
+        productos = await respuesta.json();
+        mostrarProductos();
+
+    } catch (error) {
+        console.error("Error al cargar productos:", error);
+
+        productosContenedor.innerHTML = "";
+        mensajeVacio.style.display = "block";
+        mensajeVacio.innerHTML = `
+            <h3>Error al cargar productos</h3>
+            <p>No se pudo conectar con el backend.</p>
+        `;
+    }
+}
 
 botonesCategoria.forEach((boton) => {
     boton.addEventListener("click", () => {
@@ -191,7 +212,9 @@ ordenarProducto.addEventListener("change", () => {
 
 function mostrarProductos() {
     let lista = productos.filter((producto) => {
-        const coincideCategoria = categoriaActual === "todos" || producto.categoria === categoriaActual;
+        const coincideCategoria =
+            categoriaActual === "todos" ||
+            producto.categoria === categoriaActual;
 
         const coincideBusqueda =
             producto.nombre.toLowerCase().includes(busquedaActual) ||
@@ -213,6 +236,10 @@ function mostrarProductos() {
 
     if (lista.length === 0) {
         mensajeVacio.style.display = "block";
+        mensajeVacio.innerHTML = `
+            <h3>No se encontraron productos</h3>
+            <p>Intenta con otra búsqueda o categoría.</p>
+        `;
         return;
     }
 
