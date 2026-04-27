@@ -1,405 +1,176 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    FastMarket.activarBuscador("buscador", "busqueda");
+    FastMarket.activarMenuCliente();
+    FastMarket.mostrarPanelCliente();
 
-    const busqueda = document.getElementById("busqueda");
-    const buscador = document.getElementById("buscador");
-
-    if (busqueda) {
-        busqueda.addEventListener("click", (e) => {
-            e.stopPropagation();
-            busqueda.classList.toggle("activo");
-
-            if (busqueda.classList.contains("activo") && buscador) {
-                buscador.focus();
-            }
-        });
+    const usuario = FastMarket.requireCliente(false);
+    if (!usuario) {
+        mostrarSinSesion();
+        return;
     }
 
-    if (buscador) {
-        buscador.addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
+    await cargarPedidos(usuario);
+});
 
-        buscador.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                const texto = buscador.value.trim();
+let pedidos = [];
 
-                if (texto !== "") {
-                    alert("Buscando: " + texto);
-                    buscador.value = "";
-                    busqueda.classList.remove("activo");
-                }
-            }
-        });
+async function cargarPedidos(usuario) {
+    const contenedor = document.getElementById("contenedor-pedidos");
+    try {
+        pedidos = await FastMarket.request(`/pedidos/usuario/${usuario.id}`, { auth: true });
+        pintarResumen();
+        pintarLista();
+
+        const codigo = new URLSearchParams(window.location.search).get("pedido");
+        const seleccionado = codigo
+            ? pedidos.find((p) => p.codigo === codigo)
+            : pedidos[0];
+
+        if (seleccionado) mostrarDetalle(seleccionado);
+        else mostrarVacio();
+    } catch (error) {
+        if (contenedor) contenedor.innerHTML = `<p class="mensaje-error">${FastMarket.escapeHTML(error.message)}</p>`;
+        mostrarVacio();
     }
+}
 
-    const loginBtn = document.getElementById("login-btn");
-    const clienteMenu = document.getElementById("cliente-menu");
-    const btnCliente = document.getElementById("btn-cliente");
-    const opcionesCliente = document.getElementById("opciones-cliente");
-    const nombreCliente = document.getElementById("nombre-cliente");
-    const cerrarSesionCliente = document.getElementById("cerrar-sesion-cliente");
+function mostrarSinSesion() {
+    const contenedor = document.getElementById("contenedor-pedidos");
+    if (contenedor) {
+        contenedor.innerHTML = `
+            <div class="pedido-card">
+                <h3>Debes iniciar sesión</h3>
+                <p>Inicia sesión para revisar tus pedidos reales.</p>
+                <a href="login.html">Ir al login</a>
+            </div>`;
+    }
+    mostrarVacio();
+}
 
-    const overlayCliente = document.getElementById("overlay-cliente");
-    const panelCliente = document.getElementById("panel-cliente");
-    const cerrarPanelCliente = document.getElementById("cerrar-panel-cliente");
-    const tituloPanelCliente = document.getElementById("titulo-panel-cliente");
-    const contenidoPanelCliente = document.getElementById("contenido-panel-cliente");
-
+function pintarResumen() {
     const totalPedidos = document.getElementById("total-pedidos");
-    const pedidosPendientes = document.getElementById("pedidos-pendientes");
-    const pedidosCamino = document.getElementById("pedidos-camino");
-    const pedidosEntregados = document.getElementById("pedidos-entregados");
+    const pendientes = document.getElementById("pedidos-pendientes");
+    const camino = document.getElementById("pedidos-camino");
+    const entregados = document.getElementById("pedidos-entregados");
 
-    const contenedorPedidos = document.getElementById("contenedor-pedidos");
+    if (totalPedidos) totalPedidos.textContent = pedidos.length;
+    if (pendientes) pendientes.textContent = pedidos.filter((p) => ["PENDIENTE", "CONFIRMADO", "PREPARANDO"].includes(FastMarket.normalizarEstado(p.estado))).length;
+    if (camino) camino.textContent = pedidos.filter((p) => FastMarket.normalizarEstado(p.estado) === "CAMINO").length;
+    if (entregados) entregados.textContent = pedidos.filter((p) => FastMarket.normalizarEstado(p.estado) === "ENTREGADO").length;
+}
+
+function pintarLista() {
+    const contenedor = document.getElementById("contenedor-pedidos");
+    if (!contenedor) return;
+
+    contenedor.innerHTML = "";
+
+    if (pedidos.length === 0) {
+        contenedor.innerHTML = `
+            <div class="pedido-card">
+                <h3>No tienes pedidos</h3>
+                <p>Cuando finalices una compra, aparecerá aquí.</p>
+                <a href="productos.html">Ver productos</a>
+            </div>`;
+        return;
+    }
+
+    pedidos.forEach((pedido) => {
+        const card = document.createElement("article");
+        card.className = "pedido-card";
+        card.innerHTML = `
+            <h3>${FastMarket.escapeHTML(pedido.codigo)}</h3>
+            <p>${formatearFecha(pedido.fecha)}</p>
+            <strong>${FastMarket.money(pedido.total)}</strong>
+            <span class="estado-${FastMarket.normalizarEstado(pedido.estado).toLowerCase()}">${FastMarket.estadoTexto(pedido.estado)}</span>
+            <button>Ver detalle</button>`;
+        card.querySelector("button").addEventListener("click", () => mostrarDetalle(pedido));
+        contenedor.appendChild(card);
+    });
+}
+
+function mostrarDetalle(pedido) {
     const detalleVacio = document.getElementById("detalle-vacio");
     const detalleContenido = document.getElementById("detalle-contenido");
 
-    const detalleCodigo = document.getElementById("detalle-codigo");
-    const detalleFecha = document.getElementById("detalle-fecha");
-    const detalleEstado = document.getElementById("detalle-estado");
-    const detalleCliente = document.getElementById("detalle-cliente");
-    const detalleTotal = document.getElementById("detalle-total");
-    const detalleMetodo = document.getElementById("detalle-metodo");
-    const detalleEstimada = document.getElementById("detalle-estimada");
-    const detalleDireccion = document.getElementById("detalle-direccion");
-    const detalleProductos = document.getElementById("detalle-productos");
-    const mapaPedido = document.getElementById("mapa-pedido");
+    if (detalleVacio) detalleVacio.classList.add("oculto");
+    if (detalleContenido) detalleContenido.classList.remove("oculto");
 
-    actualizarVistaCliente();
-    cargarPedidos();
+    setText("detalle-codigo", pedido.codigo);
+    setText("detalle-fecha", formatearFecha(pedido.fecha));
+    setText("detalle-estado", FastMarket.estadoTexto(pedido.estado));
+    setText("detalle-cliente", pedido.usuarioNombre);
+    setText("detalle-total", FastMarket.money(pedido.total));
+    setText("detalle-metodo", pedido.metodoPago || "Pago contra entrega");
+    setText("detalle-estimada", estimarEntrega(pedido));
+    setText("detalle-direccion", `${pedido.direccionEntrega || ""} ${pedido.referenciaEntrega ? " - " + pedido.referenciaEntrega : ""}`);
 
-    if (btnCliente && opcionesCliente) {
-        btnCliente.addEventListener("click", (e) => {
-            e.stopPropagation();
-            opcionesCliente.classList.toggle("activo");
-        });
-
-        opcionesCliente.addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
-    }
-
-    document.querySelectorAll("[data-cliente-panel]").forEach((boton) => {
-        boton.addEventListener("click", () => {
-            const panel = boton.dataset.clientePanel;
-            abrirPanelCliente(panel);
-
-            if (opcionesCliente) {
-                opcionesCliente.classList.remove("activo");
-            }
-        });
-    });
-
-    if (cerrarSesionCliente) {
-        cerrarSesionCliente.addEventListener("click", () => {
-            localStorage.removeItem("fashmarket_cliente");
-            actualizarVistaCliente();
-            cerrarPanelClienteLateral();
-        });
-    }
-
-    if (cerrarPanelCliente) {
-        cerrarPanelCliente.addEventListener("click", cerrarPanelClienteLateral);
-    }
-
-    if (overlayCliente) {
-        overlayCliente.addEventListener("click", cerrarPanelClienteLateral);
-    }
-
-    document.addEventListener("click", () => {
-        if (busqueda) {
-            busqueda.classList.remove("activo");
-        }
-
-        if (opcionesCliente) {
-            opcionesCliente.classList.remove("activo");
-        }
-    });
-
-    function obtenerCliente() {
-        return JSON.parse(localStorage.getItem("fashmarket_cliente"));
-    }
-
-    function actualizarVistaCliente() {
-        const cliente = obtenerCliente();
-
-        if (!loginBtn || !clienteMenu || !nombreCliente) return;
-
-        if (cliente) {
-            loginBtn.classList.add("oculto");
-            clienteMenu.classList.remove("oculto");
-            nombreCliente.textContent = cliente.nombre || "Cliente";
-        } else {
-            loginBtn.classList.remove("oculto");
-            clienteMenu.classList.add("oculto");
-            nombreCliente.textContent = "Cliente";
-        }
-    }
-
-    function abrirPanelCliente(tipo) {
-        const cliente = obtenerCliente();
-
-        if (!cliente) {
-            window.location.href = "login.html";
-            return;
-        }
-
-        panelCliente.classList.add("activo");
-        overlayCliente.classList.add("activo");
-
-        if (tipo === "perfil") {
-            tituloPanelCliente.textContent = "Mi perfil";
-
-            contenidoPanelCliente.innerHTML = `
-                <div class="info-cliente-card">
-                    <h3>Datos personales</h3>
-                    <p><strong>Nombre:</strong> ${cliente.nombre}</p>
-                    <p><strong>Correo:</strong> ${cliente.correo}</p>
-                    <p><strong>Teléfono:</strong> ${cliente.telefono || "No registrado"}</p>
-                </div>
-            `;
-        }
-
-        if (tipo === "direcciones") {
-            tituloPanelCliente.textContent = "Direcciones de entrega";
-
-            if (!cliente.direcciones || cliente.direcciones.length === 0) {
-                contenidoPanelCliente.innerHTML = `
-                    <div class="info-cliente-card">
-                        <h3>Sin direcciones</h3>
-                        <p>No tienes direcciones guardadas.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            contenidoPanelCliente.innerHTML = cliente.direcciones.map((direccion, index) => `
-                <div class="info-cliente-card">
-                    <h3>Dirección ${index + 1}</h3>
-                    <p>${direccion}</p>
-                </div>
-            `).join("");
-        }
-
-        if (tipo === "seguridad") {
-            tituloPanelCliente.textContent = "Seguridad";
-
-            contenidoPanelCliente.innerHTML = `
-                <div class="info-cliente-card">
-                    <h3>Cuenta</h3>
-                    <p>Tu sesión está activa en este navegador.</p>
-                    <p>Para salir de tu cuenta, usa la opción <strong>Cerrar sesión</strong>.</p>
-                </div>
-            `;
-        }
-    }
-
-    function cerrarPanelClienteLateral() {
-        if (panelCliente) {
-            panelCliente.classList.remove("activo");
-        }
-
-        if (overlayCliente) {
-            overlayCliente.classList.remove("activo");
-        }
-    }
-
-    function cargarPedidos() {
-        const cliente = obtenerCliente();
-
-        if (!cliente) {
-            contenedorPedidos.innerHTML = `
-                <div class="pedido-item">
-                    <h3>Inicia sesión</h3>
-                    <p>Para ver tus pedidos primero debes iniciar sesión.</p>
-                    <span class="estado pendiente">Pendiente</span>
-                </div>
-            `;
-
-            totalPedidos.textContent = "0";
-            pedidosPendientes.textContent = "0";
-            pedidosCamino.textContent = "0";
-            pedidosEntregados.textContent = "0";
-
-            return;
-        }
-
-        let pedidos = cliente.pedidos || [];
-
-        if (pedidos.length === 0) {
-            pedidos = crearPedidosDeEjemplo(cliente);
-        }
-
-        actualizarResumen(pedidos);
-        mostrarListaPedidos(pedidos, cliente);
-    }
-
-    function crearPedidosDeEjemplo(cliente) {
-        const direccionBase = cliente.direcciones && cliente.direcciones.length > 0
-            ? cliente.direcciones[0]
-            : "Ica, Perú";
-
-        return [
-            {
-                codigo: "P001",
-                fecha: "2026-04-26",
-                estado: "camino",
-                metodo: "Entrega a domicilio",
-                direccion: direccionBase,
-                entregaEstimada: "Hoy entre 4:00 p.m. y 7:00 p.m.",
-                total: 79.90,
-                productos: [
-                    {
-                        nombre: "Audífonos inalámbricos",
-                        cantidad: 1,
-                        precio: 79.90
-                    }
-                ]
-            },
-            {
-                codigo: "P002",
-                fecha: "2026-04-24",
-                estado: "entregado",
-                metodo: "Entrega a domicilio",
-                direccion: direccionBase,
-                entregaEstimada: "Entregado",
-                total: 39.90,
-                productos: [
-                    {
-                        nombre: "Lámpara LED",
-                        cantidad: 1,
-                        precio: 39.90
-                    }
-                ]
-            }
-        ];
-    }
-
-    function actualizarResumen(pedidos) {
-        totalPedidos.textContent = pedidos.length;
-
-        pedidosPendientes.textContent = pedidos.filter((pedido) => pedido.estado === "pendiente").length;
-
-        pedidosCamino.textContent = pedidos.filter((pedido) => {
-            return pedido.estado === "camino" || pedido.estado === "reparto";
-        }).length;
-
-        pedidosEntregados.textContent = pedidos.filter((pedido) => pedido.estado === "entregado").length;
-    }
-
-    function mostrarListaPedidos(pedidos, cliente) {
-        contenedorPedidos.innerHTML = "";
-
-        pedidos.forEach((pedido, index) => {
-            const item = document.createElement("div");
-            item.classList.add("pedido-item");
-
-            if (index === 0) {
-                item.classList.add("activo");
-            }
-
-            item.innerHTML = `
-                <h3>Pedido ${pedido.codigo}</h3>
-                <p>${pedido.fecha}</p>
-                <p>Total: S/ ${Number(pedido.total).toFixed(2)}</p>
-                <span class="estado ${pedido.estado}">
-                    ${formatearEstado(pedido.estado)}
-                </span>
-            `;
-
-            item.addEventListener("click", () => {
-                document.querySelectorAll(".pedido-item").forEach((pedidoItem) => {
-                    pedidoItem.classList.remove("activo");
-                });
-
-                item.classList.add("activo");
-                mostrarDetallePedido(pedido, cliente);
-            });
-
-            contenedorPedidos.appendChild(item);
-        });
-
-        if (pedidos.length > 0) {
-            mostrarDetallePedido(pedidos[0], cliente);
-        }
-    }
-
-    function mostrarDetallePedido(pedido, cliente) {
-        detalleVacio.classList.add("oculto");
-        detalleContenido.classList.remove("oculto");
-
-        detalleCodigo.textContent = `Pedido ${pedido.codigo}`;
-        detalleFecha.textContent = `Fecha: ${pedido.fecha}`;
-        detalleEstado.textContent = formatearEstado(pedido.estado);
-        detalleCliente.textContent = cliente.nombre;
-        detalleTotal.textContent = `S/ ${Number(pedido.total).toFixed(2)}`;
-        detalleMetodo.textContent = pedido.metodo;
-        detalleEstimada.textContent = pedido.entregaEstimada;
-        detalleDireccion.textContent = pedido.direccion;
-
-        detalleProductos.innerHTML = "";
-
-        pedido.productos.forEach((producto) => {
-            const div = document.createElement("div");
-            div.classList.add("producto-pedido");
-
-            div.innerHTML = `
+    const productos = document.getElementById("detalle-productos");
+    if (productos) {
+        productos.innerHTML = (pedido.items || []).map((item) => `
+            <div class="producto-pedido">
+                <img src="${FastMarket.escapeHTML(item.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(item.productoNombre)}" onerror="this.src='img/logo.png'">
                 <div>
-                    <strong>${producto.nombre}</strong>
-                    <p>Cantidad: ${producto.cantidad}</p>
+                    <h4>${FastMarket.escapeHTML(item.productoNombre)}</h4>
+                    <p>Cantidad: ${item.cantidad}</p>
+                    <strong>${FastMarket.money(item.subtotal)}</strong>
                 </div>
-
-                <div>
-                    <strong>S/ ${Number(producto.precio).toFixed(2)}</strong>
-                </div>
-            `;
-
-            detalleProductos.appendChild(div);
-        });
-
-        actualizarSeguimiento(pedido.estado);
-        actualizarMapa(pedido.direccion);
+            </div>
+        `).join("");
     }
 
-    function actualizarSeguimiento(estado) {
-        const pasos = document.querySelectorAll(".paso-seguimiento");
+    activarPasos(pedido.estado);
 
-        pasos.forEach((paso) => {
-            paso.classList.remove("activo");
-        });
-
-        const ordenEstados = {
-            pendiente: ["preparacion"],
-            camino: ["preparacion", "camino"],
-            reparto: ["preparacion", "camino", "reparto"],
-            entregado: ["preparacion", "camino", "reparto", "entregado"]
-        };
-
-        const activos = ordenEstados[estado] || ["preparacion"];
-
-        activos.forEach((pasoActivo) => {
-            const paso = document.querySelector(`[data-paso="${pasoActivo}"]`);
-
-            if (paso) {
-                paso.classList.add("activo");
-            }
-        });
+    const mapa = document.getElementById("mapa-pedido");
+    if (mapa) {
+        const dir = encodeURIComponent(pedido.direccionEntrega || "Ica Perú");
+        mapa.src = `https://www.google.com/maps?q=${dir}&output=embed`;
     }
+}
 
-    function actualizarMapa(direccion) {
-        const ubicacion = encodeURIComponent(direccion || "Ica, Perú");
-        mapaPedido.src = `https://www.google.com/maps?q=${ubicacion}&output=embed`;
-    }
+function mostrarVacio() {
+    const detalleVacio = document.getElementById("detalle-vacio");
+    const detalleContenido = document.getElementById("detalle-contenido");
+    if (detalleVacio) detalleVacio.classList.remove("oculto");
+    if (detalleContenido) detalleContenido.classList.add("oculto");
+}
 
-    function formatearEstado(estado) {
-        const estados = {
-            pendiente: "Pendiente",
-            camino: "En camino",
-            reparto: "En reparto",
-            entregado: "Entregado"
-        };
+function activarPasos(estado) {
+    const actual = FastMarket.normalizarEstado(estado);
+    const orden = {
+        PENDIENTE: 0,
+        CONFIRMADO: 1,
+        PREPARANDO: 1,
+        CAMINO: 2,
+        ENTREGADO: 4,
+        CANCELADO: -1
+    };
+    const valor = orden[actual] ?? 0;
 
-        return estados[estado] || estado;
-    }
+    document.querySelectorAll(".paso-seguimiento").forEach((paso) => paso.classList.remove("activo"));
 
-});
+    if (valor >= 1) document.querySelector('[data-paso="preparacion"]')?.classList.add("activo");
+    if (valor >= 2) document.querySelector('[data-paso="camino"]')?.classList.add("activo");
+    if (valor >= 3) document.querySelector('[data-paso="reparto"]')?.classList.add("activo");
+    if (valor >= 4) document.querySelector('[data-paso="entregado"]')?.classList.add("activo");
+}
+
+function estimarEntrega(pedido) {
+    const estado = FastMarket.normalizarEstado(pedido.estado);
+    if (estado === "ENTREGADO") return "Entregado";
+    if (estado === "CANCELADO") return "Cancelado";
+    return pedido.horarioEntrega ? `Horario preferido: ${pedido.horarioEntrega}` : "Por coordinar";
+}
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value || "";
+}
+
+function formatearFecha(fecha) {
+    if (!fecha) return "";
+    return new Date(fecha).toLocaleString("es-PE", {
+        dateStyle: "medium",
+        timeStyle: "short"
+    });
+}

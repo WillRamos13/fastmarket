@@ -5,11 +5,27 @@ import com.fashmarket.api.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
     public AuthController(AuthService authService) { this.authService = authService; }
-    @PostMapping("/registro") public AuthDtos.UsuarioResponse registrar(@Valid @RequestBody AuthDtos.RegistroRequest request) { return authService.registrar(request); }
-    @PostMapping("/login") public AuthDtos.UsuarioResponse login(@Valid @RequestBody AuthDtos.LoginRequest request) { return authService.login(request); }
+
+    @PostMapping("/registro")
+    public AuthDtos.AuthResponse registrar(@Valid @RequestBody AuthDtos.RegistroRequest request) {
+        return authService.registrar(request);
+    }
+
+    @PostMapping("/login")
+    public AuthDtos.AuthResponse login(@Valid @RequestBody AuthDtos.LoginRequest request) {
+        return authService.login(request);
+    }
+
+    @PostMapping("/recuperar")
+    public Map<String, String> recuperar(@Valid @RequestBody AuthDtos.RecuperarPasswordRequest request) {
+        authService.recuperarPassword(request);
+        return Map.of("mensaje", "Contraseña actualizada correctamente");
+    }
 }

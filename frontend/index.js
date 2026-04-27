@@ -1,327 +1,124 @@
-document.addEventListener("DOMContentLoaded", () => {
-
+document.addEventListener("DOMContentLoaded", async () => {
     const despliegue = document.getElementById("despliegue");
-
-    if (despliegue) {
-        setTimeout(() => {
-            despliegue.classList.add("abajo");
-        }, 0);
-    }
-
-    /* BUSCADOR */
-
-    const busqueda = document.getElementById("busqueda");
-    const buscador = document.getElementById("buscador");
-
-    if (busqueda) {
-        busqueda.addEventListener("click", (e) => {
-            e.stopPropagation();
-            busqueda.classList.toggle("activo");
-
-            if (busqueda.classList.contains("activo") && buscador) {
-                buscador.focus();
-            }
-        });
-    }
-
-    if (buscador) {
-        buscador.addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
-
-        buscador.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                const texto = buscador.value.trim();
-
-                if (texto !== "") {
-                    alert("Buscando: " + texto);
-                    buscador.value = "";
-
-                    if (busqueda) {
-                        busqueda.classList.remove("activo");
-                    }
-                }
-            }
-        });
-    }
-
-    /* MENÚ DEL CLIENTE */
-
-    const loginBtn = document.getElementById("login-btn");
-    const clienteMenu = document.getElementById("cliente-menu");
-    const btnCliente = document.getElementById("btn-cliente");
-    const opcionesCliente = document.getElementById("opciones-cliente");
-    const nombreCliente = document.getElementById("nombre-cliente");
-    const cerrarSesionCliente = document.getElementById("cerrar-sesion-cliente");
-
-    const overlayCliente = document.getElementById("overlay-cliente");
-    const panelCliente = document.getElementById("panel-cliente");
-    const cerrarPanelCliente = document.getElementById("cerrar-panel-cliente");
-    const tituloPanelCliente = document.getElementById("titulo-panel-cliente");
-    const contenidoPanelCliente = document.getElementById("contenido-panel-cliente");
-
-    actualizarVistaCliente();
-
-    if (btnCliente && opcionesCliente) {
-        btnCliente.addEventListener("click", (e) => {
-            e.stopPropagation();
-            opcionesCliente.classList.toggle("activo");
-        });
-
-        opcionesCliente.addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
-    }
-
-    document.querySelectorAll("[data-cliente-panel]").forEach((boton) => {
-        boton.addEventListener("click", () => {
-            const panel = boton.dataset.clientePanel;
-            abrirPanelCliente(panel);
-
-            if (opcionesCliente) {
-                opcionesCliente.classList.remove("activo");
-            }
-        });
-    });
-
-    if (cerrarSesionCliente) {
-        cerrarSesionCliente.addEventListener("click", () => {
-            localStorage.removeItem("fashmarket_cliente");
-            actualizarVistaCliente();
-            cerrarPanelClienteLateral();
-        });
-    }
-
-    if (cerrarPanelCliente) {
-        cerrarPanelCliente.addEventListener("click", cerrarPanelClienteLateral);
-    }
-
-    if (overlayCliente) {
-        overlayCliente.addEventListener("click", cerrarPanelClienteLateral);
-    }
-
-    function obtenerCliente() {
-        return JSON.parse(localStorage.getItem("fashmarket_cliente"));
-    }
-
-    function actualizarVistaCliente() {
-        const cliente = obtenerCliente();
-
-        if (!loginBtn || !clienteMenu || !nombreCliente) return;
-
-        if (cliente) {
-            loginBtn.classList.add("oculto");
-            clienteMenu.classList.remove("oculto");
-            nombreCliente.textContent = cliente.nombre || "Cliente";
-        } else {
-            loginBtn.classList.remove("oculto");
-            clienteMenu.classList.add("oculto");
-            nombreCliente.textContent = "Cliente";
-        }
-    }
-
-    function abrirPanelCliente(tipo) {
-        const cliente = obtenerCliente();
-
-        if (!cliente) {
-            window.location.href = "login.html";
-            return;
-        }
-
-        if (!panelCliente || !overlayCliente || !tituloPanelCliente || !contenidoPanelCliente) return;
-
-        panelCliente.classList.add("activo");
-        overlayCliente.classList.add("activo");
-
-        if (tipo === "perfil") {
-            tituloPanelCliente.textContent = "Mi perfil";
-
-            contenidoPanelCliente.innerHTML = `
-                <div class="info-cliente-card">
-                    <h3>Datos personales</h3>
-                    <p><strong>Nombre:</strong> ${cliente.nombre}</p>
-                    <p><strong>Correo:</strong> ${cliente.correo}</p>
-                    <p><strong>Teléfono:</strong> ${cliente.telefono || "No registrado"}</p>
-                </div>
-            `;
-        }
-
-        if (tipo === "pedidos") {
-            tituloPanelCliente.textContent = "Mis pedidos";
-
-            if (!cliente.pedidos || cliente.pedidos.length === 0) {
-                contenidoPanelCliente.innerHTML = `
-                    <div class="info-cliente-card">
-                        <h3>Sin pedidos</h3>
-                        <p>Todavía no tienes pedidos registrados.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            contenidoPanelCliente.innerHTML = cliente.pedidos.map((pedido) => `
-                <div class="info-cliente-card">
-                    <h3>Pedido ${pedido.codigo}</h3>
-                    <p><strong>Producto:</strong> ${pedido.producto}</p>
-                    <p><strong>Total:</strong> S/ ${Number(pedido.total).toFixed(2)}</p>
-                    <span class="estado-pedido-cliente">${pedido.estado}</span>
-                </div>
-            `).join("");
-        }
-
-        if (tipo === "direcciones") {
-            tituloPanelCliente.textContent = "Direcciones de entrega";
-
-            if (!cliente.direcciones || cliente.direcciones.length === 0) {
-                contenidoPanelCliente.innerHTML = `
-                    <div class="info-cliente-card">
-                        <h3>Sin direcciones</h3>
-                        <p>No tienes direcciones guardadas.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            contenidoPanelCliente.innerHTML = cliente.direcciones.map((direccion, index) => `
-                <div class="info-cliente-card">
-                    <h3>Dirección ${index + 1}</h3>
-                    <p>${direccion}</p>
-                </div>
-            `).join("");
-        }
-
-        if (tipo === "seguridad") {
-            tituloPanelCliente.textContent = "Seguridad";
-
-            contenidoPanelCliente.innerHTML = `
-                <div class="info-cliente-card">
-                    <h3>Cuenta</h3>
-                    <p>Tu sesión está activa en este navegador.</p>
-                    <p>Para salir de tu cuenta, usa la opción <strong>Cerrar sesión</strong>.</p>
-                </div>
-            `;
-        }
-    }
-
-    function cerrarPanelClienteLateral() {
-        if (panelCliente) {
-            panelCliente.classList.remove("activo");
-        }
-
-        if (overlayCliente) {
-            overlayCliente.classList.remove("activo");
-        }
-    }
-
-    document.addEventListener("click", () => {
-        if (busqueda) {
-            busqueda.classList.remove("activo");
-        }
-
-        if (opcionesCliente) {
-            opcionesCliente.classList.remove("activo");
-        }
-    });
-
-    /* CHAT */
-
-    const botonChat = document.getElementById("chat-soporte");
-    const chatBox = document.getElementById("chat-box");
-    const cerrarChat = document.getElementById("cerrar-chat");
-    const enviar = document.getElementById("enviar");
-    const input = document.getElementById("mensaje");
-    const contenedorMensajes = document.getElementById("chat-mensajes");
-
-    if (botonChat && chatBox) {
-        botonChat.addEventListener("click", () => {
-            chatBox.style.display = "flex";
-        });
-    }
-
-    const botonAbrirChat = document.querySelector('a[href="#chat-soporte"]');
-
-    if (botonAbrirChat && chatBox) {
-        botonAbrirChat.addEventListener("click", (e) => {
-            e.preventDefault();
-            chatBox.style.display = "flex";
-        });
-    }
-
-    if (cerrarChat && chatBox) {
-        cerrarChat.addEventListener("click", () => {
-            chatBox.style.display = "none";
-        });
-    }
-
-    if (enviar) {
-        enviar.addEventListener("click", enviarMensaje);
-    }
-
-    if (input) {
-        input.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                enviarMensaje();
-            }
-        });
-    }
-
-    async function enviarMensaje() {
-        if (!input || !contenedorMensajes) return;
-
-        const texto = input.value.trim();
-
-        if (texto === "") return;
-
-        agregarMensaje(texto, "usuario");
-        input.value = "";
-
-        agregarMensaje("Escribiendo...", "bot");
-
-        try {
-            const respuesta = await fetch("http://localhost:3000/api/chat", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ mensaje: texto })
-            });
-
-            if (!respuesta.ok) {
-                throw new Error("Error en el servidor");
-            }
-
-            const data = await respuesta.json();
-
-            eliminarUltimoMensaje();
-
-            if (data.respuesta) {
-                agregarMensaje(data.respuesta, "bot");
-            } else {
-                agregarMensaje("No recibí respuesta de la IA.", "bot");
-            }
-
-        } catch (error) {
-            eliminarUltimoMensaje();
-            agregarMensaje("Error al conectar con la IA.", "bot");
-            console.error("Error real:", error);
-        }
-    }
-
-    function agregarMensaje(texto, clase) {
-        if (!contenedorMensajes) return;
-
-        const div = document.createElement("div");
-        div.classList.add("mensaje", clase);
-        div.textContent = texto;
-
-        contenedorMensajes.appendChild(div);
-        contenedorMensajes.scrollTop = contenedorMensajes.scrollHeight;
-    }
-
-    function eliminarUltimoMensaje() {
-        if (contenedorMensajes && contenedorMensajes.lastChild) {
-            contenedorMensajes.removeChild(contenedorMensajes.lastChild);
-        }
-    }
-
+    if (despliegue) setTimeout(() => despliegue.classList.add("abajo"), 0);
+
+    FastMarket.activarBuscador("buscador", "busqueda");
+    FastMarket.activarMenuCliente();
+    FastMarket.mostrarPanelCliente();
+    FastMarket.activarChatBasico();
+
+    await Promise.allSettled([
+        cargarContenidoIndex(),
+        cargarProductosIndex()
+    ]);
 });
+
+async function cargarContenidoIndex() {
+    try {
+        const contenidos = await FastMarket.request("/index-contenido?activo=true");
+        aplicarHero(contenidos.filter((c) => c.tipo === "hero"));
+        aplicarBeneficios(contenidos.filter((c) => c.tipo === "beneficio"));
+        aplicarPasos(contenidos.filter((c) => c.tipo === "paso"));
+        aplicarTestimonios(contenidos.filter((c) => c.tipo === "testimonio"));
+        aplicarContacto(contenidos.filter((c) => c.tipo === "contacto"));
+    } catch (error) {
+        console.warn("No se pudo cargar contenido del index:", error.message);
+    }
+}
+
+function aplicarHero(items) {
+    const hero = items[0];
+    if (!hero) return;
+    const titulo = document.getElementById("cuadro2");
+    const desc = document.getElementById("cuadro3");
+    const img = document.getElementById("png");
+    if (titulo) titulo.textContent = hero.titulo;
+    if (desc) desc.textContent = hero.descripcion || "";
+    if (img && hero.imagen) img.src = hero.imagen;
+}
+
+function aplicarBeneficios(items) {
+    const contenedor = document.querySelector("#beneficios .beneficios-grid");
+    if (!contenedor || !items.length) return;
+    contenedor.innerHTML = items.map((item) => `
+        <article class="beneficio">
+            ${item.imagen ? `<img src="${FastMarket.escapeHTML(item.imagen)}" alt="${FastMarket.escapeHTML(item.titulo)}" onerror="this.style.display='none'">` : ""}
+            <h3>${FastMarket.escapeHTML(item.titulo)}</h3>
+            <p>${FastMarket.escapeHTML(item.descripcion || "")}</p>
+        </article>
+    `).join("");
+}
+
+function aplicarPasos(items) {
+    const contenedor = document.querySelector("#como-comprar .pasos-grid");
+    if (!contenedor || !items.length) return;
+    contenedor.innerHTML = items.map((item, i) => `
+        <article class="paso">
+            <span>${i + 1}</span>
+            <h3>${FastMarket.escapeHTML(item.titulo)}</h3>
+            <p>${FastMarket.escapeHTML(item.descripcion || "")}</p>
+        </article>
+    `).join("");
+}
+
+function aplicarTestimonios(items) {
+    const contenedor = document.querySelector("#testimonios .testimonios-grid");
+    if (!contenedor || !items.length) return;
+    contenedor.innerHTML = items.map((item) => `
+        <article class="testimonio">
+            <p>${FastMarket.escapeHTML(item.descripcion || "")}</p>
+            <h4>- ${FastMarket.escapeHTML(item.titulo)}</h4>
+        </article>
+    `).join("");
+}
+
+function aplicarContacto(items) {
+    const item = items[0];
+    if (!item) return;
+    const titulo = document.querySelector("#contacto-rapido .contacto-texto h2");
+    const desc = document.querySelector("#contacto-rapido .contacto-texto p");
+    if (titulo) titulo.textContent = item.titulo;
+    if (desc) desc.textContent = item.descripcion || "";
+}
+
+async function cargarProductosIndex() {
+    try {
+        const productos = await FastMarket.request("/productos");
+        pintarDestacados(productos.filter((p) => p.destacado).slice(0, 4));
+        pintarOferta(productos.filter((p) => p.oferta)[0]);
+    } catch (error) {
+        console.warn("No se pudieron cargar productos del index:", error.message);
+    }
+}
+
+function pintarDestacados(productos) {
+    const grid = document.querySelector("#destacados .productos-grid");
+    if (!grid || !productos.length) return;
+
+    grid.innerHTML = productos.map((p) => `
+        <article class="producto-card">
+            <a href="detalle-producto.html?id=${p.id}">
+                <img src="${FastMarket.escapeHTML(p.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(p.nombre)}" onerror="this.src='img/logo.png'">
+            </a>
+            <h3>${FastMarket.escapeHTML(p.nombre)}</h3>
+            <p>${FastMarket.escapeHTML(p.descripcion || "")}</p>
+            <span>${FastMarket.money(p.precio)}</span>
+        </article>
+    `).join("");
+}
+
+function pintarOferta(producto) {
+    if (!producto) return;
+    const caja = document.querySelector("#ofertas .oferta-caja");
+    if (!caja) return;
+
+    const descuento = producto.precioAntes
+        ? Math.round((1 - Number(producto.precio) / Number(producto.precioAntes)) * 100)
+        : 0;
+
+    caja.innerHTML = `
+        <h3>${descuento > 0 ? `-${descuento}%` : "Oferta"}</h3>
+        <p>${FastMarket.escapeHTML(producto.nombre)}</p>
+        <small>${FastMarket.money(producto.precio)} ${producto.precioAntes ? `antes ${FastMarket.money(producto.precioAntes)}` : ""}</small>
+    `;
+}

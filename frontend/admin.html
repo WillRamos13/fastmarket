@@ -28,6 +28,7 @@
                     <button class="opcion-admin" data-panel="panel-ventas">Revisar ventas</button>
                     <button class="opcion-admin" data-panel="panel-productos">Agregar productos</button>
                     <button class="opcion-admin" data-panel="panel-banners">Cambiar banners</button>
+                    <button class="opcion-admin" data-panel="panel-index">Editar index</button>
                     <button class="opcion-admin" data-panel="panel-indices">Ver índices</button>
                     <button class="opcion-admin" data-panel="panel-usuarios">Ver usuarios</button>
                     <button class="opcion-admin" data-panel="panel-powerbi">Gráficos Power BI</button>
@@ -177,6 +178,11 @@
                         Producto en oferta
                     </label>
 
+                    <label class="check-oferta">
+                        <input type="checkbox" id="destacado">
+                        Producto destacado
+                    </label>
+
                     <div class="botones-form">
                         <button type="submit" id="btn-guardar">Guardar</button>
                         <button type="button" id="btn-limpiar">Limpiar</button>
@@ -293,6 +299,7 @@
                             <th>Producto</th>
                             <th>Total</th>
                             <th>Estado</th>
+                            <th>Acción</th>
                         </tr>
                     </thead>
 
@@ -322,6 +329,81 @@
 
                     <tbody id="tabla-usuarios"></tbody>
                 </table>
+            </div>
+
+        </section>
+
+        <section id="panel-index" class="panel-admin">
+
+            <div class="titulo-section">
+                <h2>Contenido del index</h2>
+                <p>Edita textos, beneficios, pasos, testimonios y contacto que se muestran en la página principal.</p>
+            </div>
+
+            <div class="admin-layout">
+                <form id="form-index">
+                    <input type="hidden" id="index-id">
+
+                    <h3 id="titulo-form-index">Agregar contenido</h3>
+
+                    <label for="index-tipo">Tipo</label>
+                    <select id="index-tipo">
+                        <option value="hero">Hero principal</option>
+                        <option value="beneficio">Beneficio</option>
+                        <option value="paso">Paso de compra</option>
+                        <option value="testimonio">Testimonio</option>
+                        <option value="contacto">Contacto</option>
+                    </select>
+
+                    <label for="index-clave">Clave</label>
+                    <input type="text" id="index-clave" placeholder="Ej: principal, envios, paso1">
+
+                    <label for="index-titulo">Título</label>
+                    <input type="text" id="index-titulo" placeholder="Título visible">
+
+                    <label for="index-descripcion">Descripción</label>
+                    <textarea id="index-descripcion" placeholder="Texto que se mostrará en el index"></textarea>
+
+                    <label for="index-imagen">Imagen / URL local</label>
+                    <input type="text" id="index-imagen" placeholder="Ej: img/envios.png">
+
+                    <label for="index-enlace">Enlace</label>
+                    <input type="text" id="index-enlace" placeholder="Ej: productos.html">
+
+                    <label for="index-orden">Orden</label>
+                    <input type="number" id="index-orden" value="1">
+
+                    <label class="check-oferta">
+                        <input type="checkbox" id="index-activo" checked>
+                        Activo
+                    </label>
+
+                    <div class="botones-form">
+                        <button type="submit">Guardar contenido</button>
+                        <button type="button" id="btn-limpiar-index">Limpiar</button>
+                    </div>
+                </form>
+
+                <div class="tabla-contenedor">
+                    <div class="acciones-tabla">
+                        <input type="text" id="buscar-index" placeholder="Buscar contenido...">
+                    </div>
+
+                    <div class="tabla-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Clave</th>
+                                    <th>Título</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-index"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
         </section>
@@ -388,6 +470,7 @@
 
     <div id="toast"></div>
 
+    <script src="api.js"></script>
     <script src="admin.js"></script>
 </body>
 </html>

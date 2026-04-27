@@ -1,1012 +1,666 @@
-const API_URL = "https://fastmarket-573w.onrender.com/api";
-
 let productos = [];
 let banners = [];
 let pedidos = [];
 let usuarios = [];
-
-/* SELECTORES GENERALES */
-
-const btnMenuAdmin = document.getElementById("btn-menu-admin");
-const opcionesAdmin = document.getElementById("opciones-admin");
-const nombreAdmin = document.getElementById("nombre-admin");
-
-const paneles = document.querySelectorAll(".panel-admin");
-const botonesPanel = document.querySelectorAll("[data-panel]");
-
-/* SELECTORES PRODUCTOS */
-
-const formProducto = document.getElementById("form-producto");
-const productoId = document.getElementById("producto-id");
-const nombre = document.getElementById("nombre");
-const categoria = document.getElementById("categoria");
-const precio = document.getElementById("precio");
-const precioAntes = document.getElementById("precioAntes");
-const stock = document.getElementById("stock");
-const imagenProducto = document.getElementById("imagen-producto");
-const imagenProductoValor = document.getElementById("imagen-producto-valor");
-const previewProducto = document.getElementById("preview-producto");
-const previewProductoImg = document.getElementById("preview-producto-img");
-const descripcion = document.getElementById("descripcion");
-const oferta = document.getElementById("oferta");
-
-const tituloForm = document.getElementById("titulo-form");
-const btnLimpiar = document.getElementById("btn-limpiar");
-const tablaProductos = document.getElementById("tabla-productos");
-
-const buscarAdmin = document.getElementById("buscar-admin");
-const filtroCategoria = document.getElementById("filtro-categoria");
-
-/* SELECTORES PEDIDOS Y USUARIOS */
-
-const tablaPedidos = document.getElementById("tabla-pedidos");
-const tablaUsuarios = document.getElementById("tabla-usuarios");
-
-/* SELECTORES POWER BI */
-
-const powerbiUrl = document.getElementById("powerbi-url");
-const btnGuardarPowerbi = document.getElementById("btn-guardar-powerbi");
-const btnLimpiarPowerbi = document.getElementById("btn-limpiar-powerbi");
-const powerbiReporte = document.getElementById("powerbi-reporte");
-
-/* SELECTORES BANNERS */
-
-const formBanner = document.getElementById("form-banner");
-const bannerId = document.getElementById("banner-id");
-const bannerTitulo = document.getElementById("banner-titulo");
-const bannerDescripcion = document.getElementById("banner-descripcion");
-const bannerImagen = document.getElementById("banner-imagen");
-const bannerImagenValor = document.getElementById("banner-imagen-valor");
-const bannerActivo = document.getElementById("banner-activo");
-const tituloFormBanner = document.getElementById("titulo-form-banner");
-const btnLimpiarBanner = document.getElementById("btn-limpiar-banner");
-const listaBanners = document.getElementById("lista-banners");
-const buscarBanner = document.getElementById("buscar-banner");
-const previewBanner = document.getElementById("preview-banner");
-const previewBannerImg = document.getElementById("preview-banner-img");
+let indexContenidos = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
-    await iniciarAdmin();
+    const admin = FastMarket.requireAdmin(false);
+    if (!admin) {
+        alert("Debes iniciar sesión como administrador.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    setText("nombre-admin", admin.nombre || "Administrador");
+    activarMenu();
+    activarPaneles();
+    activarProductos();
+    activarBanners();
+    activarPedidos();
+    activarIndex();
+    activarPowerBI();
+
+    await cargarTodo();
 });
 
-async function iniciarAdmin() {
-    mostrarNombreAdmin();
-    activarMenuAdmin();
-    activarCambioPaneles();
-    activarEventosProductos();
-    activarEventosBanners();
-    activarEventosPowerBI();
-
-    await cargarProductosDesdeBackend();
-    await cargarBannersDesdeBackend();
-    await cargarPedidosDesdeBackend();
-    await cargarUsuariosDesdeBackend();
-    await cargarIndicesDesdeBackend();
-
+async function cargarTodo() {
+    await Promise.allSettled([
+        cargarProductos(),
+        cargarBanners(),
+        cargarPedidos(),
+        cargarUsuarios(),
+        cargarIndices(),
+        cargarIndexContenidos()
+    ]);
     cargarPowerBI();
 }
 
-/* CAMBIO DE PANELES */
+function activarMenu() {
+    const btn = document.getElementById("btn-menu-admin");
+    const opciones = document.getElementById("opciones-admin");
+    const salir = document.getElementById("cerrar-sesion");
 
-function activarCambioPaneles() {
-    botonesPanel.forEach((boton) => {
-        boton.addEventListener("click", () => {
-            const panelId = boton.dataset.panel;
-            mostrarPanel(panelId);
-        });
-    });
-}
-
-function mostrarPanel(panelId) {
-    paneles.forEach((panel) => {
-        panel.classList.remove("activo");
-    });
-
-    const panelSeleccionado = document.getElementById(panelId);
-
-    if (panelSeleccionado) {
-        panelSeleccionado.classList.add("activo");
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-    }
-
-    if (opcionesAdmin) {
-        opcionesAdmin.classList.remove("activo");
-    }
-}
-
-function mostrarNombreAdmin() {
-    const adminGuardado = JSON.parse(localStorage.getItem("fashmarket_admin")) || null;
-    const nombreGuardado = localStorage.getItem("nombre_admin");
-
-    if (adminGuardado && adminGuardado.nombre) {
-        nombreAdmin.textContent = adminGuardado.nombre;
-    } else {
-        nombreAdmin.textContent = nombreGuardado || "Administrador";
-    }
-}
-
-function activarMenuAdmin() {
-    if (!btnMenuAdmin || !opcionesAdmin) return;
-
-    btnMenuAdmin.addEventListener("click", (e) => {
+    btn?.addEventListener("click", (e) => {
         e.stopPropagation();
-        opcionesAdmin.classList.toggle("activo");
+        opciones?.classList.toggle("activo");
     });
 
-    document.addEventListener("click", () => {
-        opcionesAdmin.classList.remove("activo");
+    document.addEventListener("click", () => opciones?.classList.remove("activo"));
+
+    salir?.addEventListener("click", (e) => {
+        e.preventDefault();
+        FastMarket.cerrarSesion();
+        window.location.href = "login.html";
     });
+}
 
-    opcionesAdmin.addEventListener("click", (e) => {
-        e.stopPropagation();
+function activarPaneles() {
+    document.querySelectorAll("[data-panel]").forEach((btn) => {
+        btn.addEventListener("click", () => mostrarPanel(btn.dataset.panel));
     });
 }
 
-/* EVENTOS */
-
-function activarEventosProductos() {
-    if (formProducto) {
-        formProducto.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            await guardarProducto();
-        });
-    }
-
-    if (btnLimpiar) {
-        btnLimpiar.addEventListener("click", limpiarFormularioProducto);
-    }
-
-    if (imagenProducto) {
-        imagenProducto.addEventListener("change", cargarImagenProducto);
-    }
-
-    if (buscarAdmin) {
-        buscarAdmin.addEventListener("input", mostrarProductos);
-    }
-
-    if (filtroCategoria) {
-        filtroCategoria.addEventListener("change", mostrarProductos);
-    }
-
-    if (tablaProductos) {
-        tablaProductos.addEventListener("click", async (e) => {
-            const botonEditar = e.target.closest(".btn-editar");
-            const botonEliminar = e.target.closest(".btn-eliminar");
-
-            if (botonEditar) {
-                editarProducto(Number(botonEditar.dataset.id));
-            }
-
-            if (botonEliminar) {
-                await eliminarProducto(Number(botonEliminar.dataset.id));
-            }
-        });
-    }
+function mostrarPanel(id) {
+    document.querySelectorAll(".panel-admin").forEach((panel) => panel.classList.remove("activo"));
+    document.getElementById(id)?.classList.add("activo");
+    document.getElementById("opciones-admin")?.classList.remove("activo");
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function activarEventosBanners() {
-    if (formBanner) {
-        formBanner.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            await guardarBanner();
-        });
-    }
+/* PRODUCTOS */
 
-    if (btnLimpiarBanner) {
-        btnLimpiarBanner.addEventListener("click", limpiarFormularioBanner);
-    }
-
-    if (buscarBanner) {
-        buscarBanner.addEventListener("input", mostrarBanners);
-    }
-
-    if (bannerImagen) {
-        bannerImagen.addEventListener("change", cargarImagenBanner);
-    }
-
-    if (listaBanners) {
-        listaBanners.addEventListener("click", async (e) => {
-            const botonEditar = e.target.closest(".btn-editar-banner");
-            const botonEliminar = e.target.closest(".btn-eliminar-banner");
-
-            if (botonEditar) {
-                editarBanner(Number(botonEditar.dataset.id));
-            }
-
-            if (botonEliminar) {
-                await eliminarBanner(Number(botonEliminar.dataset.id));
-            }
-        });
-    }
+function activarProductos() {
+    document.getElementById("form-producto")?.addEventListener("submit", guardarProducto);
+    document.getElementById("btn-limpiar")?.addEventListener("click", limpiarProducto);
+    document.getElementById("imagen-producto")?.addEventListener("change", (e) => cargarImagen(e, "imagen-producto-valor", "preview-producto", "preview-producto-img"));
+    document.getElementById("buscar-admin")?.addEventListener("input", pintarProductos);
+    document.getElementById("filtro-categoria")?.addEventListener("change", pintarProductos);
+    document.getElementById("tabla-productos")?.addEventListener("click", async (e) => {
+        const editar = e.target.closest("[data-editar-producto]");
+        const eliminar = e.target.closest("[data-eliminar-producto]");
+        if (editar) editarProducto(Number(editar.dataset.editarProducto));
+        if (eliminar) await eliminarProducto(Number(eliminar.dataset.eliminarProducto));
+    });
 }
 
-function activarEventosPowerBI() {
-    if (btnGuardarPowerbi) {
-        btnGuardarPowerbi.addEventListener("click", guardarPowerBI);
-    }
-
-    if (btnLimpiarPowerbi) {
-        btnLimpiarPowerbi.addEventListener("click", limpiarPowerBI);
-    }
-}
-
-/* PRODUCTOS CON POSTGRESQL */
-
-async function cargarProductosDesdeBackend() {
+async function cargarProductos() {
     try {
-        const respuesta = await fetch(`${API_URL}/productos`);
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudieron cargar los productos");
-        }
-
-        productos = await respuesta.json();
-        mostrarProductos();
-        actualizarEstadisticasLocales();
-
+        productos = await FastMarket.request("/productos?incluirInactivos=true", { auth: true });
+        productos = productos.filter((p) => p.activo !== false);
+        pintarProductos();
     } catch (error) {
-        console.error("Error al cargar productos:", error);
-        mostrarToast("Error al cargar productos desde PostgreSQL");
+        toast(error.message);
     }
 }
 
-function cargarImagenProducto() {
-    const archivo = imagenProducto.files[0];
+function pintarProductos() {
+    const tbody = document.getElementById("tabla-productos");
+    if (!tbody) return;
 
-    if (!archivo) return;
+    const texto = document.getElementById("buscar-admin")?.value.toLowerCase().trim() || "";
+    const categoria = document.getElementById("filtro-categoria")?.value || "todos";
 
-    if (!archivo.type.startsWith("image/")) {
-        mostrarToast("Selecciona una imagen válida");
-        imagenProducto.value = "";
-        return;
-    }
+    const lista = productos.filter((p) => {
+        const textoOk = `${p.nombre} ${p.descripcion} ${p.categoria}`.toLowerCase().includes(texto);
+        const catOk = categoria === "todos" || p.categoria === categoria;
+        return textoOk && catOk;
+    });
 
-    const lector = new FileReader();
+    tbody.innerHTML = lista.length ? "" : `<tr><td colspan="7">No hay productos.</td></tr>`;
 
-    lector.onload = () => {
-        imagenProductoValor.value = lector.result;
-        previewProductoImg.src = lector.result;
-        previewProducto.classList.remove("oculto");
+    lista.forEach((p) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><img src="${FastMarket.escapeHTML(p.imagen || "img/logo.png")}" class="img-tabla" alt="${FastMarket.escapeHTML(p.nombre)}" onerror="this.src='img/logo.png'"></td>
+            <td><strong>${FastMarket.escapeHTML(p.nombre)}</strong><br><small>${FastMarket.escapeHTML(p.descripcion || "")}</small></td>
+            <td>${formatearCategoria(p.categoria)}</td>
+            <td><strong>${FastMarket.money(p.precio)}</strong>${p.precioAntes ? `<br><small>Antes: ${FastMarket.money(p.precioAntes)}</small>` : ""}</td>
+            <td>${p.stock}</td>
+            <td>
+                <span class="${p.oferta ? "estado-oferta" : "estado-normal"}">${p.oferta ? "Oferta" : "Normal"}</span>
+                ${p.destacado ? `<br><small>Destacado</small>` : ""}
+            </td>
+            <td>
+                <button class="btn-editar" data-editar-producto="${p.id}">Editar</button>
+                <button class="btn-eliminar" data-eliminar-producto="${p.id}">Eliminar</button>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function guardarProducto(e) {
+    e.preventDefault();
+
+    const id = value("producto-id");
+    const payload = {
+        nombre: value("nombre"),
+        categoria: value("categoria"),
+        precio: Number(value("precio")),
+        precioAntes: value("precioAntes") ? Number(value("precioAntes")) : null,
+        stock: Number(value("stock")),
+        imagen: value("imagen-producto-valor") || "img/logo.png",
+        descripcion: value("descripcion"),
+        oferta: checked("oferta"),
+        destacado: checked("destacado")
     };
 
-    lector.readAsDataURL(archivo);
-}
-
-async function guardarProducto() {
-    const nombreValor = nombre.value.trim();
-    const categoriaValor = categoria.value;
-    const precioValor = Number(precio.value);
-    const precioAntesValor = precioAntes.value === "" ? null : Number(precioAntes.value);
-    const stockValor = Number(stock.value);
-    const imagenValor = imagenProductoValor.value.trim() || "img/logo.png";
-    const descripcionValor = descripcion.value.trim();
-    const ofertaValor = oferta.checked;
-
-    if (nombreValor === "" || descripcionValor === "" || precioValor <= 0 || stockValor < 0) {
-        mostrarToast("Completa los datos correctamente");
+    if (!payload.nombre || !payload.categoria || payload.precio <= 0 || payload.stock < 0) {
+        toast("Completa los datos del producto correctamente.");
         return;
     }
-
-    const productoEnviar = {
-        nombre: nombreValor,
-        categoria: categoriaValor,
-        precio: precioValor,
-        precioAntes: precioAntesValor,
-        stock: stockValor,
-        imagen: imagenValor,
-        descripcion: descripcionValor,
-        oferta: ofertaValor
-    };
 
     try {
-        let respuesta;
-
-        if (productoId.value) {
-            respuesta = await fetch(`${API_URL}/productos/${productoId.value}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(productoEnviar)
-            });
-        } else {
-            respuesta = await fetch(`${API_URL}/productos`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(productoEnviar)
-            });
-        }
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudo guardar el producto");
-        }
-
-        mostrarToast(productoId.value ? "Producto actualizado en PostgreSQL" : "Producto guardado en PostgreSQL");
-
-        await cargarProductosDesdeBackend();
-        await cargarIndicesDesdeBackend();
-        limpiarFormularioProducto();
-
+        await FastMarket.request(id ? `/productos/${id}` : "/productos", {
+            method: id ? "PUT" : "POST",
+            body: payload,
+            auth: true
+        });
+        toast(id ? "Producto actualizado." : "Producto creado.");
+        limpiarProducto();
+        await cargarProductos();
+        await cargarIndices();
     } catch (error) {
-        console.error("Error al guardar producto:", error);
-        mostrarToast("Error al conectar con el backend");
+        toast(error.message);
     }
-}
-
-function mostrarProductos() {
-    if (!tablaProductos) return;
-
-    const texto = buscarAdmin ? buscarAdmin.value.toLowerCase().trim() : "";
-    const categoriaSeleccionada = filtroCategoria ? filtroCategoria.value : "todos";
-
-    const lista = productos.filter((producto) => {
-        const coincideTexto =
-            producto.nombre.toLowerCase().includes(texto) ||
-            producto.descripcion.toLowerCase().includes(texto);
-
-        const coincideCategoria =
-            categoriaSeleccionada === "todos" ||
-            producto.categoria === categoriaSeleccionada;
-
-        return coincideTexto && coincideCategoria;
-    });
-
-    tablaProductos.innerHTML = "";
-
-    if (lista.length === 0) {
-        tablaProductos.innerHTML = `
-            <tr>
-                <td colspan="7">No se encontraron productos.</td>
-            </tr>
-        `;
-        return;
-    }
-
-    lista.forEach((producto) => {
-        const fila = document.createElement("tr");
-
-        fila.innerHTML = `
-            <td>
-                <img src="${producto.imagen}" class="img-tabla" alt="${producto.nombre}" onerror="this.src='img/logo.png'">
-            </td>
-
-            <td>
-                <strong>${producto.nombre}</strong><br>
-                <small>${producto.descripcion}</small>
-            </td>
-
-            <td>${formatearCategoria(producto.categoria)}</td>
-
-            <td>
-                <strong>S/ ${Number(producto.precio).toFixed(2)}</strong>
-                ${producto.precioAntes ? `<br><small>Antes: S/ ${Number(producto.precioAntes).toFixed(2)}</small>` : ""}
-            </td>
-
-            <td>${producto.stock}</td>
-
-            <td>
-                <span class="${producto.oferta ? "estado-oferta" : "estado-normal"}">
-                    ${producto.oferta ? "Oferta" : "Normal"}
-                </span>
-            </td>
-
-            <td>
-                <button class="btn-editar" data-id="${producto.id}">Editar</button>
-                <button class="btn-eliminar" data-id="${producto.id}">Eliminar</button>
-            </td>
-        `;
-
-        tablaProductos.appendChild(fila);
-    });
 }
 
 function editarProducto(id) {
-    const producto = productos.find((item) => Number(item.id) === Number(id));
+    const p = productos.find((x) => Number(x.id) === Number(id));
+    if (!p) return;
 
-    if (!producto) return;
+    setValue("producto-id", p.id);
+    setValue("nombre", p.nombre);
+    setValue("categoria", p.categoria);
+    setValue("precio", p.precio);
+    setValue("precioAntes", p.precioAntes || "");
+    setValue("stock", p.stock);
+    setValue("imagen-producto-valor", p.imagen || "");
+    setValue("descripcion", p.descripcion || "");
+    setChecked("oferta", !!p.oferta);
+    setChecked("destacado", !!p.destacado);
+    setText("titulo-form", "Editar producto");
 
-    productoId.value = producto.id;
-    nombre.value = producto.nombre;
-    categoria.value = producto.categoria;
-    precio.value = producto.precio;
-    precioAntes.value = producto.precioAntes || "";
-    stock.value = producto.stock;
-    imagenProductoValor.value = producto.imagen;
-    previewProductoImg.src = producto.imagen;
-    previewProducto.classList.remove("oculto");
-    descripcion.value = producto.descripcion;
-    oferta.checked = producto.oferta;
+    const preview = document.getElementById("preview-producto");
+    const img = document.getElementById("preview-producto-img");
+    if (img) img.src = p.imagen || "img/logo.png";
+    preview?.classList.remove("oculto");
 
-    tituloForm.textContent = "Editar producto";
     mostrarPanel("panel-productos");
 }
 
 async function eliminarProducto(id) {
-    const confirmar = confirm("¿Seguro que deseas eliminar este producto?");
-
-    if (!confirmar) return;
-
+    if (!confirm("¿Seguro que deseas eliminar este producto del catálogo?")) return;
     try {
-        const respuesta = await fetch(`${API_URL}/productos/${id}`, {
-            method: "DELETE"
-        });
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudo eliminar el producto");
-        }
-
-        mostrarToast("Producto eliminado de PostgreSQL");
-
-        await cargarProductosDesdeBackend();
-        await cargarIndicesDesdeBackend();
-
+        await FastMarket.request(`/productos/${id}`, { method: "DELETE", auth: true });
+        toast("Producto desactivado. Los pedidos antiguos se conservan.");
+        await cargarProductos();
+        await cargarIndices();
     } catch (error) {
-        console.error("Error al eliminar producto:", error);
-        mostrarToast("Error al eliminar producto");
+        toast(error.message);
     }
 }
 
-function limpiarFormularioProducto() {
-    productoId.value = "";
-    formProducto.reset();
-
-    imagenProductoValor.value = "";
-    previewProductoImg.src = "img/logo.png";
-    previewProducto.classList.add("oculto");
-
-    tituloForm.textContent = "Agregar producto";
+function limpiarProducto() {
+    document.getElementById("form-producto")?.reset();
+    setValue("producto-id", "");
+    setValue("imagen-producto-valor", "");
+    setText("titulo-form", "Agregar producto");
+    document.getElementById("preview-producto")?.classList.add("oculto");
 }
 
-/* BANNERS CON POSTGRESQL */
+/* BANNERS */
 
-async function cargarBannersDesdeBackend() {
-    try {
-        const respuesta = await fetch(`${API_URL}/banners`);
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudieron cargar los banners");
-        }
-
-        banners = await respuesta.json();
-        mostrarBanners();
-
-    } catch (error) {
-        console.error("Error al cargar banners:", error);
-        mostrarToast("Error al cargar banners desde PostgreSQL");
-    }
-}
-
-function cargarImagenBanner() {
-    const archivo = bannerImagen.files[0];
-
-    if (!archivo) return;
-
-    if (!archivo.type.startsWith("image/")) {
-        mostrarToast("Selecciona una imagen válida");
-        bannerImagen.value = "";
-        return;
-    }
-
-    const lector = new FileReader();
-
-    lector.onload = () => {
-        bannerImagenValor.value = lector.result;
-        previewBannerImg.src = lector.result;
-        previewBanner.classList.remove("oculto");
-    };
-
-    lector.readAsDataURL(archivo);
-}
-
-async function guardarBanner() {
-    const tituloValor = bannerTitulo.value.trim();
-    const descripcionValor = bannerDescripcion.value.trim();
-    const imagenValor = bannerImagenValor.value.trim();
-    const activoValor = bannerActivo.checked;
-
-    if (tituloValor === "" || descripcionValor === "") {
-        mostrarToast("Completa el título y la descripción del banner");
-        return;
-    }
-
-    if (!imagenValor && !bannerId.value) {
-        mostrarToast("Selecciona una imagen para el banner");
-        return;
-    }
-
-    const bannerEnviar = {
-        titulo: tituloValor,
-        descripcion: descripcionValor,
-        imagen: imagenValor,
-        activo: activoValor
-    };
-
-    try {
-        let respuesta;
-
-        if (bannerId.value) {
-            respuesta = await fetch(`${API_URL}/banners/${bannerId.value}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(bannerEnviar)
-            });
-        } else {
-            respuesta = await fetch(`${API_URL}/banners`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(bannerEnviar)
-            });
-        }
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudo guardar el banner");
-        }
-
-        mostrarToast(bannerId.value ? "Banner actualizado en PostgreSQL" : "Banner guardado en PostgreSQL");
-
-        await cargarBannersDesdeBackend();
-        limpiarFormularioBanner();
-
-    } catch (error) {
-        console.error("Error al guardar banner:", error);
-        mostrarToast("Error al conectar con el backend");
-    }
-}
-
-function mostrarBanners() {
-    if (!listaBanners) return;
-
-    const texto = buscarBanner ? buscarBanner.value.toLowerCase().trim() : "";
-
-    const lista = banners.filter((banner) => {
-        return (
-            banner.titulo.toLowerCase().includes(texto) ||
-            banner.descripcion.toLowerCase().includes(texto)
-        );
+function activarBanners() {
+    document.getElementById("form-banner")?.addEventListener("submit", guardarBanner);
+    document.getElementById("btn-limpiar-banner")?.addEventListener("click", limpiarBanner);
+    document.getElementById("banner-imagen")?.addEventListener("change", (e) => cargarImagen(e, "banner-imagen-valor", "preview-banner", "preview-banner-img"));
+    document.getElementById("buscar-banner")?.addEventListener("input", pintarBanners);
+    document.getElementById("lista-banners")?.addEventListener("click", async (e) => {
+        const editar = e.target.closest("[data-editar-banner]");
+        const eliminar = e.target.closest("[data-eliminar-banner]");
+        if (editar) editarBanner(Number(editar.dataset.editarBanner));
+        if (eliminar) await eliminarBanner(Number(eliminar.dataset.eliminarBanner));
     });
+}
 
-    listaBanners.innerHTML = "";
-
-    if (lista.length === 0) {
-        listaBanners.innerHTML = `
-            <div class="banner-card-admin">
-                <div class="banner-card-info">
-                    <h3>No hay banners</h3>
-                    <p>Agrega una imagen para mostrarla en el carrusel de ofertas.</p>
-                </div>
-            </div>
-        `;
-        return;
+async function cargarBanners() {
+    try {
+        banners = await FastMarket.request("/banners");
+        pintarBanners();
+    } catch (error) {
+        toast(error.message);
     }
+}
 
-    lista.forEach((banner) => {
+function pintarBanners() {
+    const contenedor = document.getElementById("lista-banners");
+    if (!contenedor) return;
+
+    const texto = document.getElementById("buscar-banner")?.value.toLowerCase().trim() || "";
+    const lista = banners.filter((b) => `${b.titulo} ${b.descripcion}`.toLowerCase().includes(texto));
+
+    contenedor.innerHTML = lista.length ? "" : `<div class="banner-card-admin"><h3>No hay banners.</h3></div>`;
+
+    lista.forEach((b) => {
         const card = document.createElement("article");
-        card.classList.add("banner-card-admin");
-
+        card.className = "banner-card-admin";
         card.innerHTML = `
-            <img src="${banner.imagen}" alt="${banner.titulo}" onerror="this.src='img/logo.png'">
-
+            <img src="${FastMarket.escapeHTML(b.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(b.titulo)}" onerror="this.src='img/logo.png'">
             <div class="banner-card-info">
-                <h3>${banner.titulo}</h3>
-                <p>${banner.descripcion}</p>
-
-                <span class="${banner.activo ? "estado-banner-activo" : "estado-banner-inactivo"}">
-                    ${banner.activo ? "Activo" : "Inactivo"}
-                </span>
-
+                <h3>${FastMarket.escapeHTML(b.titulo)}</h3>
+                <p>${FastMarket.escapeHTML(b.descripcion || "")}</p>
+                <span class="${b.activo ? "estado-banner-activo" : "estado-banner-inactivo"}">${b.activo ? "Activo" : "Inactivo"}</span>
                 <div class="banner-card-acciones">
-                    <button class="btn-editar-banner" data-id="${banner.id}">Editar</button>
-                    <button class="btn-eliminar-banner" data-id="${banner.id}">Eliminar</button>
+                    <button class="btn-editar-banner" data-editar-banner="${b.id}">Editar</button>
+                    <button class="btn-eliminar-banner" data-eliminar-banner="${b.id}">Eliminar</button>
                 </div>
-            </div>
-        `;
-
-        listaBanners.appendChild(card);
+            </div>`;
+        contenedor.appendChild(card);
     });
+}
+
+async function guardarBanner(e) {
+    e.preventDefault();
+
+    const id = value("banner-id");
+    const payload = {
+        titulo: value("banner-titulo"),
+        descripcion: value("banner-descripcion"),
+        imagen: value("banner-imagen-valor") || "img/logo.png",
+        activo: checked("banner-activo")
+    };
+
+    if (!payload.titulo || !payload.descripcion) {
+        toast("Completa título y descripción del banner.");
+        return;
+    }
+
+    try {
+        await FastMarket.request(id ? `/banners/${id}` : "/banners", {
+            method: id ? "PUT" : "POST",
+            body: payload,
+            auth: true
+        });
+        toast(id ? "Banner actualizado." : "Banner creado.");
+        limpiarBanner();
+        await cargarBanners();
+    } catch (error) {
+        toast(error.message);
+    }
 }
 
 function editarBanner(id) {
-    const banner = banners.find((item) => Number(item.id) === Number(id));
+    const b = banners.find((x) => Number(x.id) === Number(id));
+    if (!b) return;
 
-    if (!banner) return;
+    setValue("banner-id", b.id);
+    setValue("banner-titulo", b.titulo);
+    setValue("banner-descripcion", b.descripcion || "");
+    setValue("banner-imagen-valor", b.imagen || "");
+    setChecked("banner-activo", !!b.activo);
+    setText("titulo-form-banner", "Editar banner");
 
-    bannerId.value = banner.id;
-    bannerTitulo.value = banner.titulo;
-    bannerDescripcion.value = banner.descripcion;
-    bannerImagenValor.value = banner.imagen;
-    bannerActivo.checked = banner.activo;
+    const preview = document.getElementById("preview-banner");
+    const img = document.getElementById("preview-banner-img");
+    if (img) img.src = b.imagen || "img/logo.png";
+    preview?.classList.remove("oculto");
 
-    previewBannerImg.src = banner.imagen;
-    previewBanner.classList.remove("oculto");
-
-    tituloFormBanner.textContent = "Editar banner";
     mostrarPanel("panel-banners");
 }
 
 async function eliminarBanner(id) {
-    const confirmar = confirm("¿Seguro que deseas eliminar este banner?");
-
-    if (!confirmar) return;
-
+    if (!confirm("¿Seguro que deseas eliminar este banner?")) return;
     try {
-        const respuesta = await fetch(`${API_URL}/banners/${id}`, {
-            method: "DELETE"
+        await FastMarket.request(`/banners/${id}`, { method: "DELETE", auth: true });
+        toast("Banner eliminado.");
+        await cargarBanners();
+    } catch (error) {
+        toast(error.message);
+    }
+}
+
+function limpiarBanner() {
+    document.getElementById("form-banner")?.reset();
+    setValue("banner-id", "");
+    setValue("banner-imagen-valor", "");
+    setText("titulo-form-banner", "Agregar banner");
+    document.getElementById("preview-banner")?.classList.add("oculto");
+}
+
+/* PEDIDOS */
+
+function activarPedidos() {
+    document.getElementById("tabla-pedidos")?.addEventListener("change", async (e) => {
+        const select = e.target.closest("[data-estado-pedido]");
+        if (!select) return;
+        await actualizarEstadoPedido(Number(select.dataset.estadoPedido), select.value);
+    });
+}
+
+async function cargarPedidos() {
+    try {
+        pedidos = await FastMarket.request("/pedidos", { auth: true });
+        pintarPedidos();
+    } catch (error) {
+        toast(error.message);
+    }
+}
+
+function pintarPedidos() {
+    const tbody = document.getElementById("tabla-pedidos");
+    if (!tbody) return;
+
+    tbody.innerHTML = pedidos.length ? "" : `<tr><td colspan="6">No hay pedidos registrados.</td></tr>`;
+
+    pedidos.forEach((p) => {
+        const productosTexto = (p.items || []).map((i) => `${i.productoNombre} x${i.cantidad}`).join(", ");
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><strong>${FastMarket.escapeHTML(p.codigo)}</strong><br><small>${fecha(p.fecha)}</small></td>
+            <td>${FastMarket.escapeHTML(p.usuarioNombre || "")}</td>
+            <td>${FastMarket.escapeHTML(productosTexto)}</td>
+            <td>${FastMarket.money(p.total)}</td>
+            <td>${FastMarket.estadoTexto(p.estado)}</td>
+            <td>
+                <select data-estado-pedido="${p.id}">
+                    ${["PENDIENTE","CONFIRMADO","PREPARANDO","CAMINO","ENTREGADO","CANCELADO"].map((estado) => `<option value="${estado}" ${FastMarket.normalizarEstado(p.estado) === estado ? "selected" : ""}>${FastMarket.estadoTexto(estado)}</option>`).join("")}
+                </select>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function actualizarEstadoPedido(id, estado) {
+    try {
+        await FastMarket.request(`/pedidos/${id}/estado?estado=${estado}`, {
+            method: "PUT",
+            auth: true
         });
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudo eliminar el banner");
-        }
-
-        mostrarToast("Banner eliminado de PostgreSQL");
-
-        await cargarBannersDesdeBackend();
-
+        toast("Estado del pedido actualizado.");
+        await cargarPedidos();
     } catch (error) {
-        console.error("Error al eliminar banner:", error);
-        mostrarToast("Error al eliminar banner");
+        toast(error.message);
     }
 }
 
-function limpiarFormularioBanner() {
-    bannerId.value = "";
-    formBanner.reset();
+/* USUARIOS / ÍNDICES */
 
-    bannerImagenValor.value = "";
-    previewBannerImg.src = "img/logo.png";
-    previewBanner.classList.add("oculto");
-
-    tituloFormBanner.textContent = "Agregar banner";
-}
-
-/* PEDIDOS CON POSTGRESQL */
-
-async function cargarPedidosDesdeBackend() {
+async function cargarUsuarios() {
     try {
-        const respuesta = await fetch(`${API_URL}/pedidos`);
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudieron cargar los pedidos");
-        }
-
-        pedidos = await respuesta.json();
-        mostrarPedidos();
-
+        usuarios = await FastMarket.request("/usuarios", { auth: true });
+        pintarUsuarios();
     } catch (error) {
-        console.error("Error al cargar pedidos:", error);
-
-        if (tablaPedidos) {
-            tablaPedidos.innerHTML = `
-                <tr>
-                    <td colspan="5">No se pudieron cargar los pedidos.</td>
-                </tr>
-            `;
-        }
+        toast(error.message);
     }
 }
 
-function mostrarPedidos() {
-    if (!tablaPedidos) return;
+function pintarUsuarios() {
+    const tbody = document.getElementById("tabla-usuarios");
+    if (!tbody) return;
 
-    tablaPedidos.innerHTML = "";
+    tbody.innerHTML = usuarios.length ? "" : `<tr><td colspan="4">No hay usuarios.</td></tr>`;
 
-    if (pedidos.length === 0) {
-        tablaPedidos.innerHTML = `
-            <tr>
-                <td colspan="5">No hay pedidos registrados.</td>
-            </tr>
-        `;
-        return;
-    }
-
-    pedidos.forEach((pedido) => {
-        const fila = document.createElement("tr");
-
-        const idPedido = pedido.id || pedido.codigo || "Sin código";
-        const clientePedido = obtenerClientePedido(pedido);
-        const productosPedido = obtenerProductosPedido(pedido);
-        const totalPedido = Number(pedido.total || 0);
-        const estadoPedido = pedido.estado || "pendiente";
-
-        fila.innerHTML = `
-            <td>${idPedido}</td>
-            <td>${clientePedido}</td>
-            <td>${productosPedido}</td>
-            <td>S/ ${totalPedido.toFixed(2)}</td>
-            <td>
-                <span class="estado-pedido ${normalizarEstadoClase(estadoPedido)}">
-                    ${formatearEstado(estadoPedido)}
-                </span>
-            </td>
-        `;
-
-        tablaPedidos.appendChild(fila);
+    usuarios.forEach((u) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${FastMarket.escapeHTML(u.nombre)}</td>
+            <td>${FastMarket.escapeHTML(u.correo)}</td>
+            <td>${u.rol === "ADMIN" ? "Administrador" : "Cliente"}</td>
+            <td><span class="${u.estado === "ACTIVO" ? "estado-activo" : "estado-inactivo"}">${u.estado}</span></td>`;
+        tbody.appendChild(tr);
     });
 }
 
-function obtenerClientePedido(pedido) {
-    if (pedido.cliente) return pedido.cliente;
-    if (pedido.usuarioNombre) return pedido.usuarioNombre;
-    if (pedido.usuario && pedido.usuario.nombre) return pedido.usuario.nombre;
-    if (pedido.nombreCliente) return pedido.nombreCliente;
-    return "Cliente";
-}
-
-function obtenerProductosPedido(pedido) {
-    if (pedido.producto) return pedido.producto;
-
-    if (pedido.items && Array.isArray(pedido.items)) {
-        return pedido.items.map((item) => {
-            const nombreProducto =
-                item.productoNombre ||
-                item.nombreProducto ||
-                item.nombre ||
-                "Producto";
-
-            const cantidad = item.cantidad || 1;
-
-            return `${nombreProducto} x${cantidad}`;
-        }).join(", ");
-    }
-
-    if (pedido.detalles && Array.isArray(pedido.detalles)) {
-        return pedido.detalles.map((item) => {
-            const nombreProducto =
-                item.productoNombre ||
-                item.nombreProducto ||
-                item.nombre ||
-                "Producto";
-
-            const cantidad = item.cantidad || 1;
-
-            return `${nombreProducto} x${cantidad}`;
-        }).join(", ");
-    }
-
-    return "Productos del pedido";
-}
-
-/* USUARIOS CON POSTGRESQL */
-
-async function cargarUsuariosDesdeBackend() {
+async function cargarIndices() {
     try {
-        const respuesta = await fetch(`${API_URL}/usuarios`);
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudieron cargar los usuarios");
-        }
-
-        usuarios = await respuesta.json();
-        mostrarUsuarios();
-
-    } catch (error) {
-        console.error("Error al cargar usuarios:", error);
-
-        if (tablaUsuarios) {
-            tablaUsuarios.innerHTML = `
-                <tr>
-                    <td colspan="4">No se pudieron cargar los usuarios.</td>
-                </tr>
-            `;
-        }
+        const i = await FastMarket.request("/admin/indices", { auth: true });
+        setText("total-productos", i.totalProductos);
+        setText("total-ofertas", i.totalOfertas);
+        setText("total-stock", i.totalStock);
+        setText("total-pedidos", i.totalPedidos);
+    } catch {
+        setText("total-productos", productos.length);
+        setText("total-ofertas", productos.filter((p) => p.oferta).length);
+        setText("total-stock", productos.reduce((s, p) => s + Number(p.stock || 0), 0));
+        setText("total-pedidos", pedidos.length);
     }
 }
 
-function mostrarUsuarios() {
-    if (!tablaUsuarios) return;
+/* CONTENIDO INDEX */
 
-    tablaUsuarios.innerHTML = "";
-
-    if (usuarios.length === 0) {
-        tablaUsuarios.innerHTML = `
-            <tr>
-                <td colspan="4">No hay usuarios registrados.</td>
-            </tr>
-        `;
-        return;
-    }
-
-    usuarios.forEach((usuario) => {
-        const fila = document.createElement("tr");
-
-        const nombreUsuario = usuario.nombre || "Usuario";
-        const correoUsuario = usuario.correo || usuario.email || "Sin correo";
-        const rolUsuario = usuario.rol || "Cliente";
-        const estadoUsuario = usuario.estado || "activo";
-
-        fila.innerHTML = `
-            <td>${nombreUsuario}</td>
-            <td>${correoUsuario}</td>
-            <td>${formatearRol(rolUsuario)}</td>
-            <td>
-                <span class="${String(estadoUsuario).toLowerCase() === "activo" ? "estado-activo" : "estado-inactivo"}">
-                    ${String(estadoUsuario).toLowerCase() === "activo" ? "Activo" : "Inactivo"}
-                </span>
-            </td>
-        `;
-
-        tablaUsuarios.appendChild(fila);
+function activarIndex() {
+    document.getElementById("form-index")?.addEventListener("submit", guardarIndex);
+    document.getElementById("btn-limpiar-index")?.addEventListener("click", limpiarIndex);
+    document.getElementById("buscar-index")?.addEventListener("input", pintarIndex);
+    document.getElementById("tabla-index")?.addEventListener("click", async (e) => {
+        const editar = e.target.closest("[data-editar-index]");
+        const eliminar = e.target.closest("[data-eliminar-index]");
+        if (editar) editarIndex(Number(editar.dataset.editarIndex));
+        if (eliminar) await eliminarIndex(Number(eliminar.dataset.eliminarIndex));
     });
 }
 
-/* ÍNDICES CON POSTGRESQL */
-
-async function cargarIndicesDesdeBackend() {
+async function cargarIndexContenidos() {
     try {
-        const respuesta = await fetch(`${API_URL}/admin/indices`);
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudieron cargar los índices");
-        }
-
-        const indices = await respuesta.json();
-
-        document.getElementById("total-productos").textContent =
-            indices.totalProductos ?? productos.length;
-
-        document.getElementById("total-ofertas").textContent =
-            indices.totalOfertas ?? productos.filter((producto) => producto.oferta).length;
-
-        document.getElementById("total-stock").textContent =
-            indices.totalStock ?? productos.reduce((suma, producto) => suma + Number(producto.stock), 0);
-
-        document.getElementById("total-pedidos").textContent =
-            indices.totalPedidos ?? pedidos.length;
-
+        indexContenidos = await FastMarket.request("/index-contenido");
+        pintarIndex();
     } catch (error) {
-        console.error("Error al cargar índices:", error);
-        actualizarEstadisticasLocales();
+        toast(error.message);
     }
 }
 
-function actualizarEstadisticasLocales() {
-    const totalProductos = productos.length;
-    const totalOfertas = productos.filter((producto) => producto.oferta).length;
-    const totalStock = productos.reduce((suma, producto) => suma + Number(producto.stock), 0);
-    const totalPedidos = pedidos.length;
+function pintarIndex() {
+    const tbody = document.getElementById("tabla-index");
+    if (!tbody) return;
 
-    const totalProductosElemento = document.getElementById("total-productos");
-    const totalOfertasElemento = document.getElementById("total-ofertas");
-    const totalStockElemento = document.getElementById("total-stock");
-    const totalPedidosElemento = document.getElementById("total-pedidos");
+    const texto = document.getElementById("buscar-index")?.value.toLowerCase().trim() || "";
+    const lista = indexContenidos.filter((c) => `${c.tipo} ${c.clave} ${c.titulo} ${c.descripcion}`.toLowerCase().includes(texto));
 
-    if (totalProductosElemento) totalProductosElemento.textContent = totalProductos;
-    if (totalOfertasElemento) totalOfertasElemento.textContent = totalOfertas;
-    if (totalStockElemento) totalStockElemento.textContent = totalStock;
-    if (totalPedidosElemento) totalPedidosElemento.textContent = totalPedidos;
+    tbody.innerHTML = lista.length ? "" : `<tr><td colspan="5">No hay contenido.</td></tr>`;
+
+    lista.forEach((c) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${FastMarket.escapeHTML(c.tipo)}</td>
+            <td>${FastMarket.escapeHTML(c.clave)}</td>
+            <td><strong>${FastMarket.escapeHTML(c.titulo)}</strong><br><small>${FastMarket.escapeHTML(c.descripcion || "")}</small></td>
+            <td>${c.activo ? "Activo" : "Inactivo"}</td>
+            <td>
+                <button data-editar-index="${c.id}">Editar</button>
+                <button data-eliminar-index="${c.id}">Eliminar</button>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function guardarIndex(e) {
+    e.preventDefault();
+
+    const id = value("index-id");
+    const payload = {
+        tipo: value("index-tipo"),
+        clave: value("index-clave"),
+        titulo: value("index-titulo"),
+        descripcion: value("index-descripcion"),
+        imagen: value("index-imagen"),
+        enlace: value("index-enlace"),
+        orden: Number(value("index-orden") || 1),
+        activo: checked("index-activo")
+    };
+
+    if (!payload.tipo || !payload.clave || !payload.titulo) {
+        toast("Completa tipo, clave y título.");
+        return;
+    }
+
+    try {
+        await FastMarket.request(id ? `/index-contenido/${id}` : "/index-contenido", {
+            method: id ? "PUT" : "POST",
+            body: payload,
+            auth: true
+        });
+        toast(id ? "Contenido actualizado." : "Contenido creado.");
+        limpiarIndex();
+        await cargarIndexContenidos();
+    } catch (error) {
+        toast(error.message);
+    }
+}
+
+function editarIndex(id) {
+    const c = indexContenidos.find((x) => Number(x.id) === Number(id));
+    if (!c) return;
+
+    setValue("index-id", c.id);
+    setValue("index-tipo", c.tipo);
+    setValue("index-clave", c.clave);
+    setValue("index-titulo", c.titulo);
+    setValue("index-descripcion", c.descripcion || "");
+    setValue("index-imagen", c.imagen || "");
+    setValue("index-enlace", c.enlace || "");
+    setValue("index-orden", c.orden || 1);
+    setChecked("index-activo", !!c.activo);
+    setText("titulo-form-index", "Editar contenido");
+    mostrarPanel("panel-index");
+}
+
+async function eliminarIndex(id) {
+    if (!confirm("¿Seguro que deseas eliminar este contenido?")) return;
+    try {
+        await FastMarket.request(`/index-contenido/${id}`, { method: "DELETE", auth: true });
+        toast("Contenido eliminado.");
+        await cargarIndexContenidos();
+    } catch (error) {
+        toast(error.message);
+    }
+}
+
+function limpiarIndex() {
+    document.getElementById("form-index")?.reset();
+    setValue("index-id", "");
+    setChecked("index-activo", true);
+    setText("titulo-form-index", "Agregar contenido");
 }
 
 /* POWER BI */
 
-function guardarPowerBI() {
-    const entrada = powerbiUrl.value.trim();
-
-    if (entrada === "") {
-        mostrarToast("Pega un enlace o iframe de Power BI");
-        return;
-    }
-
-    const url = obtenerUrlPowerBI(entrada);
-
-    if (!url || !url.startsWith("http")) {
-        mostrarToast("El enlace no es válido");
-        return;
-    }
-
-    localStorage.setItem("fastmarket_powerbi", url);
-    mostrarReportePowerBI(url);
-    mostrarToast("Reporte Power BI guardado");
+function activarPowerBI() {
+    document.getElementById("btn-guardar-powerbi")?.addEventListener("click", guardarPowerBI);
+    document.getElementById("btn-limpiar-powerbi")?.addEventListener("click", limpiarPowerBI);
 }
 
-function obtenerUrlPowerBI(texto) {
-    if (texto.includes("<iframe")) {
-        const match = texto.match(/src=["']([^"']+)["']/);
-
-        if (match && match[1]) {
-            return match[1];
-        }
-
-        return "";
+function guardarPowerBI() {
+    const entrada = value("powerbi-url");
+    const url = extraerUrlPowerBI(entrada);
+    if (!url || !url.startsWith("http")) {
+        toast("Pega un enlace o iframe válido.");
+        return;
     }
-
-    return texto;
+    localStorage.setItem("fastmarket_powerbi", url);
+    mostrarPowerBI(url);
+    toast("Reporte guardado.");
 }
 
 function cargarPowerBI() {
-    const urlGuardada = localStorage.getItem("fastmarket_powerbi");
-
-    if (urlGuardada) {
-        powerbiUrl.value = urlGuardada;
-        mostrarReportePowerBI(urlGuardada);
+    const url = localStorage.getItem("fastmarket_powerbi");
+    if (url) {
+        setValue("powerbi-url", url);
+        mostrarPowerBI(url);
     }
 }
 
-function mostrarReportePowerBI(url) {
-    powerbiReporte.classList.remove("powerbi-placeholder");
-
-    powerbiReporte.innerHTML = `
-        <iframe
-            src="${url}"
-            allowfullscreen="true">
-        </iframe>
-    `;
+function mostrarPowerBI(url) {
+    const cont = document.getElementById("powerbi-reporte");
+    if (!cont) return;
+    cont.classList.remove("powerbi-placeholder");
+    cont.innerHTML = `<iframe src="${FastMarket.escapeHTML(url)}" allowfullscreen="true"></iframe>`;
 }
 
 function limpiarPowerBI() {
     localStorage.removeItem("fastmarket_powerbi");
-    powerbiUrl.value = "";
+    setValue("powerbi-url", "");
+    const cont = document.getElementById("powerbi-reporte");
+    if (cont) {
+        cont.classList.add("powerbi-placeholder");
+        cont.innerHTML = `<p>Espacio para reporte Power BI</p><small>Cuando pegues el enlace, el reporte aparecerá aquí.</small>`;
+    }
+    toast("Reporte eliminado.");
+}
 
-    powerbiReporte.classList.add("powerbi-placeholder");
-    powerbiReporte.innerHTML = `
-        <p>Espacio para reporte Power BI</p>
-        <small>Cuando pegues el enlace, el reporte aparecerá aquí.</small>
-    `;
-
-    mostrarToast("Reporte eliminado");
+function extraerUrlPowerBI(texto) {
+    if (!texto) return "";
+    const match = texto.match(/src=["']([^"']+)["']/);
+    return match ? match[1] : texto.trim();
 }
 
 /* UTILIDADES */
 
+function cargarImagen(e, inputId, previewId, imgId) {
+    const archivo = e.target.files[0];
+    if (!archivo) return;
+    if (!archivo.type.startsWith("image/")) {
+        toast("Selecciona una imagen válida.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        setValue(inputId, reader.result);
+        const img = document.getElementById(imgId);
+        if (img) img.src = reader.result;
+        document.getElementById(previewId)?.classList.remove("oculto");
+    };
+    reader.readAsDataURL(archivo);
+}
+
+function value(id) {
+    const el = document.getElementById(id);
+    return el ? String(el.value || "").trim() : "";
+}
+
+function setValue(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val ?? "";
+}
+
+function checked(id) {
+    return !!document.getElementById(id)?.checked;
+}
+
+function setChecked(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.checked = !!val;
+}
+
+function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val ?? "";
+}
+
+function toast(mensaje) {
+    const el = document.getElementById("toast");
+    if (!el) {
+        alert(mensaje);
+        return;
+    }
+    el.textContent = mensaje;
+    el.classList.add("activo");
+    setTimeout(() => el.classList.remove("activo"), 2800);
+}
+
 function formatearCategoria(valor) {
-    const categorias = {
+    const map = {
         moda: "Moda",
         tecnologia: "Tecnología",
         hogar: "Hogar",
         accesorios: "Accesorios",
         estudio: "Estudio"
     };
-
-    return categorias[valor] || valor;
+    return map[valor] || valor || "";
 }
 
-function formatearEstado(valor) {
-    const estados = {
-        pendiente: "Pendiente",
-        enviado: "Enviado",
-        entregado: "Entregado",
-        camino: "En camino",
-        CAMINO: "En camino",
-        PENDIENTE: "Pendiente",
-        ENVIADO: "Enviado",
-        ENTREGADO: "Entregado"
-    };
-
-    return estados[valor] || valor;
-}
-
-function formatearRol(valor) {
-    const roles = {
-        ADMIN: "Administrador",
-        CLIENTE: "Cliente",
-        admin: "Administrador",
-        cliente: "Cliente"
-    };
-
-    return roles[valor] || valor;
-}
-
-function normalizarEstadoClase(valor) {
-    return String(valor)
-        .toLowerCase()
-        .replaceAll("_", "-")
-        .replaceAll(" ", "-");
-}
-
-function mostrarToast(mensaje) {
-    const toast = document.getElementById("toast");
-
-    toast.textContent = mensaje;
-    toast.classList.add("activo");
-
-    setTimeout(() => {
-        toast.classList.remove("activo");
-    }, 2300);
+function fecha(valor) {
+    if (!valor) return "";
+    return new Date(valor).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
 }

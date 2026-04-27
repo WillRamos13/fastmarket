@@ -4,7 +4,7 @@ const nuevaPassword = document.getElementById("nueva-password");
 const confirmarPassword = document.getElementById("confirmar-password");
 const mensajeRecuperar = document.getElementById("mensaje-recuperar");
 
-formRecuperar.addEventListener("submit", (e) => {
+formRecuperar.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const correoValor = correo.value.trim().toLowerCase();
@@ -16,7 +16,7 @@ formRecuperar.addEventListener("submit", (e) => {
         return;
     }
 
-    if (!validarCorreo(correoValor)) {
+    if (!correoValor.includes("@") || !correoValor.includes(".")) {
         mostrarMensaje("Ingresa un correo válido.", "error");
         return;
     }
@@ -31,51 +31,27 @@ formRecuperar.addEventListener("submit", (e) => {
         return;
     }
 
-    let usuarios = JSON.parse(localStorage.getItem("fashmarket_usuarios_clientes")) || [];
+    try {
+        await FastMarket.request("/auth/recuperar", {
+            method: "POST",
+            body: {
+                correo: correoValor,
+                passwordNueva: nuevaValor
+            }
+        });
 
-    const usuarioEncontrado = usuarios.find((usuario) => usuario.correo === correoValor);
+        FastMarket.cerrarSesion();
+        mostrarMensaje("Contraseña actualizada correctamente. Vuelve a iniciar sesión.", "ok");
 
-    if (!usuarioEncontrado) {
-        mostrarMensaje("No existe una cuenta registrada con ese correo.", "error");
-        return;
+        setTimeout(() => {
+            window.location.href = "login.html";
+        }, 1200);
+    } catch (error) {
+        mostrarMensaje(error.message, "error");
     }
-
-    usuarios = usuarios.map((usuario) => {
-        if (usuario.correo === correoValor) {
-            return {
-                ...usuario,
-                password: nuevaValor
-            };
-        }
-
-        return usuario;
-    });
-
-    localStorage.setItem("fashmarket_usuarios_clientes", JSON.stringify(usuarios));
-
-    const clienteActual = JSON.parse(localStorage.getItem("fashmarket_cliente"));
-
-    if (clienteActual && clienteActual.correo === correoValor) {
-        localStorage.removeItem("fashmarket_cliente");
-    }
-
-    mostrarMensaje("Contraseña actualizada correctamente. Vuelve a iniciar sesión.", "ok");
-
-    setTimeout(() => {
-        window.location.href = "login.html";
-    }, 1200);
 });
-
-function validarCorreo(correo) {
-    return correo.includes("@") && correo.includes(".");
-}
 
 function mostrarMensaje(texto, tipo) {
     mensajeRecuperar.textContent = texto;
-
-    if (tipo === "ok") {
-        mensajeRecuperar.style.color = "#16a34a";
-    } else {
-        mensajeRecuperar.style.color = "#dc2626";
-    }
+    mensajeRecuperar.style.color = tipo === "ok" ? "#16a34a" : "#dc2626";
 }

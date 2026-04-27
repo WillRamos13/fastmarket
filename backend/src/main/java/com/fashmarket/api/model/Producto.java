@@ -2,6 +2,7 @@ package com.fashmarket.api.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "productos")
@@ -38,6 +39,12 @@ public class Producto {
     @Column(nullable = false)
     private Boolean destacado = false;
 
+    @Column(nullable = false)
+    private Boolean activo = true;
+
+    @Column(nullable = false)
+    private LocalDateTime creadoEn = LocalDateTime.now();
+
     public Producto() {}
 
     public Producto(String nombre, String categoria, BigDecimal precio, BigDecimal precioAntes, Integer stock, String imagen, String descripcion, Boolean oferta, Boolean destacado) {
@@ -50,6 +57,7 @@ public class Producto {
         this.descripcion = descripcion;
         this.oferta = oferta;
         this.destacado = destacado;
+        this.activo = true;
     }
 
     public Long getId() { return id; }
@@ -72,4 +80,8 @@ public class Producto {
     public void setOferta(Boolean oferta) { this.oferta = oferta; }
     public Boolean getDestacado() { return destacado; }
     public void setDestacado(Boolean destacado) { this.destacado = destacado; }
+    public Boolean getActivo() { return activo; }
+    public void setActivo(Boolean activo) { this.activo = activo; }
+    public LocalDateTime getCreadoEn() { return creadoEn; }
+    public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
 }

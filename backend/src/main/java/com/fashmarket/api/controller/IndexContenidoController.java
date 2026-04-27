@@ -2,6 +2,7 @@ package com.fashmarket.api.controller;
 
 import com.fashmarket.api.dto.IndexContenidoRequest;
 import com.fashmarket.api.model.IndexContenido;
+import com.fashmarket.api.service.AuthTokenService;
 import com.fashmarket.api.service.IndexContenidoService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -12,11 +13,43 @@ import java.util.List;
 @RequestMapping("/api/index-contenido")
 public class IndexContenidoController {
     private final IndexContenidoService service;
-    public IndexContenidoController(IndexContenidoService service) { this.service = service; }
-    @GetMapping public List<IndexContenido> listar(@RequestParam(required = false) String tipo, @RequestParam(required = false) Boolean activo) { return service.listar(tipo, activo); }
-    @GetMapping("/{id}") public IndexContenido obtener(@PathVariable Long id) { return service.obtener(id); }
-    @GetMapping("/tipo/{tipo}") public List<IndexContenido> listarPorTipo(@PathVariable String tipo, @RequestParam(required = false) Boolean activo) { return service.listar(tipo, activo); }
-    @PostMapping public IndexContenido crear(@Valid @RequestBody IndexContenidoRequest request) { return service.crear(request); }
-    @PutMapping("/{id}") public IndexContenido actualizar(@PathVariable Long id, @Valid @RequestBody IndexContenidoRequest request) { return service.actualizar(id, request); }
-    @DeleteMapping("/{id}") public void eliminar(@PathVariable Long id) { service.eliminar(id); }
+    private final AuthTokenService authTokenService;
+
+    public IndexContenidoController(IndexContenidoService service, AuthTokenService authTokenService) {
+        this.service = service;
+        this.authTokenService = authTokenService;
+    }
+
+    @GetMapping
+    public List<IndexContenido> listar(@RequestParam(required = false) String tipo, @RequestParam(required = false) Boolean activo) {
+        return service.listar(tipo, activo);
+    }
+
+    @GetMapping("/{id}")
+    public IndexContenido obtener(@PathVariable Long id) {
+        return service.obtener(id);
+    }
+
+    @GetMapping("/tipo/{tipo}")
+    public List<IndexContenido> listarPorTipo(@PathVariable String tipo, @RequestParam(required = false) Boolean activo) {
+        return service.listar(tipo, activo);
+    }
+
+    @PostMapping
+    public IndexContenido crear(@RequestHeader(value = "Authorization", required = false) String authorization, @Valid @RequestBody IndexContenidoRequest request) {
+        authTokenService.requerirAdmin(authorization);
+        return service.crear(request);
+    }
+
+    @PutMapping("/{id}")
+    public IndexContenido actualizar(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long id, @Valid @RequestBody IndexContenidoRequest request) {
+        authTokenService.requerirAdmin(authorization);
+        return service.actualizar(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public void eliminar(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long id) {
+        authTokenService.requerirAdmin(authorization);
+        service.eliminar(id);
+    }
 }

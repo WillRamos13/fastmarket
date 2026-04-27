@@ -5,6 +5,7 @@ import com.fashmarket.api.dto.PedidoDtos;
 import com.fashmarket.api.model.Direccion;
 import com.fashmarket.api.model.Pedido;
 import com.fashmarket.api.model.PedidoItem;
+import com.fashmarket.api.model.Producto;
 import com.fashmarket.api.model.Usuario;
 
 import java.util.List;
@@ -32,9 +33,14 @@ public class DtoMapper {
     }
 
     public static PedidoDtos.ItemResponse toItemResponse(PedidoItem item) {
+        Producto producto = item.getProducto();
         return new PedidoDtos.ItemResponse(
-                item.getProducto().getId(), item.getProductoNombre(), item.getCantidad(),
-                item.getPrecioUnitario(), item.getSubtotal()
+                producto != null ? producto.getId() : null,
+                item.getProductoNombre(),
+                item.getCantidad(),
+                item.getPrecioUnitario(),
+                item.getSubtotal(),
+                producto != null ? producto.getImagen() : null
         );
     }
 
@@ -44,8 +50,21 @@ public class DtoMapper {
                 .toList();
 
         return new PedidoDtos.PedidoResponse(
-                pedido.getId(), pedido.getCodigo(), pedido.getUsuario().getId(), pedido.getUsuario().getNombre(),
-                pedido.getTotal(), pedido.getEstado(), pedido.getDireccionEntrega(), pedido.getFecha(), items
+                pedido.getId(),
+                pedido.getCodigo(),
+                pedido.getUsuario().getId(),
+                pedido.getUsuario().getNombre(),
+                pedido.getSubtotal(),
+                pedido.getCostoEnvio(),
+                pedido.getTotal(),
+                pedido.getEstado(),
+                pedido.getDireccionEntrega(),
+                pedido.getReferenciaEntrega(),
+                pedido.getHorarioEntrega(),
+                pedido.getMetodoPago(),
+                pedido.getTelefonoEntrega(),
+                pedido.getFecha(),
+                items
         );
     }
 }
