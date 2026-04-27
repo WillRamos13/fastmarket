@@ -1,30 +1,39 @@
 const API_URL = "https://fastmarket-573w.onrender.com/api";
 
 let productos = [];
+let bannersActivos = [];
 
 let categoriaActual = "todos";
 let busquedaActual = "";
 let ordenActual = "normal";
 let carrito = JSON.parse(localStorage.getItem("fashmarket_carrito")) || [];
 
+/* BUSCADOR HEADER */
+
 const busquedaHeader = document.getElementById("busqueda");
 const buscadorHeader = document.getElementById("buscador-header");
 
-busquedaHeader.addEventListener("click", (e) => {
-    e.stopPropagation();
-    busquedaHeader.classList.toggle("activo");
-    buscadorHeader.focus();
-});
+if (busquedaHeader && buscadorHeader) {
+    busquedaHeader.addEventListener("click", (e) => {
+        e.stopPropagation();
+        busquedaHeader.classList.toggle("activo");
+        buscadorHeader.focus();
+    });
 
-buscadorHeader.addEventListener("click", (e) => {
-    e.stopPropagation();
-});
+    buscadorHeader.addEventListener("click", (e) => {
+        e.stopPropagation();
+    });
+}
 
 document.addEventListener("click", () => {
-    busquedaHeader.classList.remove("activo");
+    if (busquedaHeader) {
+        busquedaHeader.classList.remove("activo");
+    }
 
-    if (opcionesCliente) {
-        opcionesCliente.classList.remove("activo");
+    const menuCliente = document.getElementById("opciones-cliente");
+
+    if (menuCliente) {
+        menuCliente.classList.remove("activo");
     }
 });
 
@@ -35,7 +44,7 @@ const btnAnterior = document.getElementById("anterior");
 const btnSiguiente = document.getElementById("siguiente");
 const puntosContenedor = document.getElementById("puntos");
 
-const bannersIniciales = [
+const bannersRespaldo = [
     {
         id: 1,
         titulo: "Ofertas disponibles",
@@ -59,18 +68,36 @@ const bannersIniciales = [
     }
 ];
 
-let banners = JSON.parse(localStorage.getItem("fashmarket_banners")) || bannersIniciales;
-let bannersActivos = banners.filter((banner) => banner.activo);
 let slideActual = 0;
 let intervaloSlider;
 
-if (bannersActivos.length === 0) {
-    bannersActivos = bannersIniciales;
+async function cargarBannersDesdeBackend() {
+    try {
+        const respuesta = await fetch(`${API_URL}/banners`);
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron cargar los banners");
+        }
+
+        const banners = await respuesta.json();
+        bannersActivos = banners.filter((banner) => banner.activo);
+
+        if (bannersActivos.length === 0) {
+            bannersActivos = bannersRespaldo;
+        }
+
+        cargarBannersSlider();
+
+    } catch (error) {
+        console.error("Error al cargar banners:", error);
+        bannersActivos = bannersRespaldo;
+        cargarBannersSlider();
+    }
 }
 
-cargarBannersSlider();
-
 function cargarBannersSlider() {
+    if (!sliderContenedor || !puntosContenedor) return;
+
     sliderContenedor.innerHTML = "";
     puntosContenedor.innerHTML = "";
 
@@ -104,6 +131,7 @@ function cargarBannersSlider() {
         puntosContenedor.appendChild(punto);
     });
 
+    slideActual = 0;
     moverSlider();
 
     if (intervaloSlider) {
@@ -114,6 +142,8 @@ function cargarBannersSlider() {
 }
 
 function moverSlider() {
+    if (!sliderContenedor) return;
+
     const puntos = document.querySelectorAll(".punto");
 
     sliderContenedor.style.transform = `translateX(-${slideActual * 100}%)`;
@@ -128,6 +158,8 @@ function moverSlider() {
 }
 
 function siguienteSlide() {
+    if (bannersActivos.length === 0) return;
+
     slideActual++;
 
     if (slideActual >= bannersActivos.length) {
@@ -138,6 +170,8 @@ function siguienteSlide() {
 }
 
 function anteriorSlide() {
+    if (bannersActivos.length === 0) return;
+
     slideActual--;
 
     if (slideActual < 0) {
@@ -147,10 +181,15 @@ function anteriorSlide() {
     moverSlider();
 }
 
-btnSiguiente.addEventListener("click", siguienteSlide);
-btnAnterior.addEventListener("click", anteriorSlide);
+if (btnSiguiente) {
+    btnSiguiente.addEventListener("click", siguienteSlide);
+}
 
-/* PRODUCTOS */
+if (btnAnterior) {
+    btnAnterior.addEventListener("click", anteriorSlide);
+}
+
+/* PRODUCTOS DESDE POSTGRESQL */
 
 const productosContenedor = document.getElementById("productos-contenedor");
 const botonesCategoria = document.querySelectorAll(".categoria-btn");
@@ -160,6 +199,7 @@ const mensajeVacio = document.getElementById("mensaje-vacio");
 const contadorCarrito = document.getElementById("contador-carrito");
 
 document.addEventListener("DOMContentLoaded", async () => {
+    await cargarBannersDesdeBackend();
     await cargarProductosDesdeBackend();
     actualizarCarrito();
     actualizarVistaCliente();
@@ -179,12 +219,17 @@ async function cargarProductosDesdeBackend() {
     } catch (error) {
         console.error("Error al cargar productos:", error);
 
-        productosContenedor.innerHTML = "";
-        mensajeVacio.style.display = "block";
-        mensajeVacio.innerHTML = `
-            <h3>Error al cargar productos</h3>
-            <p>No se pudo conectar con el backend.</p>
-        `;
+        if (productosContenedor) {
+            productosContenedor.innerHTML = "";
+        }
+
+        if (mensajeVacio) {
+            mensajeVacio.style.display = "block";
+            mensajeVacio.innerHTML = `
+                <h3>Error al cargar productos</h3>
+                <p>No se pudo conectar con el backend.</p>
+            `;
+        }
     }
 }
 
@@ -200,17 +245,23 @@ botonesCategoria.forEach((boton) => {
     });
 });
 
-buscarProducto.addEventListener("input", () => {
-    busquedaActual = buscarProducto.value.toLowerCase().trim();
-    mostrarProductos();
-});
+if (buscarProducto) {
+    buscarProducto.addEventListener("input", () => {
+        busquedaActual = buscarProducto.value.toLowerCase().trim();
+        mostrarProductos();
+    });
+}
 
-ordenarProducto.addEventListener("change", () => {
-    ordenActual = ordenarProducto.value;
-    mostrarProductos();
-});
+if (ordenarProducto) {
+    ordenarProducto.addEventListener("change", () => {
+        ordenActual = ordenarProducto.value;
+        mostrarProductos();
+    });
+}
 
 function mostrarProductos() {
+    if (!productosContenedor) return;
+
     let lista = productos.filter((producto) => {
         const coincideCategoria =
             categoriaActual === "todos" ||
@@ -235,15 +286,19 @@ function mostrarProductos() {
     productosContenedor.innerHTML = "";
 
     if (lista.length === 0) {
-        mensajeVacio.style.display = "block";
-        mensajeVacio.innerHTML = `
-            <h3>No se encontraron productos</h3>
-            <p>Intenta con otra búsqueda o categoría.</p>
-        `;
+        if (mensajeVacio) {
+            mensajeVacio.style.display = "block";
+            mensajeVacio.innerHTML = `
+                <h3>No se encontraron productos</h3>
+                <p>Intenta con otra búsqueda o categoría.</p>
+            `;
+        }
         return;
     }
 
-    mensajeVacio.style.display = "none";
+    if (mensajeVacio) {
+        mensajeVacio.style.display = "none";
+    }
 
     lista.forEach((producto) => {
         const card = document.createElement("article");
@@ -257,7 +312,7 @@ function mostrarProductos() {
             </div>
 
             <div class="producto-info">
-                <small>${producto.categoria}</small>
+                <small>${formatearCategoria(producto.categoria)}</small>
 
                 <h3>${producto.nombre}</h3>
 
@@ -326,7 +381,7 @@ function obtenerCantidadProducto(id) {
     return cantidad;
 }
 
-/* CARRITO */
+/* CARRITO TEMPORAL */
 
 const carritoIcono = document.getElementById("carrito");
 const panelCarrito = document.getElementById("panel-carrito");
@@ -338,40 +393,44 @@ const carritoSubtitulo = document.getElementById("carrito-subtitulo");
 const vaciarCarrito = document.getElementById("vaciar-carrito");
 const finalizarCompra = document.getElementById("finalizar-compra");
 
-carritoIcono.addEventListener("click", () => {
-    abrirCarrito();
-});
+if (carritoIcono) {
+    carritoIcono.addEventListener("click", abrirCarrito);
+}
 
-cerrarCarrito.addEventListener("click", () => {
-    cerrarPanelCarrito();
-});
+if (cerrarCarrito) {
+    cerrarCarrito.addEventListener("click", cerrarPanelCarrito);
+}
 
-overlayCarrito.addEventListener("click", () => {
-    cerrarPanelCarrito();
-});
+if (overlayCarrito) {
+    overlayCarrito.addEventListener("click", cerrarPanelCarrito);
+}
 
-vaciarCarrito.addEventListener("click", () => {
-    carrito = [];
-    guardarCarrito();
-    actualizarCarrito();
-});
+if (vaciarCarrito) {
+    vaciarCarrito.addEventListener("click", () => {
+        carrito = [];
+        guardarCarrito();
+        actualizarCarrito();
+    });
+}
 
-finalizarCompra.addEventListener("click", () => {
-    if (carrito.length === 0) {
-        alert("Tu carrito está vacío.");
-        return;
-    }
+if (finalizarCompra) {
+    finalizarCompra.addEventListener("click", () => {
+        if (carrito.length === 0) {
+            alert("Tu carrito está vacío.");
+            return;
+        }
 
-    const cliente = JSON.parse(localStorage.getItem("fashmarket_cliente"));
+        const cliente = JSON.parse(localStorage.getItem("fashmarket_cliente"));
 
-    if (!cliente) {
-        alert("Primero debes iniciar sesión para finalizar la compra.");
-        window.location.href = "login.html";
-        return;
-    }
+        if (!cliente) {
+            alert("Primero debes iniciar sesión para finalizar la compra.");
+            window.location.href = "login.html";
+            return;
+        }
 
-    window.location.href = "checkout.html";
-});
+        window.location.href = "checkout.html";
+    });
+}
 
 function abrirCarrito() {
     panelCarrito.classList.add("activo");
@@ -394,10 +453,27 @@ function agregarCarrito(id, e) {
 
     const cantidadSeleccionada = obtenerCantidadProducto(id);
 
+    if (Number(producto.stock) <= 0) {
+        mostrarAlertaProducto("Este producto no tiene stock disponible");
+        return;
+    }
+
+    if (cantidadSeleccionada > Number(producto.stock)) {
+        mostrarAlertaProducto("No hay suficiente stock disponible");
+        return;
+    }
+
     const productoEnCarrito = carrito.find((item) => Number(item.id) === Number(id));
 
     if (productoEnCarrito) {
-        productoEnCarrito.cantidad += cantidadSeleccionada;
+        const nuevaCantidad = productoEnCarrito.cantidad + cantidadSeleccionada;
+
+        if (nuevaCantidad > Number(producto.stock)) {
+            mostrarAlertaProducto("No puedes agregar más que el stock disponible");
+            return;
+        }
+
+        productoEnCarrito.cantidad = nuevaCantidad;
     } else {
         carrito.push({
             id: producto.id,
@@ -414,6 +490,8 @@ function agregarCarrito(id, e) {
 }
 
 function actualizarCarrito() {
+    if (!carritoLista || !totalCarrito || !contadorCarrito || !carritoSubtitulo) return;
+
     carritoLista.innerHTML = "";
 
     if (carrito.length === 0) {
@@ -458,11 +536,17 @@ function actualizarCarrito() {
 }
 
 function sumarProducto(id) {
-    const producto = carrito.find((item) => Number(item.id) === Number(id));
+    const productoCarrito = carrito.find((item) => Number(item.id) === Number(id));
+    const productoBase = productos.find((item) => Number(item.id) === Number(id));
 
-    if (producto) {
-        producto.cantidad++;
+    if (!productoCarrito || !productoBase) return;
+
+    if (productoCarrito.cantidad >= Number(productoBase.stock)) {
+        mostrarAlertaProducto("No hay más stock disponible");
+        return;
     }
+
+    productoCarrito.cantidad++;
 
     guardarCarrito();
     actualizarCarrito();
@@ -493,7 +577,7 @@ function guardarCarrito() {
     localStorage.setItem("fashmarket_carrito", JSON.stringify(carrito));
 }
 
-/* ALERTA PRODUCTO AGREGADO */
+/* ALERTA */
 
 function mostrarAlertaProducto(texto) {
     let alerta = document.getElementById("alerta-producto");
@@ -527,14 +611,18 @@ const cerrarPanelCliente = document.getElementById("cerrar-panel-cliente");
 const tituloPanelCliente = document.getElementById("titulo-panel-cliente");
 const contenidoPanelCliente = document.getElementById("contenido-panel-cliente");
 
-btnCliente.addEventListener("click", (e) => {
-    e.stopPropagation();
-    opcionesCliente.classList.toggle("activo");
-});
+if (btnCliente) {
+    btnCliente.addEventListener("click", (e) => {
+        e.stopPropagation();
+        opcionesCliente.classList.toggle("activo");
+    });
+}
 
-opcionesCliente.addEventListener("click", (e) => {
-    e.stopPropagation();
-});
+if (opcionesCliente) {
+    opcionesCliente.addEventListener("click", (e) => {
+        e.stopPropagation();
+    });
+}
 
 document.querySelectorAll("[data-cliente-panel]").forEach((boton) => {
     boton.addEventListener("click", () => {
@@ -544,14 +632,21 @@ document.querySelectorAll("[data-cliente-panel]").forEach((boton) => {
     });
 });
 
-cerrarSesionCliente.addEventListener("click", () => {
-    localStorage.removeItem("fashmarket_cliente");
-    actualizarVistaCliente();
-    cerrarPanelClienteLateral();
-});
+if (cerrarSesionCliente) {
+    cerrarSesionCliente.addEventListener("click", () => {
+        localStorage.removeItem("fashmarket_cliente");
+        actualizarVistaCliente();
+        cerrarPanelClienteLateral();
+    });
+}
 
-cerrarPanelCliente.addEventListener("click", cerrarPanelClienteLateral);
-overlayCliente.addEventListener("click", cerrarPanelClienteLateral);
+if (cerrarPanelCliente) {
+    cerrarPanelCliente.addEventListener("click", cerrarPanelClienteLateral);
+}
+
+if (overlayCliente) {
+    overlayCliente.addEventListener("click", cerrarPanelClienteLateral);
+}
 
 function obtenerCliente() {
     return JSON.parse(localStorage.getItem("fashmarket_cliente"));
@@ -630,21 +725,29 @@ const enviar = document.getElementById("enviar");
 const input = document.getElementById("mensaje");
 const contenedorMensajes = document.getElementById("chat-mensajes");
 
-botonChat.addEventListener("click", () => {
-    chatBox.style.display = "flex";
-});
+if (botonChat && chatBox) {
+    botonChat.addEventListener("click", () => {
+        chatBox.style.display = "flex";
+    });
+}
 
-cerrarChat.addEventListener("click", () => {
-    chatBox.style.display = "none";
-});
+if (cerrarChat && chatBox) {
+    cerrarChat.addEventListener("click", () => {
+        chatBox.style.display = "none";
+    });
+}
 
-enviar.addEventListener("click", enviarMensaje);
+if (enviar) {
+    enviar.addEventListener("click", enviarMensaje);
+}
 
-input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-        enviarMensaje();
-    }
-});
+if (input) {
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            enviarMensaje();
+        }
+    });
+}
 
 async function enviarMensaje() {
     const texto = input.value.trim();
@@ -694,4 +797,18 @@ function eliminarUltimoMensaje() {
     if (contenedorMensajes.lastChild) {
         contenedorMensajes.removeChild(contenedorMensajes.lastChild);
     }
+}
+
+/* UTILIDADES */
+
+function formatearCategoria(valor) {
+    const categorias = {
+        moda: "Moda",
+        tecnologia: "Tecnología",
+        hogar: "Hogar",
+        accesorios: "Accesorios",
+        estudio: "Estudio"
+    };
+
+    return categorias[valor] || valor;
 }

@@ -1,86 +1,9 @@
 const API_URL = "https://fastmarket-573w.onrender.com/api";
 
-/* DATOS SIMULADOS QUE TODAVÍA NO ESTÁN CONECTADOS A BACKEND */
-
-const pedidosIniciales = [
-    {
-        id: "P001",
-        cliente: "Juan Pérez",
-        producto: "Audífonos inalámbricos",
-        total: 79.90,
-        estado: "pendiente"
-    },
-    {
-        id: "P002",
-        cliente: "María Torres",
-        producto: "Casaca ligera",
-        total: 119.90,
-        estado: "enviado"
-    },
-    {
-        id: "P003",
-        cliente: "Carlos Ramos",
-        producto: "Lámpara LED",
-        total: 39.90,
-        estado: "entregado"
-    }
-];
-
-const bannersIniciales = [
-    {
-        id: 1,
-        titulo: "Ofertas disponibles",
-        descripcion: "Promociones destacadas para tus compras.",
-        imagen: "img/fondo1.png",
-        activo: true
-    },
-    {
-        id: 2,
-        titulo: "Productos destacados",
-        descripcion: "Encuentra novedades y descuentos especiales.",
-        imagen: "img/abrir.png",
-        activo: true
-    },
-    {
-        id: 3,
-        titulo: "Compra segura",
-        descripcion: "Atención rápida y seguimiento de pedidos.",
-        imagen: "img/intro.png",
-        activo: true
-    }
-];
-
-const usuariosIniciales = [
-    {
-        nombre: "Juan Pérez",
-        correo: "juan@gmail.com",
-        rol: "Cliente",
-        estado: "activo"
-    },
-    {
-        nombre: "María Torres",
-        correo: "maria@gmail.com",
-        rol: "Cliente",
-        estado: "activo"
-    },
-    {
-        nombre: "Carlos Ramos",
-        correo: "carlos@gmail.com",
-        rol: "Cliente",
-        estado: "inactivo"
-    },
-    {
-        nombre: "Administrador",
-        correo: "admin@fastmarket.com",
-        rol: "Administrador",
-        estado: "activo"
-    }
-];
-
 let productos = [];
-let pedidos = cargarStorage("fastmarket_pedidos", pedidosIniciales);
-let usuarios = cargarStorage("fastmarket_usuarios", usuariosIniciales);
-let banners = cargarStorage("fastmarket_banners", bannersIniciales);
+let banners = [];
+let pedidos = [];
+let usuarios = [];
 
 /* SELECTORES GENERALES */
 
@@ -114,7 +37,7 @@ const tablaProductos = document.getElementById("tabla-productos");
 const buscarAdmin = document.getElementById("buscar-admin");
 const filtroCategoria = document.getElementById("filtro-categoria");
 
-/* SELECTORES TABLAS */
+/* SELECTORES PEDIDOS Y USUARIOS */
 
 const tablaPedidos = document.getElementById("tabla-pedidos");
 const tablaUsuarios = document.getElementById("tabla-usuarios");
@@ -142,21 +65,24 @@ const buscarBanner = document.getElementById("buscar-banner");
 const previewBanner = document.getElementById("preview-banner");
 const previewBannerImg = document.getElementById("preview-banner-img");
 
-document.addEventListener("DOMContentLoaded", () => {
-    iniciarAdmin();
+document.addEventListener("DOMContentLoaded", async () => {
+    await iniciarAdmin();
 });
 
 async function iniciarAdmin() {
     mostrarNombreAdmin();
     activarMenuAdmin();
     activarCambioPaneles();
+    activarEventosProductos();
+    activarEventosBanners();
+    activarEventosPowerBI();
 
     await cargarProductosDesdeBackend();
+    await cargarBannersDesdeBackend();
+    await cargarPedidosDesdeBackend();
+    await cargarUsuariosDesdeBackend();
+    await cargarIndicesDesdeBackend();
 
-    mostrarPedidos();
-    mostrarUsuarios();
-    mostrarBanners();
-    actualizarEstadisticas();
     cargarPowerBI();
 }
 
@@ -180,7 +106,6 @@ function mostrarPanel(panelId) {
 
     if (panelSeleccionado) {
         panelSeleccionado.classList.add("activo");
-
         window.scrollTo({
             top: 0,
             behavior: "smooth"
@@ -193,11 +118,19 @@ function mostrarPanel(panelId) {
 }
 
 function mostrarNombreAdmin() {
+    const adminGuardado = JSON.parse(localStorage.getItem("fashmarket_admin")) || null;
     const nombreGuardado = localStorage.getItem("nombre_admin");
-    nombreAdmin.textContent = nombreGuardado || "Administrador";
+
+    if (adminGuardado && adminGuardado.nombre) {
+        nombreAdmin.textContent = adminGuardado.nombre;
+    } else {
+        nombreAdmin.textContent = nombreGuardado || "Administrador";
+    }
 }
 
 function activarMenuAdmin() {
+    if (!btnMenuAdmin || !opcionesAdmin) return;
+
     btnMenuAdmin.addEventListener("click", (e) => {
         e.stopPropagation();
         opcionesAdmin.classList.toggle("activo");
@@ -212,63 +145,95 @@ function activarMenuAdmin() {
     });
 }
 
-/* EVENTOS PRODUCTOS */
+/* EVENTOS */
 
-formProducto.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    await guardarProducto();
-});
-
-btnLimpiar.addEventListener("click", limpiarFormulario);
-
-imagenProducto.addEventListener("change", cargarImagenProducto);
-
-buscarAdmin.addEventListener("input", mostrarProductos);
-filtroCategoria.addEventListener("change", mostrarProductos);
-
-tablaProductos.addEventListener("click", async (e) => {
-    const botonEditar = e.target.closest(".btn-editar");
-    const botonEliminar = e.target.closest(".btn-eliminar");
-
-    if (botonEditar) {
-        editarProducto(Number(botonEditar.dataset.id));
+function activarEventosProductos() {
+    if (formProducto) {
+        formProducto.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            await guardarProducto();
+        });
     }
 
-    if (botonEliminar) {
-        await eliminarProducto(Number(botonEliminar.dataset.id));
-    }
-});
-
-/* EVENTOS BANNERS */
-
-formBanner.addEventListener("submit", (e) => {
-    e.preventDefault();
-    guardarBanner();
-});
-
-btnLimpiarBanner.addEventListener("click", limpiarFormularioBanner);
-buscarBanner.addEventListener("input", mostrarBanners);
-bannerImagen.addEventListener("change", cargarImagenBanner);
-
-listaBanners.addEventListener("click", (e) => {
-    const botonEditar = e.target.closest(".btn-editar-banner");
-    const botonEliminar = e.target.closest(".btn-eliminar-banner");
-
-    if (botonEditar) {
-        editarBanner(Number(botonEditar.dataset.id));
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener("click", limpiarFormularioProducto);
     }
 
-    if (botonEliminar) {
-        eliminarBanner(Number(botonEliminar.dataset.id));
+    if (imagenProducto) {
+        imagenProducto.addEventListener("change", cargarImagenProducto);
     }
-});
 
-/* EVENTOS POWER BI */
+    if (buscarAdmin) {
+        buscarAdmin.addEventListener("input", mostrarProductos);
+    }
 
-btnGuardarPowerbi.addEventListener("click", guardarPowerBI);
-btnLimpiarPowerbi.addEventListener("click", limpiarPowerBI);
+    if (filtroCategoria) {
+        filtroCategoria.addEventListener("change", mostrarProductos);
+    }
 
-/* PRODUCTOS CON BACKEND */
+    if (tablaProductos) {
+        tablaProductos.addEventListener("click", async (e) => {
+            const botonEditar = e.target.closest(".btn-editar");
+            const botonEliminar = e.target.closest(".btn-eliminar");
+
+            if (botonEditar) {
+                editarProducto(Number(botonEditar.dataset.id));
+            }
+
+            if (botonEliminar) {
+                await eliminarProducto(Number(botonEliminar.dataset.id));
+            }
+        });
+    }
+}
+
+function activarEventosBanners() {
+    if (formBanner) {
+        formBanner.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            await guardarBanner();
+        });
+    }
+
+    if (btnLimpiarBanner) {
+        btnLimpiarBanner.addEventListener("click", limpiarFormularioBanner);
+    }
+
+    if (buscarBanner) {
+        buscarBanner.addEventListener("input", mostrarBanners);
+    }
+
+    if (bannerImagen) {
+        bannerImagen.addEventListener("change", cargarImagenBanner);
+    }
+
+    if (listaBanners) {
+        listaBanners.addEventListener("click", async (e) => {
+            const botonEditar = e.target.closest(".btn-editar-banner");
+            const botonEliminar = e.target.closest(".btn-eliminar-banner");
+
+            if (botonEditar) {
+                editarBanner(Number(botonEditar.dataset.id));
+            }
+
+            if (botonEliminar) {
+                await eliminarBanner(Number(botonEliminar.dataset.id));
+            }
+        });
+    }
+}
+
+function activarEventosPowerBI() {
+    if (btnGuardarPowerbi) {
+        btnGuardarPowerbi.addEventListener("click", guardarPowerBI);
+    }
+
+    if (btnLimpiarPowerbi) {
+        btnLimpiarPowerbi.addEventListener("click", limpiarPowerBI);
+    }
+}
+
+/* PRODUCTOS CON POSTGRESQL */
 
 async function cargarProductosDesdeBackend() {
     try {
@@ -280,11 +245,11 @@ async function cargarProductosDesdeBackend() {
 
         productos = await respuesta.json();
         mostrarProductos();
-        actualizarEstadisticas();
+        actualizarEstadisticasLocales();
 
     } catch (error) {
         console.error("Error al cargar productos:", error);
-        mostrarToast("Error al cargar productos desde la base de datos");
+        mostrarToast("Error al cargar productos desde PostgreSQL");
     }
 }
 
@@ -364,7 +329,8 @@ async function guardarProducto() {
         mostrarToast(productoId.value ? "Producto actualizado en PostgreSQL" : "Producto guardado en PostgreSQL");
 
         await cargarProductosDesdeBackend();
-        limpiarFormulario();
+        await cargarIndicesDesdeBackend();
+        limpiarFormularioProducto();
 
     } catch (error) {
         console.error("Error al guardar producto:", error);
@@ -373,8 +339,10 @@ async function guardarProducto() {
 }
 
 function mostrarProductos() {
-    const texto = buscarAdmin.value.toLowerCase().trim();
-    const categoriaSeleccionada = filtroCategoria.value;
+    if (!tablaProductos) return;
+
+    const texto = buscarAdmin ? buscarAdmin.value.toLowerCase().trim() : "";
+    const categoriaSeleccionada = filtroCategoria ? filtroCategoria.value : "todos";
 
     const lista = productos.filter((producto) => {
         const coincideTexto =
@@ -475,6 +443,7 @@ async function eliminarProducto(id) {
         mostrarToast("Producto eliminado de PostgreSQL");
 
         await cargarProductosDesdeBackend();
+        await cargarIndicesDesdeBackend();
 
     } catch (error) {
         console.error("Error al eliminar producto:", error);
@@ -482,7 +451,7 @@ async function eliminarProducto(id) {
     }
 }
 
-function limpiarFormulario() {
+function limpiarFormularioProducto() {
     productoId.value = "";
     formProducto.reset();
 
@@ -493,7 +462,24 @@ function limpiarFormulario() {
     tituloForm.textContent = "Agregar producto";
 }
 
-/* BANNERS EN LOCALSTORAGE */
+/* BANNERS CON POSTGRESQL */
+
+async function cargarBannersDesdeBackend() {
+    try {
+        const respuesta = await fetch(`${API_URL}/banners`);
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron cargar los banners");
+        }
+
+        banners = await respuesta.json();
+        mostrarBanners();
+
+    } catch (error) {
+        console.error("Error al cargar banners:", error);
+        mostrarToast("Error al cargar banners desde PostgreSQL");
+    }
+}
 
 function cargarImagenBanner() {
     const archivo = bannerImagen.files[0];
@@ -517,7 +503,7 @@ function cargarImagenBanner() {
     lector.readAsDataURL(archivo);
 }
 
-function guardarBanner() {
+async function guardarBanner() {
     const tituloValor = bannerTitulo.value.trim();
     const descripcionValor = bannerDescripcion.value.trim();
     const imagenValor = bannerImagenValor.value.trim();
@@ -533,38 +519,53 @@ function guardarBanner() {
         return;
     }
 
-    if (bannerId.value) {
-        const id = Number(bannerId.value);
-        const banner = banners.find((item) => item.id === id);
+    const bannerEnviar = {
+        titulo: tituloValor,
+        descripcion: descripcionValor,
+        imagen: imagenValor,
+        activo: activoValor
+    };
 
-        if (!banner) return;
+    try {
+        let respuesta;
 
-        banner.titulo = tituloValor;
-        banner.descripcion = descripcionValor;
-        banner.imagen = imagenValor || banner.imagen;
-        banner.activo = activoValor;
+        if (bannerId.value) {
+            respuesta = await fetch(`${API_URL}/banners/${bannerId.value}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(bannerEnviar)
+            });
+        } else {
+            respuesta = await fetch(`${API_URL}/banners`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(bannerEnviar)
+            });
+        }
 
-        mostrarToast("Banner actualizado");
-    } else {
-        const nuevoBanner = {
-            id: Date.now(),
-            titulo: tituloValor,
-            descripcion: descripcionValor,
-            imagen: imagenValor,
-            activo: activoValor
-        };
+        if (!respuesta.ok) {
+            throw new Error("No se pudo guardar el banner");
+        }
 
-        banners.push(nuevoBanner);
-        mostrarToast("Banner agregado");
+        mostrarToast(bannerId.value ? "Banner actualizado en PostgreSQL" : "Banner guardado en PostgreSQL");
+
+        await cargarBannersDesdeBackend();
+        limpiarFormularioBanner();
+
+    } catch (error) {
+        console.error("Error al guardar banner:", error);
+        mostrarToast("Error al conectar con el backend");
     }
-
-    guardarDatosBase();
-    mostrarBanners();
-    limpiarFormularioBanner();
 }
 
 function mostrarBanners() {
-    const texto = buscarBanner.value.toLowerCase().trim();
+    if (!listaBanners) return;
+
+    const texto = buscarBanner ? buscarBanner.value.toLowerCase().trim() : "";
 
     const lista = banners.filter((banner) => {
         return (
@@ -614,7 +615,7 @@ function mostrarBanners() {
 }
 
 function editarBanner(id) {
-    const banner = banners.find((item) => item.id === id);
+    const banner = banners.find((item) => Number(item.id) === Number(id));
 
     if (!banner) return;
 
@@ -631,16 +632,28 @@ function editarBanner(id) {
     mostrarPanel("panel-banners");
 }
 
-function eliminarBanner(id) {
+async function eliminarBanner(id) {
     const confirmar = confirm("¿Seguro que deseas eliminar este banner?");
 
     if (!confirmar) return;
 
-    banners = banners.filter((banner) => banner.id !== id);
+    try {
+        const respuesta = await fetch(`${API_URL}/banners/${id}`, {
+            method: "DELETE"
+        });
 
-    guardarDatosBase();
-    mostrarBanners();
-    mostrarToast("Banner eliminado");
+        if (!respuesta.ok) {
+            throw new Error("No se pudo eliminar el banner");
+        }
+
+        mostrarToast("Banner eliminado de PostgreSQL");
+
+        await cargarBannersDesdeBackend();
+
+    } catch (error) {
+        console.error("Error al eliminar banner:", error);
+        mostrarToast("Error al eliminar banner");
+    }
 }
 
 function limpiarFormularioBanner() {
@@ -654,22 +667,63 @@ function limpiarFormularioBanner() {
     tituloFormBanner.textContent = "Agregar banner";
 }
 
-/* PEDIDOS */
+/* PEDIDOS CON POSTGRESQL */
+
+async function cargarPedidosDesdeBackend() {
+    try {
+        const respuesta = await fetch(`${API_URL}/pedidos`);
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron cargar los pedidos");
+        }
+
+        pedidos = await respuesta.json();
+        mostrarPedidos();
+
+    } catch (error) {
+        console.error("Error al cargar pedidos:", error);
+
+        if (tablaPedidos) {
+            tablaPedidos.innerHTML = `
+                <tr>
+                    <td colspan="5">No se pudieron cargar los pedidos.</td>
+                </tr>
+            `;
+        }
+    }
+}
 
 function mostrarPedidos() {
+    if (!tablaPedidos) return;
+
     tablaPedidos.innerHTML = "";
+
+    if (pedidos.length === 0) {
+        tablaPedidos.innerHTML = `
+            <tr>
+                <td colspan="5">No hay pedidos registrados.</td>
+            </tr>
+        `;
+        return;
+    }
 
     pedidos.forEach((pedido) => {
         const fila = document.createElement("tr");
 
+        const idPedido = pedido.id || pedido.codigo || "Sin código";
+        const clientePedido = obtenerClientePedido(pedido);
+        const productosPedido = obtenerProductosPedido(pedido);
+        const totalPedido = Number(pedido.total || 0);
+        const estadoPedido = pedido.estado || "pendiente";
+
         fila.innerHTML = `
-            <td>${pedido.id}</td>
-            <td>${pedido.cliente}</td>
-            <td>${pedido.producto}</td>
-            <td>S/ ${Number(pedido.total).toFixed(2)}</td>
+            <td>${idPedido}</td>
+            <td>${clientePedido}</td>
+            <td>${productosPedido}</td>
+            <td>S/ ${totalPedido.toFixed(2)}</td>
             <td>
-                <span class="estado-pedido ${pedido.estado}">
-                    ${formatearEstado(pedido.estado)}
+                <span class="estado-pedido ${normalizarEstadoClase(estadoPedido)}">
+                    ${formatearEstado(estadoPedido)}
                 </span>
             </td>
         `;
@@ -678,21 +732,103 @@ function mostrarPedidos() {
     });
 }
 
-/* USUARIOS */
+function obtenerClientePedido(pedido) {
+    if (pedido.cliente) return pedido.cliente;
+    if (pedido.usuarioNombre) return pedido.usuarioNombre;
+    if (pedido.usuario && pedido.usuario.nombre) return pedido.usuario.nombre;
+    if (pedido.nombreCliente) return pedido.nombreCliente;
+    return "Cliente";
+}
+
+function obtenerProductosPedido(pedido) {
+    if (pedido.producto) return pedido.producto;
+
+    if (pedido.items && Array.isArray(pedido.items)) {
+        return pedido.items.map((item) => {
+            const nombreProducto =
+                item.productoNombre ||
+                item.nombreProducto ||
+                item.nombre ||
+                "Producto";
+
+            const cantidad = item.cantidad || 1;
+
+            return `${nombreProducto} x${cantidad}`;
+        }).join(", ");
+    }
+
+    if (pedido.detalles && Array.isArray(pedido.detalles)) {
+        return pedido.detalles.map((item) => {
+            const nombreProducto =
+                item.productoNombre ||
+                item.nombreProducto ||
+                item.nombre ||
+                "Producto";
+
+            const cantidad = item.cantidad || 1;
+
+            return `${nombreProducto} x${cantidad}`;
+        }).join(", ");
+    }
+
+    return "Productos del pedido";
+}
+
+/* USUARIOS CON POSTGRESQL */
+
+async function cargarUsuariosDesdeBackend() {
+    try {
+        const respuesta = await fetch(`${API_URL}/usuarios`);
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron cargar los usuarios");
+        }
+
+        usuarios = await respuesta.json();
+        mostrarUsuarios();
+
+    } catch (error) {
+        console.error("Error al cargar usuarios:", error);
+
+        if (tablaUsuarios) {
+            tablaUsuarios.innerHTML = `
+                <tr>
+                    <td colspan="4">No se pudieron cargar los usuarios.</td>
+                </tr>
+            `;
+        }
+    }
+}
 
 function mostrarUsuarios() {
+    if (!tablaUsuarios) return;
+
     tablaUsuarios.innerHTML = "";
+
+    if (usuarios.length === 0) {
+        tablaUsuarios.innerHTML = `
+            <tr>
+                <td colspan="4">No hay usuarios registrados.</td>
+            </tr>
+        `;
+        return;
+    }
 
     usuarios.forEach((usuario) => {
         const fila = document.createElement("tr");
 
+        const nombreUsuario = usuario.nombre || "Usuario";
+        const correoUsuario = usuario.correo || usuario.email || "Sin correo";
+        const rolUsuario = usuario.rol || "Cliente";
+        const estadoUsuario = usuario.estado || "activo";
+
         fila.innerHTML = `
-            <td>${usuario.nombre}</td>
-            <td>${usuario.correo}</td>
-            <td>${usuario.rol}</td>
+            <td>${nombreUsuario}</td>
+            <td>${correoUsuario}</td>
+            <td>${formatearRol(rolUsuario)}</td>
             <td>
-                <span class="${usuario.estado === "activo" ? "estado-activo" : "estado-inactivo"}">
-                    ${usuario.estado === "activo" ? "Activo" : "Inactivo"}
+                <span class="${String(estadoUsuario).toLowerCase() === "activo" ? "estado-activo" : "estado-inactivo"}">
+                    ${String(estadoUsuario).toLowerCase() === "activo" ? "Activo" : "Inactivo"}
                 </span>
             </td>
         `;
@@ -701,18 +837,51 @@ function mostrarUsuarios() {
     });
 }
 
-/* ESTADÍSTICAS */
+/* ÍNDICES CON POSTGRESQL */
 
-function actualizarEstadisticas() {
+async function cargarIndicesDesdeBackend() {
+    try {
+        const respuesta = await fetch(`${API_URL}/admin/indices`);
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron cargar los índices");
+        }
+
+        const indices = await respuesta.json();
+
+        document.getElementById("total-productos").textContent =
+            indices.totalProductos ?? productos.length;
+
+        document.getElementById("total-ofertas").textContent =
+            indices.totalOfertas ?? productos.filter((producto) => producto.oferta).length;
+
+        document.getElementById("total-stock").textContent =
+            indices.totalStock ?? productos.reduce((suma, producto) => suma + Number(producto.stock), 0);
+
+        document.getElementById("total-pedidos").textContent =
+            indices.totalPedidos ?? pedidos.length;
+
+    } catch (error) {
+        console.error("Error al cargar índices:", error);
+        actualizarEstadisticasLocales();
+    }
+}
+
+function actualizarEstadisticasLocales() {
     const totalProductos = productos.length;
     const totalOfertas = productos.filter((producto) => producto.oferta).length;
     const totalStock = productos.reduce((suma, producto) => suma + Number(producto.stock), 0);
     const totalPedidos = pedidos.length;
 
-    document.getElementById("total-productos").textContent = totalProductos;
-    document.getElementById("total-ofertas").textContent = totalOfertas;
-    document.getElementById("total-stock").textContent = totalStock;
-    document.getElementById("total-pedidos").textContent = totalPedidos;
+    const totalProductosElemento = document.getElementById("total-productos");
+    const totalOfertasElemento = document.getElementById("total-ofertas");
+    const totalStockElemento = document.getElementById("total-stock");
+    const totalPedidosElemento = document.getElementById("total-pedidos");
+
+    if (totalProductosElemento) totalProductosElemento.textContent = totalProductos;
+    if (totalOfertasElemento) totalOfertasElemento.textContent = totalOfertas;
+    if (totalStockElemento) totalStockElemento.textContent = totalStock;
+    if (totalPedidosElemento) totalPedidosElemento.textContent = totalPedidos;
 }
 
 /* POWER BI */
@@ -786,23 +955,6 @@ function limpiarPowerBI() {
 
 /* UTILIDADES */
 
-function guardarDatosBase() {
-    localStorage.setItem("fastmarket_pedidos", JSON.stringify(pedidos));
-    localStorage.setItem("fastmarket_usuarios", JSON.stringify(usuarios));
-    localStorage.setItem("fastmarket_banners", JSON.stringify(banners));
-}
-
-function cargarStorage(clave, datosIniciales) {
-    const datos = localStorage.getItem(clave);
-
-    if (datos) {
-        return JSON.parse(datos);
-    }
-
-    localStorage.setItem(clave, JSON.stringify(datosIniciales));
-    return datosIniciales;
-}
-
 function formatearCategoria(valor) {
     const categorias = {
         moda: "Moda",
@@ -819,10 +971,33 @@ function formatearEstado(valor) {
     const estados = {
         pendiente: "Pendiente",
         enviado: "Enviado",
-        entregado: "Entregado"
+        entregado: "Entregado",
+        camino: "En camino",
+        CAMINO: "En camino",
+        PENDIENTE: "Pendiente",
+        ENVIADO: "Enviado",
+        ENTREGADO: "Entregado"
     };
 
     return estados[valor] || valor;
+}
+
+function formatearRol(valor) {
+    const roles = {
+        ADMIN: "Administrador",
+        CLIENTE: "Cliente",
+        admin: "Administrador",
+        cliente: "Cliente"
+    };
+
+    return roles[valor] || valor;
+}
+
+function normalizarEstadoClase(valor) {
+    return String(valor)
+        .toLowerCase()
+        .replaceAll("_", "-")
+        .replaceAll(" ", "-");
 }
 
 function mostrarToast(mensaje) {
