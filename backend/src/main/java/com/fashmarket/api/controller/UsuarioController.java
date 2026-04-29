@@ -31,6 +31,18 @@ public class UsuarioController {
         return usuarioService.obtener(id);
     }
 
+    @PostMapping
+    public AuthDtos.UsuarioResponse crearDesdeAdmin(@RequestHeader(value = "Authorization", required = false) String authorization, @RequestBody UsuarioDtos.CrearUsuarioAdminRequest request) {
+        authTokenService.requerirAdmin(authorization);
+        return usuarioService.crearDesdeAdmin(request);
+    }
+
+    @PutMapping("/{id}/gestion")
+    public AuthDtos.UsuarioResponse actualizarDesdeAdmin(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long id, @RequestBody UsuarioDtos.ActualizarUsuarioAdminRequest request) {
+        AuthTokenService.TokenData admin = authTokenService.requerirAdmin(authorization);
+        return usuarioService.actualizarDesdeAdmin(id, admin.usuarioId(), request);
+    }
+
     @PutMapping("/{id}")
     public AuthDtos.UsuarioResponse actualizar(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long id, @RequestBody UsuarioDtos.ActualizarUsuarioRequest request) {
         authTokenService.requerirUsuarioOAdmin(authorization, id);

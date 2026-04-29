@@ -312,23 +312,92 @@
         <section id="panel-usuarios" class="panel-admin">
 
             <div class="titulo-section">
-                <h2>Usuarios registrados</h2>
-                <p>Vista básica de los usuarios relacionados con la tienda.</p>
+                <h2>Usuarios y administradores</h2>
+                <p>Crea administradores, registra usuarios internos y cambia roles o estados de cuenta.</p>
             </div>
 
-            <div class="usuarios-contenedor">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Correo</th>
-                            <th>Rol</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
+            <div class="admin-layout usuarios-layout">
 
-                    <tbody id="tabla-usuarios"></tbody>
-                </table>
+                <form id="form-usuario-admin">
+                    <input type="hidden" id="usuario-admin-id">
+
+                    <h3 id="titulo-form-usuario">Agregar usuario</h3>
+
+                    <label for="usuario-nombre">Nombre</label>
+                    <input type="text" id="usuario-nombre" placeholder="Ej: Juan Pérez">
+
+                    <label for="usuario-correo">Correo</label>
+                    <input type="email" id="usuario-correo" placeholder="admin@correo.com">
+
+                    <label for="usuario-password">Contraseña</label>
+                    <input type="password" id="usuario-password" placeholder="Mínimo 6 caracteres">
+                    <small id="password-ayuda">Para editar, deja vacío si no deseas cambiar la contraseña.</small>
+
+                    <div class="form-doble">
+                        <div>
+                            <label for="usuario-telefono">Teléfono</label>
+                            <input type="text" id="usuario-telefono" placeholder="999999999">
+                        </div>
+
+                        <div>
+                            <label for="usuario-documento">Documento</label>
+                            <input type="text" id="usuario-documento" placeholder="DNI/RUC">
+                        </div>
+                    </div>
+
+                    <div class="form-doble">
+                        <div>
+                            <label for="usuario-rol">Rol</label>
+                            <select id="usuario-rol">
+                                <option value="CLIENTE">Cliente</option>
+                                <option value="ADMIN">Administrador</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="usuario-estado">Estado</label>
+                            <select id="usuario-estado">
+                                <option value="ACTIVO">Activo</option>
+                                <option value="INACTIVO">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="botones-form">
+                        <button type="submit" id="btn-guardar-usuario">Guardar</button>
+                        <button type="button" id="btn-limpiar-usuario">Limpiar</button>
+                    </div>
+                </form>
+
+                <div class="usuarios-contenedor">
+                    <div class="acciones-tabla acciones-usuarios">
+                        <input type="text" id="buscar-usuario" placeholder="Buscar por nombre, correo o rol...">
+
+                        <select id="filtro-rol-usuario">
+                            <option value="todos">Todos los roles</option>
+                            <option value="ADMIN">Administradores</option>
+                            <option value="CLIENTE">Clientes</option>
+                        </select>
+                    </div>
+
+                    <div class="tabla-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Correo</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Teléfono</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tabla-usuarios"></tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
 
         </section>

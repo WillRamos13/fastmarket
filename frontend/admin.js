@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     activarProductos();
     activarBanners();
     activarPedidos();
+    activarUsuarios();
     activarIndex();
     activarPowerBI();
 
@@ -383,8 +384,18 @@ async function actualizarEstadoPedido(id, estado) {
         toast(error.message);
     }
 }
-
 /* USUARIOS / ÍNDICES */
+
+function activarUsuarios() {
+    document.getElementById("form-usuario-admin")?.addEventListener("submit", guardarUsuarioAdmin);
+    document.getElementById("btn-limpiar-usuario")?.addEventListener("click", limpiarUsuarioAdmin);
+    document.getElementById("buscar-usuario")?.addEventListener("input", pintarUsuarios);
+    document.getElementById("filtro-rol-usuario")?.addEventListener("change", pintarUsuarios);
+    document.getElementById("tabla-usuarios")?.addEventListener("click", (e) => {
+        const editar = e.target.closest("[data-editar-usuario]");
+        if (editar) editarUsuarioAdmin(Number(editar.dataset.editarUsuario));
+    });
+}
 
 async function cargarUsuarios() {
     try {
@@ -399,17 +410,106 @@ function pintarUsuarios() {
     const tbody = document.getElementById("tabla-usuarios");
     if (!tbody) return;
 
-    tbody.innerHTML = usuarios.length ? "" : `<tr><td colspan="4">No hay usuarios.</td></tr>`;
+    const texto = document.getElementById("buscar-usuario")?.value.toLowerCase().trim() || "";
+    const rol = document.getElementById("filtro-rol-usuario")?.value || "todos";
 
-    usuarios.forEach((u) => {
+    const lista = usuarios.filter((u) => {
+        const coincideTexto = `${u.nombre} ${u.correo} ${u.rol} ${u.estado}`.toLowerCase().includes(texto);
+        const coincideRol = rol === "todos" || u.rol === rol;
+        return coincideTexto && coincideRol;
+    });
+
+    tbody.innerHTML = lista.length ? "" : `<tr><td colspan="6">No hay usuarios.</td></tr>`;
+
+    lista.forEach((u) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>${FastMarket.escapeHTML(u.nombre)}</td>
-            <td>${FastMarket.escapeHTML(u.correo)}</td>
-            <td>${u.rol === "ADMIN" ? "Administrador" : "Cliente"}</td>
-            <td><span class="${u.estado === "ACTIVO" ? "estado-activo" : "estado-inactivo"}">${u.estado}</span></td>`;
+            <td>${FastMarket.escapeHTML(u.nombre || "")}</td>
+            <td>${FastMarket.escapeHTML(u.correo || "")}</td>
+            <td><span class="${u.rol === "ADMIN" ? "estado-oferta" : "estado-normal"}">${u.rol === "ADMIN" ? "Administrador" : "Cliente"}</span></td>
+            <td><span class="${u.estado === "ACTIVO" ? "estado-activo" : "estado-inactivo"}">${FastMarket.escapeHTML(u.estado || "")}</span></td>
+            <td>${FastMarket.escapeHTML(u.telefono || "No registrado")}</td>
+            <td><button class="btn-editar" data-editar-usuario="${u.id}">Editar</button></td>`;
         tbody.appendChild(tr);
     });
+}
+
+async function guardarUsuarioAdmin(e) {
+    e.preventDefault();
+
+    const id = value("usuario-admin-id");
+    const password = value("usuario-password");
+    const payload = {
+        nombre: value("usuario-nombre"),
+        telefono: value("usuario-telefono"),
+        documento: value("usuario-documento"),
+        rol: value("usuario-rol") || "CLIENTE",
+        estado: value("usuario-estado") || "ACTIVO"
+    };
+
+    if (!payload.nombre) {
+        toast("Ingresa el nombre del usuario.");
+        return;
+    }
+
+    if (id) {
+        if (password) payload.passwordNueva = password;
+    } else {
+        payload.correo = value("usuario-correo").toLowerCase();
+        payload.password = password;
+        if (!payload.correo || !payload.correo.includes("@")) {
+            toast("Ingresa un correo válido.");
+            return;
+        }
+        if (!payload.password || payload.password.length < 6) {
+            toast("La contraseña debe tener mínimo 6 caracteres.");
+            return;
+        }
+    }
+
+    try {
+        await FastMarket.request(id ? `/usuarios/${id}/gestion` : "/usuarios", {
+            method: id ? "PUT" : "POST",
+            body: payload,
+            auth: true
+        });
+        toast(id ? "Usuario actualizado." : "Usuario creado.");
+        limpiarUsuarioAdmin();
+        await cargarUsuarios();
+    } catch (error) {
+        toast(error.message);
+    }
+}
+
+function editarUsuarioAdmin(id) {
+    const usuario = usuarios.find((u) => Number(u.id) === Number(id));
+    if (!usuario) return;
+
+    setValue("usuario-admin-id", usuario.id);
+    setValue("usuario-nombre", usuario.nombre || "");
+    setValue("usuario-correo", usuario.correo || "");
+    setValue("usuario-password", "");
+    setValue("usuario-telefono", usuario.telefono || "");
+    setValue("usuario-documento", usuario.documento || "");
+    setValue("usuario-rol", usuario.rol || "CLIENTE");
+    setValue("usuario-estado", usuario.estado || "ACTIVO");
+    setText("titulo-form-usuario", "Editar usuario");
+
+    const correo = document.getElementById("usuario-correo");
+    if (correo) correo.disabled = true;
+
+    mostrarPanel("panel-usuarios");
+}
+
+function limpiarUsuarioAdmin() {
+    document.getElementById("form-usuario-admin")?.reset();
+    setValue("usuario-admin-id", "");
+    setValue("usuario-rol", "CLIENTE");
+    setValue("usuario-estado", "ACTIVO");
+    setText("titulo-form-usuario", "Agregar usuario");
+
+    const correo = document.getElementById("usuario-correo");
+    if (correo) correo.disabled = false;
 }
 
 async function cargarIndices() {

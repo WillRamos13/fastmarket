@@ -1,9 +1,31 @@
 const FastMarket = (() => {
     const API_URL = (() => {
+        const normalizar = (url) => {
+            const limpia = String(url || "").trim().replace(/\/+$/, "");
+            if (!limpia) return "";
+            return limpia.endsWith("/api") ? limpia : `${limpia}/api`;
+        };
+
+        const desdeWindow = normalizar(window.FASTMARKET_API_URL);
+        if (desdeWindow) return desdeWindow;
+
+        const meta = document.querySelector('meta[name="fastmarket-api-url"]');
+        const desdeMeta = normalizar(meta?.content);
+        if (desdeMeta) return desdeMeta;
+
+        try {
+            const desdeLocalStorage = normalizar(localStorage.getItem("fashmarket_api_url"));
+            if (desdeLocalStorage) return desdeLocalStorage;
+        } catch {
+            // Si el navegador bloquea localStorage, se usa el valor por defecto.
+        }
+
         const host = window.location.hostname;
         if (host === "localhost" || host === "127.0.0.1") {
             return "http://localhost:8080/api";
         }
+
+        // Cambia esta URL si tu servicio backend de Render tiene otro nombre.
         return "https://fastmarket-573w.onrender.com/api";
     })();
 
@@ -65,7 +87,13 @@ const FastMarket = (() => {
         const config = { method, headers: headers(auth) };
         if (body !== null && body !== undefined) config.body = JSON.stringify(body);
 
-        const res = await fetch(`${API_URL}${path}`, config);
+        let res;
+        try {
+            res = await fetch(`${API_URL}${path}`, config);
+        } catch (error) {
+            throw new Error(`No se pudo conectar con el backend. Revisa que api.js apunte a tu URL real y que CORS permita tu frontend. API actual: ${API_URL}`);
+        }
+
         const text = await res.text();
         let data = null;
 

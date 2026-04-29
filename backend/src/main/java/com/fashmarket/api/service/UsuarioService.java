@@ -3,6 +3,8 @@ package com.fashmarket.api.service;
 import com.fashmarket.api.dto.AuthDtos;
 import com.fashmarket.api.dto.UsuarioDtos;
 import com.fashmarket.api.model.Direccion;
+import com.fashmarket.api.model.EstadoUsuario;
+import com.fashmarket.api.model.Rol;
 import com.fashmarket.api.model.Usuario;
 import com.fashmarket.api.repository.DireccionRepository;
 import com.fashmarket.api.repository.UsuarioRepository;
@@ -29,6 +31,65 @@ public class UsuarioService {
 
     public AuthDtos.UsuarioResponse obtener(Long id) {
         return DtoMapper.toUsuarioResponse(obtenerEntidad(id));
+    }
+
+    @Transactional
+    public AuthDtos.UsuarioResponse crearDesdeAdmin(UsuarioDtos.CrearUsuarioAdminRequest request) {
+        if (request.nombre() == null || request.nombre().isBlank()) {
+            throw new IllegalArgumentException("El nombre es obligatorio");
+        }
+        if (request.correo() == null || request.correo().isBlank()) {
+            throw new IllegalArgumentException("El correo es obligatorio");
+        }
+        if (request.password() == null || request.password().length() < 6) {
+            throw new IllegalArgumentException("La contraseña debe tener mínimo 6 caracteres");
+        }
+
+        String correo = request.correo().trim().toLowerCase();
+        if (usuarioRepository.existsByCorreoIgnoreCase(correo)) {
+            throw new IllegalArgumentException("El correo ya está registrado");
+        }
+
+        Usuario usuario = new Usuario();
+        usuario.setNombre(request.nombre().trim());
+        usuario.setCorreo(correo);
+        usuario.setPassword(passwordService.encriptar(request.password()));
+        usuario.setTelefono(limpiar(request.telefono()));
+        usuario.setDocumento(limpiar(request.documento()));
+        usuario.setRol(request.rol() == null ? Rol.CLIENTE : request.rol());
+        usuario.setEstado(request.estado() == null ? EstadoUsuario.ACTIVO : request.estado());
+
+        return DtoMapper.toUsuarioResponse(usuarioRepository.save(usuario));
+    }
+
+    @Transactional
+    public AuthDtos.UsuarioResponse actualizarDesdeAdmin(Long id, Long adminActualId, UsuarioDtos.ActualizarUsuarioAdminRequest request) {
+        Usuario usuario = obtenerEntidad(id);
+
+        if (request.nombre() != null && !request.nombre().isBlank()) usuario.setNombre(request.nombre().trim());
+        usuario.setTelefono(limpiar(request.telefono()));
+        usuario.setDocumento(limpiar(request.documento()));
+
+        Rol nuevoRol = request.rol() == null ? usuario.getRol() : request.rol();
+        EstadoUsuario nuevoEstado = request.estado() == null ? usuario.getEstado() : request.estado();
+
+        if (adminActualId != null && adminActualId.equals(usuario.getId())) {
+            if (nuevoRol != Rol.ADMIN || nuevoEstado != EstadoUsuario.ACTIVO) {
+                throw new IllegalArgumentException("No puedes quitarte tu propio rol de administrador ni desactivar tu propia cuenta");
+            }
+        }
+
+        usuario.setRol(nuevoRol);
+        usuario.setEstado(nuevoEstado);
+
+        if (request.passwordNueva() != null && !request.passwordNueva().isBlank()) {
+            if (request.passwordNueva().length() < 6) {
+                throw new IllegalArgumentException("La nueva contraseña debe tener mínimo 6 caracteres");
+            }
+            usuario.setPassword(passwordService.encriptar(request.passwordNueva()));
+        }
+
+        return DtoMapper.toUsuarioResponse(usuarioRepository.save(usuario));
     }
 
     @Transactional

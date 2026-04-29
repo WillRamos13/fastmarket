@@ -363,7 +363,9 @@ body {
 #btn-guardar,
 #btn-limpiar,
 #btn-guardar-banner,
-#btn-limpiar-banner {
+#btn-limpiar-banner,
+#btn-guardar-usuario,
+#btn-limpiar-usuario {
     width: 100%;
     padding: 13px;
     border-radius: 14px;
@@ -372,19 +374,22 @@ body {
 }
 
 #btn-guardar,
-#btn-guardar-banner {
+#btn-guardar-banner,
+#btn-guardar-usuario {
     border: none;
     background-color: var(--naranja);
     color: white;
 }
 
 #btn-guardar:hover,
-#btn-guardar-banner:hover {
+#btn-guardar-banner:hover,
+#btn-guardar-usuario:hover {
     background-color: var(--naranja-oscuro);
 }
 
 #btn-limpiar,
-#btn-limpiar-banner {
+#btn-limpiar-banner,
+#btn-limpiar-usuario {
     background-color: white;
     border: 1px solid var(--borde);
     color: var(--negro);
@@ -541,6 +546,27 @@ td {
     color: #991b1b;
 }
 
+
+.usuarios-layout {
+    align-items: start;
+}
+
+#form-usuario-admin small {
+    color: var(--gris);
+    display: block;
+    margin: -6px 0 12px 0;
+    font-size: 0.82rem;
+}
+
+.acciones-usuarios {
+    grid-template-columns: 1fr 220px;
+}
+
+#usuario-correo:disabled {
+    background-color: #f3f4f6;
+    color: #6b7280;
+    cursor: not-allowed;
+}
 /* BANNERS */
 
 .banners-layout {

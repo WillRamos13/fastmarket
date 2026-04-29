@@ -24,6 +24,8 @@ public class DataSeeder implements CommandLineRunner {
     private String adminCorreo;
     @Value("${app.admin.password:admin123}")
     private String adminPassword;
+    @Value("${app.admin.reset-password:true}")
+    private boolean resetAdminPassword;
 
     public DataSeeder(ProductoRepository productoRepository, BannerRepository bannerRepository, UsuarioRepository usuarioRepository, PasswordService passwordService) {
         this.productoRepository = productoRepository;
@@ -40,16 +42,41 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void crearAdmin() {
-        Usuario admin = usuarioRepository.findByCorreoIgnoreCase(adminCorreo).orElse(null);
+        String correoAdminNormalizado = adminCorreo.trim().toLowerCase();
+        Usuario admin = usuarioRepository.findByCorreoIgnoreCase(correoAdminNormalizado).orElse(null);
         if (admin == null) {
-            admin = new Usuario(adminNombre, adminCorreo.toLowerCase(), passwordService.encriptar(adminPassword), Rol.ADMIN);
+            admin = new Usuario(adminNombre, correoAdminNormalizado, passwordService.encriptar(adminPassword), Rol.ADMIN);
             admin.setEstado(EstadoUsuario.ACTIVO);
             usuarioRepository.save(admin);
             return;
         }
 
-        if (!passwordService.esHashBcrypt(admin.getPassword())) {
+        boolean modificado = false;
+
+        if (admin.getRol() != Rol.ADMIN) {
+            admin.setRol(Rol.ADMIN);
+            modificado = true;
+        }
+
+        if (admin.getEstado() != EstadoUsuario.ACTIVO) {
+            admin.setEstado(EstadoUsuario.ACTIVO);
+            modificado = true;
+        }
+
+        if (admin.getNombre() == null || admin.getNombre().isBlank()) {
+            admin.setNombre(adminNombre);
+            modificado = true;
+        }
+
+        if (resetAdminPassword && !passwordService.coincide(adminPassword, admin.getPassword())) {
+            admin.setPassword(passwordService.encriptar(adminPassword));
+            modificado = true;
+        } else if (!passwordService.esHashBcrypt(admin.getPassword())) {
             admin.setPassword(passwordService.encriptar(admin.getPassword()));
+            modificado = true;
+        }
+
+        if (modificado) {
             usuarioRepository.save(admin);
         }
     }
