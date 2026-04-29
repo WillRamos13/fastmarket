@@ -237,8 +237,8 @@ body {
 /* CARRUSEL */
 
 #ofertas-slider {
-    min-height: 60vh;
-    padding: 110px 5% 45px 5%;
+    min-height: 68vh;
+    padding: 125px 5% 70px 5%;
     background:
         linear-gradient(120deg, rgba(17, 24, 39, 0.96), rgba(17, 24, 39, 0.85)),
         url("img/fondo1.png");
@@ -269,7 +269,7 @@ body {
 .slider {
     width: 100%;
     max-width: 1100px;
-    height: 260px;
+    height: 380px;
     margin: 0 auto;
     position: relative;
     overflow: hidden;
@@ -587,6 +587,207 @@ body {
 .producto-info button:hover,
 .btn-agregar-producto:hover {
     background-color: #e25700;
+}
+
+
+/* TARJETAS DE PRODUCTOS - AJUSTE QA */
+.productos-contenedor {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 26px;
+    align-items: stretch;
+}
+
+.producto-card {
+    min-height: 510px;
+    max-height: 510px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    background: #ffffff;
+    position: relative;
+}
+
+.producto-card:focus-visible {
+    outline: 3px solid rgba(253, 100, 3, 0.35);
+    outline-offset: 4px;
+}
+
+.producto-imagen-link {
+    width: 100%;
+    height: 225px;
+    display: block;
+    background: linear-gradient(145deg, #fff7ed, #f9fafb);
+    position: relative;
+    overflow: hidden;
+}
+
+.producto-imagen-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 16px;
+    display: block;
+    transition: transform 0.35s ease;
+}
+
+.producto-card:hover .producto-imagen-link img {
+    transform: scale(1.045);
+}
+
+.badges-producto {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.badge-oferta,
+.badge-stock {
+    padding: 6px 11px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+}
+
+.badge-oferta {
+    background: #fd6403;
+    color: #fff;
+}
+
+.badge-stock {
+    background: #fee2e2;
+    color: #991b1b;
+    margin-left: auto;
+}
+
+.producto-info {
+    padding: 18px 18px 20px 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.categoria-producto {
+    min-height: auto !important;
+    margin: 0 0 8px 0;
+    color: #fd6403 !important;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.producto-info h3 {
+    margin: 0 0 10px 0;
+    min-height: 48px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.descripcion-producto {
+    margin: 0;
+    min-height: 66px !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.precio-box {
+    margin: 14px 0 6px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.precio-box strong {
+    color: #fd6403;
+    font-size: 1.45rem;
+}
+
+.precio-box span {
+    color: #9ca3af;
+    text-decoration: line-through;
+    font-size: 0.92rem;
+}
+
+.stock-producto {
+    color: #6b7280 !important;
+    text-transform: none !important;
+    font-weight: 700 !important;
+    margin-bottom: 14px;
+}
+
+.btn-agregar {
+    margin-top: auto;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-agregar:hover {
+    transform: translateY(-1px);
+}
+
+.btn-agregar:disabled {
+    background: #d1d5db !important;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 900px) {
+    #ofertas-slider {
+        min-height: 58vh;
+        padding: 110px 5% 45px 5%;
+    }
+
+    .slider {
+        height: 310px;
+    }
+
+    .productos-contenedor {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+
+    .producto-card {
+        min-height: 490px;
+        max-height: 490px;
+    }
+}
+
+@media (max-width: 560px) {
+    .slider {
+        height: 250px;
+        border-radius: 18px;
+    }
+
+    .slide-info {
+        left: 16px;
+        right: 16px;
+        bottom: 18px;
+        padding: 12px 14px;
+    }
+
+    .slide-info h2 {
+        font-size: 1.25rem;
+    }
+
+    .productos-contenedor {
+        grid-template-columns: 1fr;
+    }
+
+    .producto-card {
+        min-height: 475px;
+        max-height: 475px;
+    }
 }
 
 /* MENSAJE VACÍO */

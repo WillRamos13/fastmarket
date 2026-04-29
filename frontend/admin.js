@@ -3,6 +3,7 @@ let banners = [];
 let pedidos = [];
 let usuarios = [];
 let indexContenidos = [];
+const TIPOS_INDEX_PERMITIDOS = ["destacado", "promocion", "opinion", "ayuda"];
 
 document.addEventListener("DOMContentLoaded", async () => {
     const admin = FastMarket.requireAdmin(false);
@@ -543,7 +544,8 @@ function activarIndex() {
 
 async function cargarIndexContenidos() {
     try {
-        indexContenidos = await FastMarket.request("/index-contenido");
+        const contenidos = await FastMarket.request("/index-contenido");
+        indexContenidos = contenidos.filter((c) => TIPOS_INDEX_PERMITIDOS.includes(c.tipo));
         pintarIndex();
     } catch (error) {
         toast(error.message);
@@ -555,20 +557,20 @@ function pintarIndex() {
     if (!tbody) return;
 
     const texto = document.getElementById("buscar-index")?.value.toLowerCase().trim() || "";
-    const lista = indexContenidos.filter((c) => `${c.tipo} ${c.clave} ${c.titulo} ${c.descripcion}`.toLowerCase().includes(texto));
+    const lista = indexContenidos.filter((c) => TIPOS_INDEX_PERMITIDOS.includes(c.tipo) && `${c.tipo} ${c.clave} ${c.titulo} ${c.descripcion}`.toLowerCase().includes(texto));
 
     tbody.innerHTML = lista.length ? "" : `<tr><td colspan="5">No hay contenido.</td></tr>`;
 
     lista.forEach((c) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>${FastMarket.escapeHTML(c.tipo)}</td>
+            <td><span class="estado-oferta">${formatearTipoIndex(c.tipo)}</span></td>
             <td>${FastMarket.escapeHTML(c.clave)}</td>
             <td><strong>${FastMarket.escapeHTML(c.titulo)}</strong><br><small>${FastMarket.escapeHTML(c.descripcion || "")}</small></td>
-            <td>${c.activo ? "Activo" : "Inactivo"}</td>
+            <td><span class="${c.activo ? "estado-activo" : "estado-inactivo"}">${c.activo ? "Activo" : "Inactivo"}</span></td>
             <td>
-                <button data-editar-index="${c.id}">Editar</button>
-                <button data-eliminar-index="${c.id}">Eliminar</button>
+                <button class="btn-editar" data-editar-index="${c.id}">Editar</button>
+                <button class="btn-eliminar" data-eliminar-index="${c.id}">Eliminar</button>
             </td>`;
         tbody.appendChild(tr);
     });
@@ -589,8 +591,13 @@ async function guardarIndex(e) {
         activo: checked("index-activo")
     };
 
+    if (!TIPOS_INDEX_PERMITIDOS.includes(payload.tipo)) {
+        toast("Solo puedes editar Destacados, Promociones, Opiniones y Ayuda.");
+        return;
+    }
+
     if (!payload.tipo || !payload.clave || !payload.titulo) {
-        toast("Completa tipo, clave y título.");
+        toast("Completa sección, clave y título.");
         return;
     }
 
@@ -639,6 +646,7 @@ async function eliminarIndex(id) {
 function limpiarIndex() {
     document.getElementById("form-index")?.reset();
     setValue("index-id", "");
+    setValue("index-tipo", "destacado");
     setChecked("index-activo", true);
     setText("titulo-form-index", "Agregar contenido");
 }
@@ -747,6 +755,17 @@ function toast(mensaje) {
     el.textContent = mensaje;
     el.classList.add("activo");
     setTimeout(() => el.classList.remove("activo"), 2800);
+}
+
+
+function formatearTipoIndex(tipo) {
+    const nombres = {
+        destacado: "Destacados",
+        promocion: "Promociones",
+        opinion: "Opiniones",
+        ayuda: "Ayuda"
+    };
+    return nombres[tipo] || tipo;
 }
 
 function formatearCategoria(valor) {

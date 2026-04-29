@@ -1208,3 +1208,19 @@ body {
         right: -100%;
     }
 }
+
+/* INDEX QA: secciones visibles y tarjetas destacadas */
+.producto-card .producto-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 16px;
+    display: block;
+}
+
+#destacados,
+#ofertas,
+#testimonios,
+#preguntas {
+    scroll-margin-top: 100px;
+}

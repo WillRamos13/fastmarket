@@ -25,12 +25,12 @@
 
                 <div id="opciones-admin">
                     <button class="opcion-admin" data-panel="panel-inicio">Panel principal</button>
-                    <button class="opcion-admin" data-panel="panel-ventas">Revisar ventas</button>
-                    <button class="opcion-admin" data-panel="panel-productos">Agregar productos</button>
-                    <button class="opcion-admin" data-panel="panel-banners">Cambiar banners</button>
-                    <button class="opcion-admin" data-panel="panel-index">Editar index</button>
-                    <button class="opcion-admin" data-panel="panel-indices">Ver índices</button>
-                    <button class="opcion-admin" data-panel="panel-usuarios">Ver usuarios</button>
+                    <button class="opcion-admin" data-panel="panel-productos">Productos</button>
+                    <button class="opcion-admin" data-panel="panel-banners">Banners</button>
+                    <button class="opcion-admin" data-panel="panel-index">Editar página de inicio</button>
+                    <button class="opcion-admin" data-panel="panel-ventas">Ventas</button>
+                    <button class="opcion-admin" data-panel="panel-usuarios">Usuarios y administradores</button>
+                    <button class="opcion-admin" data-panel="panel-indices">Índices</button>
                     <button class="opcion-admin" data-panel="panel-powerbi">Gráficos Power BI</button>
                     <a href="login.html" id="cerrar-sesion">Salir</a>
                 </div>
@@ -47,7 +47,7 @@
                 <h1>Gestión de tienda FashMarket</h1>
                 <p>
                     Usa el menú de funciones para administrar productos, revisar ventas,
-                    cambiar banners, ver usuarios, consultar índices o integrar reportes.
+                    cambiar banners, editar las secciones principales del index, gestionar usuarios o revisar ventas.
                 </p>
 
                 <div class="atajos-admin">
@@ -69,6 +69,12 @@
                         <p>Cambiar imágenes del carrusel de ofertas.</p>
                     </button>
 
+                    <button class="atajo" data-panel="panel-index">
+                        <span>🏠</span>
+                        <h3>Editar inicio</h3>
+                        <p>Editar destacados, promociones, opiniones y ayuda.</p>
+                    </button>
+
                     <button class="atajo" data-panel="panel-indices">
                         <span>📊</span>
                         <h3>Índices</h3>
@@ -77,8 +83,8 @@
 
                     <button class="atajo" data-panel="panel-usuarios">
                         <span>👤</span>
-                        <h3>Usuarios</h3>
-                        <p>Revisar usuarios registrados.</p>
+                        <h3>Usuarios y administradores</h3>
+                        <p>Crear administradores, editar roles y estados.</p>
                     </button>
                 </div>
             </div>
@@ -406,7 +412,7 @@
 
             <div class="titulo-section">
                 <h2>Contenido del index</h2>
-                <p>Edita textos, beneficios, pasos, testimonios y contacto que se muestran en la página principal.</p>
+                <p>Edita únicamente las secciones visibles permitidas: Destacados, Promociones, Opiniones y Ayuda.</p>
             </div>
 
             <div class="admin-layout">
@@ -415,17 +421,17 @@
 
                     <h3 id="titulo-form-index">Agregar contenido</h3>
 
-                    <label for="index-tipo">Tipo</label>
+                    <label for="index-tipo">Sección editable</label>
                     <select id="index-tipo">
-                        <option value="hero">Hero principal</option>
-                        <option value="beneficio">Beneficio</option>
-                        <option value="paso">Paso de compra</option>
-                        <option value="testimonio">Testimonio</option>
-                        <option value="contacto">Contacto</option>
+                        <option value="destacado">Destacados</option>
+                        <option value="promocion">Promociones</option>
+                        <option value="opinion">Opiniones</option>
+                        <option value="ayuda">Ayuda / Preguntas frecuentes</option>
                     </select>
 
                     <label for="index-clave">Clave</label>
-                    <input type="text" id="index-clave" placeholder="Ej: principal, envios, paso1">
+                    <input type="text" id="index-clave" placeholder="Ej: intro, producto-1, punto-1, oferta, boton, pregunta-1">
+                    <small class="ayuda-campo">Usa <b>intro</b> para títulos de sección. En Destacados usa <b>producto-1</b>, <b>producto-2</b>. En Ayuda usa <b>pregunta-1</b>.</small>
 
                     <label for="index-titulo">Título</label>
                     <input type="text" id="index-titulo" placeholder="Título visible">
@@ -433,11 +439,11 @@
                     <label for="index-descripcion">Descripción</label>
                     <textarea id="index-descripcion" placeholder="Texto que se mostrará en el index"></textarea>
 
-                    <label for="index-imagen">Imagen / URL local</label>
-                    <input type="text" id="index-imagen" placeholder="Ej: img/envios.png">
+                    <label for="index-imagen">Imagen, ícono o emoji</label>
+                    <input type="text" id="index-imagen" placeholder="Ej: 🎧, img/producto.png o URL">
 
-                    <label for="index-enlace">Enlace</label>
-                    <input type="text" id="index-enlace" placeholder="Ej: productos.html">
+                    <label for="index-enlace">Enlace / precio / texto corto</label>
+                    <input type="text" id="index-enlace" placeholder="Ej: S/ 79.90 o productos.html">
 
                     <label for="index-orden">Orden</label>
                     <input type="number" id="index-orden" value="1">
@@ -455,7 +461,7 @@
 
                 <div class="tabla-contenedor">
                     <div class="acciones-tabla">
-                        <input type="text" id="buscar-index" placeholder="Buscar contenido...">
+                        <input type="text" id="buscar-index" placeholder="Buscar en Destacados, Promociones, Opiniones o Ayuda...">
                     </div>
 
                     <div class="tabla-scroll">

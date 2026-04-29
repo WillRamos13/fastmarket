@@ -16,75 +16,146 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function cargarContenidoIndex() {
     try {
         const contenidos = await FastMarket.request("/index-contenido?activo=true");
-        aplicarHero(contenidos.filter((c) => c.tipo === "hero"));
-        aplicarBeneficios(contenidos.filter((c) => c.tipo === "beneficio"));
-        aplicarPasos(contenidos.filter((c) => c.tipo === "paso"));
-        aplicarTestimonios(contenidos.filter((c) => c.tipo === "testimonio"));
-        aplicarContacto(contenidos.filter((c) => c.tipo === "contacto"));
+        aplicarDestacadosIndex(contenidos.filter((c) => c.tipo === "destacado"));
+        aplicarPromocionesIndex(contenidos.filter((c) => c.tipo === "promocion"));
+        aplicarOpinionesIndex(contenidos.filter((c) => c.tipo === "opinion"));
+        aplicarAyudaIndex(contenidos.filter((c) => c.tipo === "ayuda"));
     } catch (error) {
         console.warn("No se pudo cargar contenido del index:", error.message);
     }
 }
 
-function aplicarHero(items) {
-    const hero = items[0];
-    if (!hero) return;
-    const titulo = document.getElementById("cuadro2");
-    const desc = document.getElementById("cuadro3");
-    const img = document.getElementById("png");
-    if (titulo) titulo.textContent = hero.titulo;
-    if (desc) desc.textContent = hero.descripcion || "";
-    if (img && hero.imagen) img.src = hero.imagen;
+function ordenarContenido(items) {
+    return [...items].sort((a, b) => Number(a.orden || 0) - Number(b.orden || 0));
 }
 
-function aplicarBeneficios(items) {
-    const contenedor = document.querySelector("#beneficios .beneficios-grid");
-    if (!contenedor || !items.length) return;
-    contenedor.innerHTML = items.map((item) => `
-        <article class="beneficio">
-            ${item.imagen ? `<img src="${FastMarket.escapeHTML(item.imagen)}" alt="${FastMarket.escapeHTML(item.titulo)}" onerror="this.style.display='none'">` : ""}
-            <h3>${FastMarket.escapeHTML(item.titulo)}</h3>
-            <p>${FastMarket.escapeHTML(item.descripcion || "")}</p>
-        </article>
-    `).join("");
+function esImagen(valor) {
+    return /^https?:\/\//i.test(valor || "") || /^data:image\//i.test(valor || "") || /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(valor || "") || String(valor || "").startsWith("img/");
 }
 
-function aplicarPasos(items) {
-    const contenedor = document.querySelector("#como-comprar .pasos-grid");
-    if (!contenedor || !items.length) return;
-    contenedor.innerHTML = items.map((item, i) => `
-        <article class="paso">
-            <span>${i + 1}</span>
-            <h3>${FastMarket.escapeHTML(item.titulo)}</h3>
-            <p>${FastMarket.escapeHTML(item.descripcion || "")}</p>
-        </article>
-    `).join("");
+function aplicarDestacadosIndex(items) {
+    if (!items.length) return;
+
+    const intro = items.find((item) => item.clave === "intro") || items[0];
+    const titulo = document.querySelector("#destacados .titulo-section h2");
+    const desc = document.querySelector("#destacados .titulo-section p");
+
+    if (intro && titulo) titulo.textContent = intro.titulo || titulo.textContent;
+    if (intro && desc) desc.textContent = intro.descripcion || desc.textContent;
+
+    const cards = ordenarContenido(items.filter((item) => item.clave !== "intro" && item.clave !== "boton"));
+    const grid = document.querySelector("#destacados .productos-grid");
+
+    if (grid && cards.length) {
+        grid.innerHTML = cards.slice(0, 4).map((item) => {
+            const visual = item.imagen || "🛍️";
+            const media = esImagen(visual)
+                ? `<img src="${FastMarket.escapeHTML(visual)}" alt="${FastMarket.escapeHTML(item.titulo)}" onerror="this.style.display='none'">`
+                : FastMarket.escapeHTML(visual);
+
+            return `
+                <article class="producto-card">
+                    <div class="producto-img">${media}</div>
+                    <h3>${FastMarket.escapeHTML(item.titulo)}</h3>
+                    <p>${FastMarket.escapeHTML(item.descripcion || "")}</p>
+                    <span>${FastMarket.escapeHTML(item.enlace || "")}</span>
+                </article>`;
+        }).join("");
+    }
+
+    const boton = items.find((item) => item.clave === "boton");
+    const link = document.querySelector("#destacados .boton-centro a");
+
+    if (boton && link) {
+        link.textContent = boton.titulo || "Ver catálogo completo";
+        link.href = boton.enlace || "productos.html";
+    }
 }
 
-function aplicarTestimonios(items) {
-    const contenedor = document.querySelector("#testimonios .testimonios-grid");
-    if (!contenedor || !items.length) return;
-    contenedor.innerHTML = items.map((item) => `
-        <article class="testimonio">
-            <p>${FastMarket.escapeHTML(item.descripcion || "")}</p>
-            <h4>- ${FastMarket.escapeHTML(item.titulo)}</h4>
-        </article>
-    `).join("");
+function aplicarPromocionesIndex(items) {
+    if (!items.length) return;
+
+    const intro = items.find((item) => item.clave === "intro") || items[0];
+    const titulo = document.querySelector("#ofertas .oferta-texto h2");
+    const desc = document.querySelector("#ofertas .oferta-texto > p");
+
+    if (intro && titulo) titulo.textContent = intro.titulo || titulo.textContent;
+    if (intro && desc) desc.textContent = intro.descripcion || desc.textContent;
+
+    const puntos = ordenarContenido(items.filter((item) => item.clave.startsWith("punto")));
+    const lista = document.getElementById("oferta-lista");
+
+    if (lista && puntos.length) {
+        lista.innerHTML = puntos.map((item) => `<p>✔ ${FastMarket.escapeHTML(item.titulo)}</p>`).join("");
+    }
+
+    const boton = items.find((item) => item.clave === "boton");
+    const link = document.getElementById("boton-oferta-index");
+
+    if (boton && link) {
+        link.textContent = boton.titulo || "Ver ofertas disponibles";
+        link.href = boton.enlace || "productos.html?ofertas=1";
+    }
+
+    const oferta = items.find((item) => item.clave === "oferta");
+    const caja = document.querySelector("#ofertas .oferta-caja");
+
+    if (oferta && caja) {
+        caja.dataset.personalizado = "true";
+        caja.innerHTML = `
+            <h3>${FastMarket.escapeHTML(oferta.titulo || "Oferta")}</h3>
+            <p>${FastMarket.escapeHTML(oferta.descripcion || "")}</p>
+            <small>${FastMarket.escapeHTML(oferta.enlace || "")}</small>`;
+    }
 }
 
-function aplicarContacto(items) {
-    const item = items[0];
-    if (!item) return;
-    const titulo = document.querySelector("#contacto-rapido .contacto-texto h2");
-    const desc = document.querySelector("#contacto-rapido .contacto-texto p");
-    if (titulo) titulo.textContent = item.titulo;
-    if (desc) desc.textContent = item.descripcion || "";
+function aplicarOpinionesIndex(items) {
+    if (!items.length) return;
+
+    const intro = items.find((item) => item.clave === "intro") || items[0];
+    const titulo = document.querySelector("#testimonios .titulo-section h2");
+    const desc = document.querySelector("#testimonios .titulo-section p");
+
+    if (intro && titulo) titulo.textContent = intro.titulo || titulo.textContent;
+    if (intro && desc) desc.textContent = intro.descripcion || desc.textContent;
+
+    const opiniones = ordenarContenido(items.filter((item) => item.clave !== "intro"));
+    const grid = document.querySelector("#testimonios .testimonios-grid");
+
+    if (grid && opiniones.length) {
+        grid.innerHTML = opiniones.map((item) => `
+            <article class="testimonio">
+                <p>${FastMarket.escapeHTML(item.descripcion || "")}</p>
+                <h4>- ${FastMarket.escapeHTML(item.titulo)}</h4>
+            </article>`).join("");
+    }
+}
+
+function aplicarAyudaIndex(items) {
+    if (!items.length) return;
+
+    const intro = items.find((item) => item.clave === "intro") || items[0];
+    const titulo = document.querySelector("#preguntas .titulo-section h2");
+    const desc = document.querySelector("#preguntas .titulo-section p");
+
+    if (intro && titulo) titulo.textContent = intro.titulo || titulo.textContent;
+    if (intro && desc) desc.textContent = intro.descripcion || desc.textContent;
+
+    const faqs = ordenarContenido(items.filter((item) => item.clave !== "intro"));
+    const contenedor = document.querySelector("#preguntas .faq-contenedor");
+
+    if (contenedor && faqs.length) {
+        contenedor.innerHTML = faqs.map((item) => `
+            <article class="faq-item">
+                <h3>${FastMarket.escapeHTML(item.titulo)}</h3>
+                <p>${FastMarket.escapeHTML(item.descripcion || "")}</p>
+            </article>`).join("");
+    }
 }
 
 async function cargarProductosIndex() {
     try {
         const productos = await FastMarket.request("/productos");
-        pintarDestacados(productos.filter((p) => p.destacado).slice(0, 4));
         pintarOferta(productos.filter((p) => p.oferta)[0]);
     } catch (error) {
         console.warn("No se pudieron cargar productos del index:", error.message);
@@ -110,7 +181,7 @@ function pintarDestacados(productos) {
 function pintarOferta(producto) {
     if (!producto) return;
     const caja = document.querySelector("#ofertas .oferta-caja");
-    if (!caja) return;
+    if (!caja || caja.dataset.personalizado === "true") return;
 
     const descuento = producto.precioAntes
         ? Math.round((1 - Number(producto.precio) / Number(producto.precioAntes)) * 100)

@@ -109,13 +109,13 @@ async function cargarBanners() {
     try {
         const banners = await FastMarket.request("/banners?activo=true");
         bannersActivos = banners.length ? banners : [
-            { titulo: "Ofertas disponibles", descripcion: "Promociones destacadas para tus compras.", imagen: "img/fondo1.png" },
-            { titulo: "Compra segura", descripcion: "Atención rápida y seguimiento de pedidos.", imagen: "img/intro.png" }
+            { titulo: "", descripcion: "", imagen: "img/fondo1.png" },
+            { titulo: "", descripcion: "", imagen: "img/intro.png" }
         ];
     } catch {
         bannersActivos = [
-            { titulo: "Ofertas disponibles", descripcion: "Promociones destacadas para tus compras.", imagen: "img/fondo1.png" },
-            { titulo: "Compra segura", descripcion: "Atención rápida y seguimiento de pedidos.", imagen: "img/intro.png" }
+            { titulo: "", descripcion: "", imagen: "img/fondo1.png" },
+            { titulo: "", descripcion: "", imagen: "img/intro.png" }
         ];
     }
     pintarSlider();
@@ -132,12 +132,15 @@ function pintarSlider() {
     bannersActivos.forEach((banner, index) => {
         const slide = document.createElement("div");
         slide.className = "slide";
+        const titulo = banner.titulo || "";
+        const descripcion = banner.descripcion || "";
         slide.innerHTML = `
-            <img src="${FastMarket.escapeHTML(banner.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(banner.titulo)}" onerror="this.src='img/logo.png'">
-            <div class="slide-info">
-                <h2>${FastMarket.escapeHTML(banner.titulo)}</h2>
-                <p>${FastMarket.escapeHTML(banner.descripcion || "")}</p>
-            </div>`;
+            <img src="${FastMarket.escapeHTML(banner.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(titulo || "Banner FashMarket")}" onerror="this.src='img/logo.png'">
+            ${(titulo || descripcion) ? `
+                <div class="slide-info">
+                    ${titulo ? `<h2>${FastMarket.escapeHTML(titulo)}</h2>` : ""}
+                    ${descripcion ? `<p>${FastMarket.escapeHTML(descripcion)}</p>` : ""}
+                </div>` : ""}`;
         slider.appendChild(slide);
 
         const punto = document.createElement("span");
@@ -190,32 +193,52 @@ function mostrarProductos() {
     lista.forEach((producto) => {
         const card = document.createElement("article");
         card.className = "producto-card";
+        card.tabIndex = 0;
+        card.setAttribute("role", "link");
+        card.setAttribute("aria-label", `Ver detalle de ${producto.nombre}`);
+
         const sinStock = Number(producto.stock) <= 0;
+        const detalleUrl = `detalle-producto.html?id=${producto.id}`;
+
         card.innerHTML = `
-            <a href="detalle-producto.html?id=${producto.id}" class="producto-imagen-link">
+            <div class="producto-imagen-link">
                 <img src="${FastMarket.escapeHTML(producto.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(producto.nombre)}" onerror="this.src='img/logo.png'">
-            </a>
+                <div class="badges-producto">
+                    ${producto.oferta ? `<span class="badge-oferta">Oferta</span>` : ""}
+                    ${sinStock ? `<span class="badge-stock">Sin stock</span>` : ""}
+                </div>
+            </div>
             <div class="producto-info">
-                ${producto.oferta ? `<span class="badge-oferta">Oferta</span>` : ""}
-                ${sinStock ? `<span class="badge-stock">Sin stock</span>` : ""}
-                <p class="categoria-producto">${FastMarket.escapeHTML(producto.categoria)}</p>
+                <p class="categoria-producto">${FastMarket.escapeHTML(producto.categoria || "General")}</p>
                 <h3>${FastMarket.escapeHTML(producto.nombre)}</h3>
-                <p>${FastMarket.escapeHTML(producto.descripcion || "")}</p>
+                <p class="descripcion-producto">${FastMarket.escapeHTML(producto.descripcion || "Producto disponible en FashMarket.")}</p>
                 <div class="precio-box">
                     <strong>${FastMarket.money(producto.precio)}</strong>
                     ${producto.precioAntes ? `<span>${FastMarket.money(producto.precioAntes)}</span>` : ""}
                 </div>
-                <small>Stock: ${Number(producto.stock || 0)}</small>
-                <div class="acciones-producto">
-                    <a href="detalle-producto.html?id=${producto.id}" class="btn-detalle">Ver detalle</a>
-                    <button class="btn-agregar" ${sinStock ? "disabled" : ""}>Agregar</button>
-                </div>
+                <small class="stock-producto">Stock: ${Number(producto.stock || 0)}</small>
+                <button class="btn-agregar" ${sinStock ? "disabled" : ""}>Agregar al carrito</button>
             </div>`;
+
+        card.addEventListener("click", () => {
+            window.location.href = detalleUrl;
+        });
+
+        card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                window.location.href = detalleUrl;
+            }
+        });
 
         const btnAgregar = card.querySelector(".btn-agregar");
         if (btnAgregar) {
-            btnAgregar.addEventListener("click", () => agregarAlCarrito(producto, 1));
+            btnAgregar.addEventListener("click", (e) => {
+                e.stopPropagation();
+                agregarAlCarrito(producto, 1);
+            });
         }
+
         contenedor.appendChild(card);
     });
 }

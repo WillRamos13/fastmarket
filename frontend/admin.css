@@ -887,3 +887,128 @@ td {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* ORDEN VISUAL QA: USUARIOS E INDEX */
+#form-usuario-admin,
+#form-index {
+    background-color: white;
+    padding: 28px;
+    border-radius: 24px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.07);
+}
+
+#form-usuario-admin h3,
+#form-index h3 {
+    margin-top: 0;
+    font-size: 1.5rem;
+}
+
+#form-usuario-admin label,
+#form-index label {
+    display: block;
+    font-weight: bold;
+    margin: 16px 0 8px 0;
+}
+
+#form-usuario-admin input,
+#form-usuario-admin select,
+#form-usuario-admin textarea,
+#form-index input,
+#form-index select,
+#form-index textarea {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    outline: none;
+    font-size: 1rem;
+}
+
+#form-usuario-admin textarea,
+#form-index textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+#form-index .botones-form button {
+    width: 100%;
+    padding: 13px;
+    border-radius: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#form-index .botones-form button[type="submit"] {
+    border: none;
+    background-color: var(--naranja);
+    color: white;
+}
+
+#form-index .botones-form button[type="submit"]:hover {
+    background-color: var(--naranja-oscuro);
+}
+
+#btn-limpiar-index {
+    background-color: white;
+    border: 1px solid var(--borde);
+    color: var(--negro);
+}
+
+.usuarios-layout,
+#panel-index .admin-layout {
+    grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+    gap: 30px;
+}
+
+#panel-usuarios .titulo-section,
+#panel-index .titulo-section {
+    max-width: 860px;
+}
+
+#form-usuario-admin,
+#form-index {
+    position: sticky;
+    top: 105px;
+}
+
+#form-usuario-admin small,
+#form-index .ayuda-campo {
+    color: var(--gris);
+    display: block;
+    margin: 6px 0 12px 0;
+    font-size: 0.84rem;
+    line-height: 1.45;
+}
+
+#form-index .ayuda-campo b {
+    color: var(--naranja);
+}
+
+.usuarios-contenedor,
+#panel-index .tabla-contenedor {
+    min-width: 0;
+}
+
+#panel-index .tabla-scroll table,
+#panel-usuarios .tabla-scroll table {
+    min-width: 760px;
+}
+
+#panel-index td small,
+#panel-usuarios td small {
+    color: var(--gris);
+    line-height: 1.45;
+}
+
+@media (max-width: 980px) {
+    .usuarios-layout,
+    #panel-index .admin-layout {
+        grid-template-columns: 1fr;
+    }
+
+    #form-usuario-admin,
+    #form-index {
+        position: static;
+    }
+}
