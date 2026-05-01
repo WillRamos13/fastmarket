@@ -97,22 +97,43 @@ public class ChatContextService {
             if (contexto.texto().contains("no tiene pedidos registrados")) {
                 return "No encontré pedidos registrados en tu cuenta. Cuando confirmes una compra, aparecerá en la sección Mis pedidos.";
             }
+
+            String pedidos = listarPedidosDesdeContexto(contexto);
+            if (!pedidos.isBlank()) {
+                return "Estos son tus pedidos más recientes:\n" + pedidos + "\n\nPara ver el detalle completo, entra a Mis pedidos.";
+            }
+
             return "Encontré información de tus pedidos en la base de datos. Revisa Mis pedidos para ver el detalle completo, estado, productos y total.";
         }
 
-        if (contiene(texto, "oferta", "promocion", "promoción", "descuento", "rebaja")) {
+        if (contiene(texto, "oferta", "ofertas", "promocion", "promoción", "promociones", "descuento", "rebaja")) {
             if (contexto.texto().contains("Actualmente no hay productos marcados como oferta")) {
                 return "Por ahora no hay ofertas activas registradas. Puedes revisar el catálogo porque las promociones pueden cambiar según temporada y stock.";
             }
+
+            String ofertas = listarProductosDesdeContexto(contexto, true);
+            if (!ofertas.isBlank()) {
+                return "Estos productos están en oferta ahora mismo en FashMarket:\n"
+                        + ofertas
+                        + "\n\nPuedes verlos con imagen y detalle en la sección Promociones o en el catálogo.";
+            }
+
             return "Sí, hay ofertas registradas en FashMarket. Puedes verlas en la sección Promociones o en el catálogo cuando el producto muestra precio anterior.";
         }
 
-        if (contiene(texto, "stock", "disponible", "hay")) {
-            return "El stock se muestra en cada producto del catálogo. Si un producto aparece agotado, no podrás completar la compra con esa cantidad.";
-        }
+        if (contiene(texto, "stock", "disponible", "disponibles", "hay", "producto", "productos", "catalogo", "catálogo", "comprar", "precio", "cuesta")) {
+            if (contexto.texto().contains("No hay productos activos registrados")) {
+                return "Por ahora no hay productos activos registrados en FashMarket.";
+            }
 
-        if (contiene(texto, "producto", "catalogo", "catálogo", "comprar", "precio")) {
-            return "Puedes revisar el catálogo completo en Productos. Presiona una tarjeta para ver el detalle y usa el botón del carrito para agregarlo.";
+            String productos = listarProductosDesdeContexto(contexto, false);
+            if (!productos.isBlank()) {
+                return "Estos son algunos productos disponibles en FashMarket:\n"
+                        + productos
+                        + "\n\nPara ver imágenes, detalles y agregar al carrito, entra al catálogo de productos.";
+            }
+
+            return "Puedes revisar el catálogo completo en Productos. Ahí verás precio, stock y detalle de cada artículo.";
         }
 
         if (contiene(texto, "envio", "envío", "delivery", "entrega", "direccion", "dirección")) {
@@ -124,6 +145,65 @@ public class ChatContextService {
         }
 
         return "Puedo ayudarte con productos, ofertas, stock, pedidos, envíos, pagos y uso de la página. ¿Sobre qué parte de FashMarket quieres consultar?";
+    }
+
+    private String listarProductosDesdeContexto(ChatContext contexto, boolean soloOfertas) {
+        return contexto.texto().lines()
+                .filter(linea -> linea.startsWith("- ID "))
+                .filter(linea -> !soloOfertas || linea.contains("oferta: sí"))
+                .limit(8)
+                .map(this::formatearProductoParaCliente)
+                .filter(linea -> !linea.isBlank())
+                .collect(Collectors.joining("\n"));
+    }
+
+    private String formatearProductoParaCliente(String linea) {
+        String limpia = linea.replaceFirst("^- ID \\d+:\\s*", "");
+        String[] partes = limpia.split("\\s*\\|\\s*");
+
+        String nombre = partes.length > 0 ? partes[0].trim() : "Producto";
+        String categoria = valorCampo(partes, "categoría:");
+        String precio = valorCampo(partes, "precio:");
+        String antes = valorCampo(partes, "antes:");
+        String stock = valorCampo(partes, "stock:");
+
+        StringBuilder respuesta = new StringBuilder("• ").append(nombre);
+
+        if (!categoria.isBlank() && !categoria.equalsIgnoreCase("No registrado")) {
+            respuesta.append(" (").append(categoria).append(")");
+        }
+
+        if (!precio.isBlank()) {
+            respuesta.append(" — ").append(precio);
+        }
+
+        if (!antes.isBlank()) {
+            respuesta.append(" antes ").append(antes);
+        }
+
+        if (!stock.isBlank()) {
+            respuesta.append(" — stock: ").append(stock);
+        }
+
+        return respuesta.toString();
+    }
+
+    private String listarPedidosDesdeContexto(ChatContext contexto) {
+        return contexto.texto().lines()
+                .filter(linea -> linea.startsWith("- Pedido "))
+                .limit(5)
+                .map(linea -> "• " + linea.replaceFirst("^- ", ""))
+                .collect(Collectors.joining("\n"));
+    }
+
+    private String valorCampo(String[] partes, String campo) {
+        for (String parte : partes) {
+            String p = parte.trim();
+            if (normalizar(p).startsWith(normalizar(campo))) {
+                return p.substring(campo.length()).trim();
+            }
+        }
+        return "";
     }
 
     private String formatearProducto(Producto p) {
