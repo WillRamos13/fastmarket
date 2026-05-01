@@ -300,33 +300,71 @@ const FastMarket = (() => {
         const mensajes = document.getElementById("chat-mensajes");
         if (!boton || !chatBox || !input || !mensajes) return;
 
-        boton.addEventListener("click", () => chatBox.style.display = "flex");
+        if (boton.dataset.fmChatActivo) return;
+        boton.dataset.fmChatActivo = "true";
+
+        boton.addEventListener("click", () => {
+            chatBox.style.display = "flex";
+            if (!mensajes.dataset.fmBienvenida) {
+                agregar("bot", "Hola 👋 Soy el asistente de FashMarket. Puedo ayudarte con productos, ofertas, stock, pedidos, envíos y pagos.");
+                mensajes.dataset.fmBienvenida = "true";
+            }
+            input.focus();
+        });
+
         if (cerrar) cerrar.addEventListener("click", () => chatBox.style.display = "none");
 
         const agregar = (tipo, texto) => {
-        const div = document.createElement("div");
+            const div = document.createElement("div");
+            div.className = tipo === "user" ? "mensaje usuario" : "mensaje bot";
 
-        if (tipo === "user") {
-            div.className = "mensaje usuario";
-        } else {
-            div.className = "mensaje bot";
-        }
+            const contenido = document.createElement("div");
+            contenido.className = "mensaje-contenido";
+            contenido.textContent = texto;
 
-        const contenido = document.createElement("div");
-        contenido.className = "mensaje-contenido";
-        contenido.textContent = texto;
-
-        div.appendChild(contenido);
-        mensajes.appendChild(div);
-        mensajes.scrollTop = mensajes.scrollHeight;
+            div.appendChild(contenido);
+            mensajes.appendChild(div);
+            mensajes.scrollTop = mensajes.scrollHeight;
+            return div;
         };
 
-        const responder = () => {
+        const cambiarTextoMensaje = (mensaje, texto) => {
+            if (!mensaje) return;
+            const contenido = mensaje.querySelector(".mensaje-contenido");
+            if (contenido) contenido.textContent = texto;
+            else mensaje.textContent = texto;
+            mensajes.scrollTop = mensajes.scrollHeight;
+        };
+
+        const responder = async () => {
             const texto = input.value.trim();
             if (!texto) return;
+
             agregar("user", texto);
             input.value = "";
-            agregar("bot", "Gracias por escribir. Por ahora puedo ayudarte con productos, pedidos y entregas desde la tienda.");
+            input.disabled = true;
+            if (enviar) enviar.disabled = true;
+
+            const mensajeCarga = agregar("bot", "Escribiendo...");
+
+            try {
+                const data = await request("/chat", {
+                    method: "POST",
+                    body: { mensaje: texto },
+                    auth: true
+                });
+
+                cambiarTextoMensaje(mensajeCarga, data?.respuesta || "No recibí respuesta del asistente.");
+            } catch (error) {
+                cambiarTextoMensaje(
+                    mensajeCarga,
+                    error?.message || "No pude conectarme con el asistente. Revisa el backend o la configuración de la IA."
+                );
+            } finally {
+                input.disabled = false;
+                if (enviar) enviar.disabled = false;
+                input.focus();
+            }
         };
 
         if (enviar) enviar.addEventListener("click", responder);
