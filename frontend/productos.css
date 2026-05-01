@@ -1164,6 +1164,38 @@ body {
     cursor: pointer;
 }
 
+#chat-mensajes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mensaje-user {
+    align-self: flex-end;
+    max-width: 75%;
+    background: #fd6403;
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 16px 16px 4px 16px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    box-shadow: 0 4px 12px rgba(253, 100, 3, 0.25);
+}
+
+.mensaje-bot {
+    align-self: flex-start;
+    max-width: 75%;
+    background: #ffffff;
+    color: #111827;
+    padding: 10px 14px;
+    border-radius: 16px 16px 16px 4px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
 /* FOOTER */
 
 #pie-de-pagina {

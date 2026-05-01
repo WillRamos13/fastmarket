@@ -304,11 +304,21 @@ const FastMarket = (() => {
         if (cerrar) cerrar.addEventListener("click", () => chatBox.style.display = "none");
 
         const agregar = (tipo, texto) => {
-            const div = document.createElement("div");
-            div.className = tipo === "user" ? "mensaje-user" : "mensaje-bot";
-            div.textContent = texto;
-            mensajes.appendChild(div);
-            mensajes.scrollTop = mensajes.scrollHeight;
+        const div = document.createElement("div");
+
+        if (tipo === "user") {
+            div.className = "mensaje usuario";
+        } else {
+            div.className = "mensaje bot";
+        }
+
+        const contenido = document.createElement("div");
+        contenido.className = "mensaje-contenido";
+        contenido.textContent = texto;
+
+        div.appendChild(contenido);
+        mensajes.appendChild(div);
+        mensajes.scrollTop = mensajes.scrollHeight;
         };
 
         const responder = () => {
