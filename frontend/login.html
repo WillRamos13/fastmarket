@@ -3,97 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | FashMarket</title>
+    <title>Iniciar sesión | FashMarket</title>
+
     <link rel="stylesheet" href="login.css">
 </head>
-
 <body>
 
-    <main id="login-main">
+    <main class="auth-page">
+        <section class="auth-card">
 
-        <section id="login-card">
+            <div class="auth-left">
 
-            <div id="login-info">
-                <h1>FashMarket</h1>
-                <p>
-                    Crea tu cuenta o inicia sesión para ver tu perfil,
-                    tus pedidos y tus direcciones de entrega.
+                <a href="index.html" class="auth-logo">
+                    <span class="logo-icon">🛍️</span>
+                    <span>FashMarket</span>
+                </a>
+
+                <h1 id="titulo-auth">Inicia sesión o regístrate para comprar</h1>
+
+                <p class="auth-info">
+                    ¿Tienes cuenta en FashMarket? Usa el mismo correo y contraseña para que podamos reconocerte
+                    o <button type="button" id="link-login-superior">inicia sesión</button>.
                 </p>
 
-                <div class="info-extra">
-                    <p>🛒 Compra rápida</p>
-                    <p>📦 Seguimiento de pedidos</p>
-                    <p>📍 Direcciones guardadas</p>
-                </div>
-            </div>
+                <!-- FORMULARIO REGISTRO -->
+                <form id="form-registro" class="auth-form">
 
-            <div id="login-contenido">
+                    <div class="campo">
+                        <label for="registro-correo">Correo</label>
+                        <input type="email" id="registro-correo" placeholder="Ingresa un correo" autocomplete="email">
+                    </div>
 
-                <div id="tabs">
-                    <button id="tab-login" class="tab activo">Iniciar sesión</button>
-                    <button id="tab-registro" class="tab">Registrarse</button>
-                </div>
+                    <div class="campo">
+                        <label for="registro-nombre">Nombre</label>
+                        <input type="text" id="registro-nombre" placeholder="Ingresa un nombre" autocomplete="given-name">
+                    </div>
 
-                <form id="form-login" class="formulario activo-form">
-                    <h2>Iniciar sesión</h2>
+                    <div class="campo">
+                        <label for="registro-apellidos">Apellidos</label>
+                        <input type="text" id="registro-apellidos" placeholder="Ingresa apellidos" autocomplete="family-name">
+                    </div>
 
-                    <label for="login-correo">Correo</label>
-                    <input type="email" id="login-correo" placeholder="cliente@gmail.com">
+                    <div class="campo">
+                        <label for="registro-documento">Tipo de documento</label>
+                        <div class="documento-box">
+                            <select id="registro-tipo-documento">
+                                <option value="DNI">DNI</option>
+                                <option value="CE">CE</option>
+                                <option value="PASAPORTE">Pasaporte</option>
+                            </select>
+                            <input type="text" id="registro-documento" placeholder="Ingresa un documento de identidad">
+                        </div>
+                    </div>
 
-                    <label for="login-password">Contraseña</label>
-                    <input type="password" id="login-password" placeholder="Ingresa tu contraseña">
+                    <div class="campo">
+                        <label for="registro-celular">Celular</label>
+                        <div class="telefono-box">
+                            <span>+51</span>
+                            <input type="tel" id="registro-celular" placeholder="Ingresa un celular" autocomplete="tel">
+                        </div>
+                    </div>
 
-                    <a href="recuperar-contrasena.html" class="link-recuperar">
-                        ¿Olvidaste tu contraseña?
-                    </a>
+                    <div class="campo">
+                        <label for="registro-password">Contraseña</label>
+                        <div class="password-box">
+                            <input type="password" id="registro-password" placeholder="Ingresa una contraseña" autocomplete="new-password">
+                            <button type="button" class="toggle-password" data-target="registro-password">👁️</button>
+                        </div>
+                    </div>
 
-                    <button type="submit">Entrar</button>
+                    <div class="password-rules">
+                        <ul>
+                            <li id="rule-length">Mín. 8 caracteres</li>
+                            <li id="rule-lower">1 minúscula</li>
+                        </ul>
+                        <ul>
+                            <li id="rule-number">1 número</li>
+                            <li id="rule-space">Sin espacio</li>
+                        </ul>
+                        <ul>
+                            <li id="rule-upper">1 mayúscula</li>
+                            <li id="rule-special">Sin usar \ / " ' ° ¬ ¿ ¡ Ñ</li>
+                        </ul>
+                    </div>
 
-                    <p id="mensaje-login" class="mensaje"></p>
+                    <label class="check-row">
+                        <input type="checkbox" id="acepta-terminos">
+                        <span>
+                            Acepto los
+                            <a href="index.html#terminos">términos y condiciones</a>
+                            de FashMarket.
+                        </span>
+                    </label>
 
-                    <p class="cambiar-form">
-                        ¿No tienes cuenta?
-                        <span id="ir-registro">Regístrate aquí</span>
-                    </p>
-                </form>
+                    <label class="check-row">
+                        <input type="checkbox" id="acepta-politicas">
+                        <span>
+                            Declaro que he leído las
+                            <a href="index.html#politicas">políticas de privacidad</a>.
+                        </span>
+                    </label>
 
-                <form id="form-registro" class="formulario">
-                    <h2>Crear cuenta</h2>
+                    <p id="mensaje-registro" class="mensaje-form"></p>
 
-                    <label for="registro-nombre">Nombre completo</label>
-                    <input type="text" id="registro-nombre" placeholder="Ej: Juan Pérez">
+                    <button type="submit" id="btn-registro" class="btn-auth" disabled>
+                        Regístrate
+                    </button>
 
-                    <label for="registro-correo">Correo</label>
-                    <input type="email" id="registro-correo" placeholder="cliente@gmail.com">
-
-                    <label for="registro-telefono">Teléfono</label>
-                    <input type="text" id="registro-telefono" placeholder="999999999">
-
-                    <label for="registro-direccion">Dirección de entrega</label>
-                    <input type="text" id="registro-direccion" placeholder="Ej: Av. Principal 123, Ica">
-
-                    <label for="registro-password">Contraseña</label>
-                    <input type="password" id="registro-password" placeholder="Crea una contraseña">
-
-                    <label for="registro-confirmar">Confirmar contraseña</label>
-                    <input type="password" id="registro-confirmar" placeholder="Repite tu contraseña">
-
-                    <button type="submit">Crear cuenta</button>
-
-                    <p id="mensaje-registro" class="mensaje"></p>
-
-                    <p class="cambiar-form">
+                    <p class="cambio-form">
                         ¿Ya tienes cuenta?
-                        <span id="ir-login">Inicia sesión aquí</span>
+                        <button type="button" id="mostrar-login">Inicia sesión</button>
                     </p>
                 </form>
 
-                <a href="productos.html" id="volver-productos">Volver a productos</a>
+                <!-- FORMULARIO LOGIN -->
+                <form id="form-login" class="auth-form oculto">
+
+                    <div class="campo">
+                        <label for="login-correo">Correo</label>
+                        <input type="email" id="login-correo" placeholder="Ingresa tu correo" autocomplete="email">
+                    </div>
+
+                    <div class="campo">
+                        <label for="login-password">Contraseña</label>
+                        <div class="password-box">
+                            <input type="password" id="login-password" placeholder="Ingresa tu contraseña" autocomplete="current-password">
+                            <button type="button" class="toggle-password" data-target="login-password">👁️</button>
+                        </div>
+                    </div>
+
+                    <p id="mensaje-login" class="mensaje-form"></p>
+
+                    <button type="submit" class="btn-auth">
+                        Iniciar sesión
+                    </button>
+
+                    <p class="cambio-form">
+                        ¿No tienes cuenta?
+                        <button type="button" id="mostrar-registro">Regístrate</button>
+                    </p>
+                </form>
 
             </div>
+
+            <aside class="auth-right">
+
+                <div class="beneficios-box">
+                    <h2>Beneficios FashMarket</h2>
+
+                    <div class="beneficio">
+                        <div class="beneficio-icon">🔔</div>
+                        <p><strong>Recibe notificaciones</strong> sobre el estado de tus pedidos.</p>
+                    </div>
+
+                    <div class="beneficio">
+                        <div class="beneficio-icon">🧾</div>
+                        <p><strong>Revisa tus compras</strong> y el historial de pedidos.</p>
+                    </div>
+
+                    <div class="beneficio">
+                        <div class="beneficio-icon">⭐</div>
+                        <p><strong>Guarda tus datos</strong> para comprar más rápido.</p>
+                    </div>
+
+                    <div class="beneficio">
+                        <div class="beneficio-icon">🛒</div>
+                        <p><strong>Compra de forma sencilla</strong> desde cualquier dispositivo.</p>
+                    </div>
+
+                    <div class="linea-color"></div>
+
+                    <h2>Beneficios para clientes</h2>
+
+                    <div class="beneficio">
+                        <div class="beneficio-icon">🎁</div>
+                        <p><strong>Promociones especiales</strong> en productos seleccionados.</p>
+                    </div>
+
+                    <div class="beneficio">
+                        <div class="beneficio-icon">🚚</div>
+                        <p><strong>Atención y entregas</strong> coordinadas según disponibilidad.</p>
+                    </div>
+                </div>
+
+            </aside>
 
         </section>
-
     </main>
 
     <script src="api.js"></script>
