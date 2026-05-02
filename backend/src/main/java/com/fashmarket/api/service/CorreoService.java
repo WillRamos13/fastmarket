@@ -1,27 +1,29 @@
 package com.fashmarket.api.service;
 
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class CorreoService {
-    private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.host:}")
-    private String host;
+    @Value("${resend.api.key:}")
+    private String resendApiKey;
 
-    @Value("${app.mail.from:no-reply@fashmarket.local}")
+    @Value("${app.mail.from:FashMarket <onboarding@resend.dev>}")
     private String remitente;
 
-    public CorreoService(ObjectProvider<JavaMailSender> mailSenderProvider) {
-        this.mailSender = mailSenderProvider.getIfAvailable();
-    }
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public boolean disponible() {
-        return mailSender != null && host != null && !host.isBlank();
+        return resendApiKey != null && !resendApiKey.isBlank();
     }
 
     public boolean enviarCodigoRegistro(String correo, String nombre, String codigo, int minutosValidez) {
@@ -31,21 +33,64 @@ public class CorreoService {
         }
 
         try {
-            SimpleMailMessage mensaje = new SimpleMailMessage();
-            mensaje.setFrom(remitente);
-            mensaje.setTo(correo);
-            mensaje.setSubject("Código de verificación FashMarket");
-            mensaje.setText(
-                    "Hola " + (nombre == null || nombre.isBlank() ? "" : nombre.trim()) + ",\n\n" +
-                    "Tu código de verificación para crear tu cuenta en FashMarket es:\n\n" +
-                    codigo + "\n\n" +
-                    "Este código vence en " + minutosValidez + " minutos.\n\n" +
-                    "Si no solicitaste este registro, puedes ignorar este mensaje.\n\n" +
-                    "FashMarket"
+            String nombreCliente = nombre == null || nombre.isBlank()
+                    ? "cliente"
+                    : nombre.trim();
+
+            String html = """
+                    <div style="font-family: Arial, sans-serif; background:#f6f6f6; padding:24px;">
+                        <div style="max-width:520px; margin:auto; background:#ffffff; border-radius:16px; padding:28px; border:1px solid #eeeeee;">
+                            <h2 style="color:#fd6403; margin-top:0;">Código de verificación FashMarket</h2>
+                            <p>Hola <strong>%s</strong>,</p>
+                            <p>Tu código para crear tu cuenta en FashMarket es:</p>
+                            <div style="font-size:32px; font-weight:800; letter-spacing:8px; color:#111827; background:#fff3eb; padding:16px; text-align:center; border-radius:12px;">
+                                %s
+                            </div>
+                            <p>Este código vence en <strong>%d minutos</strong>.</p>
+                            <p style="color:#666666;">Si no solicitaste este registro, puedes ignorar este mensaje.</p>
+                            <hr style="border:none; border-top:1px solid #eeeeee; margin:24px 0;">
+                            <p style="font-size:12px; color:#888888;">FashMarket</p>
+                        </div>
+                    </div>
+                    """.formatted(nombreCliente, codigo, minutosValidez);
+
+            String texto = """
+                    Hola %s,
+
+                    Tu código de verificación para crear tu cuenta en FashMarket es:
+
+                    %s
+
+                    Este código vence en %d minutos.
+
+                    Si no solicitaste este registro, puedes ignorar este mensaje.
+
+                    FashMarket
+                    """.formatted(nombreCliente, codigo, minutosValidez);
+
+            Map<String, Object> body = Map.of(
+                    "from", remitente,
+                    "to", List.of(correo),
+                    "subject", "Código de verificación FashMarket",
+                    "html", html,
+                    "text", texto
             );
 
-            mailSender.send(mensaje);
-            return true;
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(resendApiKey);
+            headers.set("User-Agent", "FashMarket/1.0");
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                    "https://api.resend.com/emails",
+                    request,
+                    String.class
+            );
+
+            return response.getStatusCode().is2xxSuccessful();
+
         } catch (Exception e) {
             System.out.println("[FashMarket MAIL] No se pudo enviar correo a " + correo + ": " + e.getMessage());
             System.out.println("[FashMarket DEV] Código de verificación para " + correo + ": " + codigo);
