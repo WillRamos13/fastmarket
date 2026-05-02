@@ -24,6 +24,10 @@ public class Producto {
     @Column(name = "precio_antes", precision = 12, scale = 2)
     private BigDecimal precioAntes;
 
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
+
     @Column(nullable = false)
     private Integer stock = 0;
 
@@ -41,6 +45,10 @@ public class Producto {
 
     @Column(nullable = false)
     private Boolean activo = true;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "vendedor_id")
+    private Usuario vendedor;
 
     @Column(nullable = false)
     private LocalDateTime creadoEn = LocalDateTime.now();
@@ -70,6 +78,8 @@ public class Producto {
     public void setPrecio(BigDecimal precio) { this.precio = precio; }
     public BigDecimal getPrecioAntes() { return precioAntes; }
     public void setPrecioAntes(BigDecimal precioAntes) { this.precioAntes = precioAntes; }
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
     public Integer getStock() { return stock; }
     public void setStock(Integer stock) { this.stock = stock; }
     public String getImagen() { return imagen; }
@@ -82,6 +92,8 @@ public class Producto {
     public void setDestacado(Boolean destacado) { this.destacado = destacado; }
     public Boolean getActivo() { return activo; }
     public void setActivo(Boolean activo) { this.activo = activo; }
+    public Usuario getVendedor() { return vendedor; }
+    public void setVendedor(Usuario vendedor) { this.vendedor = vendedor; }
     public LocalDateTime getCreadoEn() { return creadoEn; }
     public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
 }

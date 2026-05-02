@@ -28,6 +28,12 @@ public class Pedido {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total = BigDecimal.ZERO;
 
+    @Column(nullable = false, precision = 12, scale = 2, columnDefinition = "numeric(12,2) default 0")
+    private BigDecimal descuento = BigDecimal.ZERO;
+
+    @Column(name = "cupon_codigo", length = 40)
+    private String cuponCodigo;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private EstadoPedido estado = EstadoPedido.PENDIENTE;
@@ -60,6 +66,8 @@ public class Pedido {
     public BigDecimal getSubtotal(){return subtotal;} public void setSubtotal(BigDecimal subtotal){this.subtotal=subtotal;}
     public BigDecimal getCostoEnvio(){return costoEnvio;} public void setCostoEnvio(BigDecimal costoEnvio){this.costoEnvio=costoEnvio;}
     public BigDecimal getTotal(){return total;} public void setTotal(BigDecimal total){this.total=total;}
+    public BigDecimal getDescuento(){return descuento;} public void setDescuento(BigDecimal descuento){this.descuento=descuento;}
+    public String getCuponCodigo(){return cuponCodigo;} public void setCuponCodigo(String cuponCodigo){this.cuponCodigo=cuponCodigo;}
     public EstadoPedido getEstado(){return estado;} public void setEstado(EstadoPedido estado){this.estado=estado;}
     public String getDireccionEntrega(){return direccionEntrega;} public void setDireccionEntrega(String direccionEntrega){this.direccionEntrega=direccionEntrega;}
     public String getReferenciaEntrega(){return referenciaEntrega;} public void setReferenciaEntrega(String referenciaEntrega){this.referenciaEntrega=referenciaEntrega;}

@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finalizar compra | FashMarket</title>
+    <title>Finalizar compra | FastMarket</title>
     <link rel="stylesheet" href="checkout.css">
+    <link rel="stylesheet" href="qa-upgrade.css">
 </head>
 
 <body>
@@ -12,7 +13,7 @@
     <header id="header">
         <div id="cabeza">
             <a href="index.html">
-                <img class="barra" src="img/logo.png" id="logo" alt="Logo FashMarket">
+                <img class="barra" src="img/logo.png" id="logo" alt="Logo FastMarket">
             </a>
 
             <nav class="barra" id="nav-menu">
@@ -143,10 +144,24 @@
 
                 <div id="lista-checkout"></div>
 
+                <div class="cupon-checkout-box">
+                    <label for="codigo-cupon">Cupón de descuento</label>
+                    <div class="cupon-checkout-input">
+                        <input type="text" id="codigo-cupon" placeholder="Ej: FASH10">
+                        <button type="button" id="aplicar-cupon">Aplicar</button>
+                    </div>
+                    <p id="mensaje-cupon"></p>
+                </div>
+
                 <div id="totales">
                     <div>
                         <span>Subtotal</span>
                         <strong id="subtotal">S/ 0.00</strong>
+                    </div>
+
+                    <div id="fila-descuento" class="oculto">
+                        <span>Descuento</span>
+                        <strong id="descuento">- S/ 0.00</strong>
                     </div>
 
                     <div>
@@ -169,7 +184,7 @@
 
     <footer id="pie-de-pagina">
         <div>
-            <h3>FashMarket</h3>
+            <h3>FastMarket</h3>
             <p>Compra segura, rápida y con seguimiento de pedidos.</p>
         </div>
 
@@ -186,6 +201,8 @@
             <a href="politicas.html">Políticas de privacidad</a>
         </div>
     </footer>
+
+    <div id="toast"></div>
 
     <script src="api.js"></script>
     <script src="checkout.js"></script>

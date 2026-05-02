@@ -23,6 +23,7 @@ public class PedidoDtos {
             String metodoPago,
             String telefonoEntrega,
             @PositiveOrZero BigDecimal costoEnvio,
+            String cuponCodigo,
             @NotEmpty List<ItemRequest> items
     ) {}
 
@@ -35,6 +36,15 @@ public class PedidoDtos {
             String imagen
     ) {}
 
+    public record HistorialResponse(
+            Long id,
+            EstadoPedido estadoAnterior,
+            EstadoPedido estadoNuevo,
+            String actorNombre,
+            String motivo,
+            LocalDateTime fecha
+    ) {}
+
     public record PedidoResponse(
             Long id,
             String codigo,
@@ -43,6 +53,8 @@ public class PedidoDtos {
             BigDecimal subtotal,
             BigDecimal costoEnvio,
             BigDecimal total,
+            BigDecimal descuento,
+            String cuponCodigo,
             EstadoPedido estado,
             String direccionEntrega,
             String referenciaEntrega,

@@ -57,6 +57,8 @@ public class DtoMapper {
                 pedido.getSubtotal(),
                 pedido.getCostoEnvio(),
                 pedido.getTotal(),
+                pedido.getDescuento(),
+                pedido.getCuponCodigo(),
                 pedido.getEstado(),
                 pedido.getDireccionEntrega(),
                 pedido.getReferenciaEntrega(),

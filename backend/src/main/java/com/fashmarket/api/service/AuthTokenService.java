@@ -66,6 +66,22 @@ public class AuthTokenService {
         return data;
     }
 
+    public TokenData requerirAdminOVendedor(String authorizationHeader) {
+        TokenData data = validar(authorizationHeader);
+        if (data.rol() == Rol.ADMIN || data.rol() == Rol.VENDEDOR) {
+            return data;
+        }
+        throw new SecurityException("Solo administradores o vendedores pueden realizar esta acción");
+    }
+
+    public TokenData requerirVendedorOAdmin(String authorizationHeader, Long vendedorId) {
+        TokenData data = validar(authorizationHeader);
+        if (data.rol() == Rol.ADMIN || (data.rol() == Rol.VENDEDOR && data.usuarioId().equals(vendedorId))) {
+            return data;
+        }
+        throw new SecurityException("No autorizado");
+    }
+
     public TokenData requerirUsuarioOAdmin(String authorizationHeader, Long usuarioId) {
         TokenData data = validar(authorizationHeader);
         if (data.rol() == Rol.ADMIN || data.usuarioId().equals(usuarioId)) {

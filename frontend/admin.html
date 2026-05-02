@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Administrador | FashMarket</title>
+    <title>Panel Administrador | FastMarket</title>
     <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="qa-upgrade.css">
 </head>
 
 <body>
@@ -13,25 +14,27 @@
         <div id="cabeza-admin">
 
             <a href="admin.html" id="logo-admin">
-                <img src="img/logo.png" alt="Logo FashMarket">
+                <img src="img/logo.png" alt="Logo FastMarket">
             </a>
 
             <h2 id="bienvenida-admin">
-                Bienvenido al Panel de administrador, <span id="nombre-admin">Administrador</span>
+                Panel interno · <span id="nombre-admin">Administrador</span>
             </h2>
 
             <div id="menu-admin">
-                <button id="btn-menu-admin">Funciones ▾</button>
+                <button id="btn-menu-admin">Menú de gestión ▾</button>
 
                 <div id="opciones-admin">
-                    <button class="opcion-admin" data-panel="panel-inicio">Panel principal</button>
+                    <button class="opcion-admin" data-panel="panel-inicio">Resumen ejecutivo</button>
                     <button class="opcion-admin" data-panel="panel-productos">Productos</button>
                     <button class="opcion-admin" data-panel="panel-banners">Banners</button>
                     <button class="opcion-admin" data-panel="panel-index">Editar página de inicio</button>
-                    <button class="opcion-admin" data-panel="panel-ventas">Ventas</button>
-                    <button class="opcion-admin" data-panel="panel-usuarios">Usuarios y administradores</button>
-                    <button class="opcion-admin" data-panel="panel-indices">Índices</button>
-                    <button class="opcion-admin" data-panel="panel-powerbi">Gráficos Power BI</button>
+                    <button class="opcion-admin" data-panel="panel-ventas">Pedidos y ventas</button>
+                    <button class="opcion-admin" data-panel="panel-cupones">Marketing y cupones</button>
+                    <button class="opcion-admin solo-admin" data-panel="panel-vendedores">Equipo de vendedores</button>
+                    <button class="opcion-admin solo-admin" data-panel="panel-usuarios">Usuarios y permisos</button>
+                    <button class="opcion-admin" data-panel="panel-indices">Analítica</button>
+                    <button class="opcion-admin" data-panel="panel-powerbi">Reportes Power BI</button>
                     <a href="login.html" id="cerrar-sesion">Salir</a>
                 </div>
             </div>
@@ -44,46 +47,51 @@
         <section id="panel-inicio" class="panel-admin activo">
             <div class="panel-bienvenida">
                 <p class="subtitulo">Panel interno</p>
-                <h1>Gestión de tienda FashMarket</h1>
+                <h1>Gestión de tienda FastMarket</h1>
                 <p>
-                    Usa el menú de funciones para administrar productos, revisar ventas,
-                    cambiar banners, editar las secciones principales del index, gestionar usuarios o revisar ventas.
+                    Controla catálogo, pedidos, vendedores, cupones y contenido comercial desde un solo lugar.
                 </p>
 
                 <div class="atajos-admin">
                     <button class="atajo" data-panel="panel-productos">
-                        <span>📦</span>
+                        <span class="icono-panel"></span>
                         <h3>Productos</h3>
                         <p>Agregar, editar o eliminar productos.</p>
                     </button>
 
                     <button class="atajo" data-panel="panel-ventas">
-                        <span>🧾</span>
-                        <h3>Ventas</h3>
+                        <span class="icono-panel"></span>
+                        <h3>Pedidos y ventas</h3>
                         <p>Revisar pedidos registrados.</p>
                     </button>
 
                     <button class="atajo" data-panel="panel-banners">
-                        <span>🖼️</span>
+                        <span class="icono-panel"></span>
                         <h3>Banners</h3>
                         <p>Cambiar imágenes del carrusel de ofertas.</p>
                     </button>
 
                     <button class="atajo" data-panel="panel-index">
-                        <span>🏠</span>
+                        <span class="icono-panel"></span>
                         <h3>Editar inicio</h3>
                         <p>Editar destacados, promociones, opiniones y ayuda.</p>
                     </button>
 
+                    <button class="atajo" data-panel="panel-cupones">
+                        <span class="icono-panel"></span>
+                        <h3>Marketing y cupones</h3>
+                        <p>Crear descuentos globales o por vendedor.</p>
+                    </button>
+
                     <button class="atajo" data-panel="panel-indices">
-                        <span>📊</span>
-                        <h3>Índices</h3>
+                        <span class="icono-panel"></span>
+                        <h3>Analítica</h3>
                         <p>Ver cantidades y datos generales.</p>
                     </button>
 
                     <button class="atajo" data-panel="panel-usuarios">
-                        <span>👤</span>
-                        <h3>Usuarios y administradores</h3>
+                        <span class="icono-panel"></span>
+                        <h3>Usuarios y permisos</h3>
                         <p>Crear administradores, editar roles y estados.</p>
                     </button>
                 </div>
@@ -92,21 +100,21 @@
 
         <section id="panel-indices" class="panel-admin">
             <div class="titulo-section">
-                <h2>Índices generales</h2>
-                <p>Resumen básico del estado actual de la tienda.</p>
+                <h2>Analítica general</h2>
+                <p>Indicadores principales para revisar salud comercial, catálogo y operación.</p>
             </div>
 
             <div id="estadisticas">
                 <article class="card-estadistica">
                     <h3>Total productos</h3>
                     <strong id="total-productos">0</strong>
-                    <p>Registrados en catálogo</p>
+                    <p>Productos activos del catálogo</p>
                 </article>
 
                 <article class="card-estadistica">
                     <h3>Productos en oferta</h3>
                     <strong id="total-ofertas">0</strong>
-                    <p>Promociones activas</p>
+                    <p>Productos con promoción activa</p>
                 </article>
 
                 <article class="card-estadistica">
@@ -116,9 +124,15 @@
                 </article>
 
                 <article class="card-estadistica">
-                    <h3>Ventas registradas</h3>
+                    <h3>Pedidos y ventas registradas</h3>
                     <strong id="total-pedidos">0</strong>
-                    <p>Pedidos simulados</p>
+                    <p>Pedidos registrados</p>
+                </article>
+
+                <article class="card-estadistica solo-admin">
+                    <h3>Equipo de vendedores</h3>
+                    <strong id="total-vendedores">0</strong>
+                    <p>Cuentas con rol vendedor</p>
                 </article>
             </div>
         </section>
@@ -166,6 +180,13 @@
 
                     <label for="stock">Stock</label>
                     <input type="number" id="stock" placeholder="10">
+
+                    <div id="grupo-vendedor-producto" class="oculto">
+                        <label for="producto-vendedor">Vendedor asignado</label>
+                        <select id="producto-vendedor">
+                            <option value="">Producto general de tienda</option>
+                        </select>
+                    </div>
 
                     <label for="imagen-producto">Imagen del producto</label>
                     <input type="file" id="imagen-producto" accept="image/*">
@@ -220,12 +241,18 @@
                                     <th>Precio</th>
                                     <th>Stock</th>
                                     <th>Oferta</th>
+                                    <th>Vendedor</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
 
                             <tbody id="tabla-productos"></tbody>
                         </table>
+                    </div>
+                    <div class="paginacion-admin">
+                        <button type="button" id="productos-prev">Anterior</button>
+                        <span id="productos-page-info">Página 1</span>
+                        <button type="button" id="productos-next">Siguiente</button>
                     </div>
 
                 </div>
@@ -304,21 +331,132 @@
                             <th>Cliente</th>
                             <th>Producto</th>
                             <th>Total</th>
+                            <th>Descuento</th>
                             <th>Estado</th>
                             <th>Acción</th>
+                            <th>Historial</th>
                         </tr>
                     </thead>
 
                     <tbody id="tabla-pedidos"></tbody>
                 </table>
+                <div class="paginacion-admin">
+                    <button type="button" id="pedidos-prev">Anterior</button>
+                    <span id="pedidos-page-info">Página 1</span>
+                    <button type="button" id="pedidos-next">Siguiente</button>
+                </div>
             </div>
+            <div id="historial-pedido-panel" class="detalle-panel oculto"></div>
 
         </section>
 
-        <section id="panel-usuarios" class="panel-admin">
+        <section id="panel-cupones" class="panel-admin">
+            <div class="titulo-section">
+                <h2>Marketing y cupones de descuento</h2>
+                <p>Administra cupones globales para toda la tienda o cupones de vendedor aplicables solo a sus productos.</p>
+            </div>
+
+            <div class="admin-layout usuarios-layout">
+                <form id="form-cupon">
+                    <input type="hidden" id="cupon-id">
+                    <h3 id="titulo-form-cupon">Agregar cupón</h3>
+
+                    <label for="cupon-codigo">Código</label>
+                    <input type="text" id="cupon-codigo" placeholder="Ej: FASH10">
+
+                    <label for="cupon-descripcion">Descripción</label>
+                    <textarea id="cupon-descripcion" placeholder="Ej: Descuento por campaña semanal"></textarea>
+
+                    <div class="form-doble">
+                        <div>
+                            <label for="cupon-tipo">Tipo</label>
+                            <select id="cupon-tipo">
+                                <option value="GLOBAL">Global / todos los productos</option>
+                                <option value="VENDEDOR">Solo productos de vendedor</option>
+                                <option value="CATEGORIA">Solo una categoría</option>
+                                <option value="PRODUCTO">Solo un producto</option>
+                            </select>
+                        </div>
+                        <div id="grupo-cupon-vendedor">
+                            <label for="cupon-vendedor">Vendedor</label>
+                            <select id="cupon-vendedor"><option value="">Seleccionar vendedor</option></select>
+                        </div>
+                    </div>
+
+                    <div class="form-doble">
+                        <div id="grupo-cupon-categoria" class="oculto">
+                            <label for="cupon-categoria">Categoría objetivo</label>
+                            <select id="cupon-categoria">
+                                <option value="moda">Moda</option>
+                                <option value="tecnologia">Tecnología</option>
+                                <option value="hogar">Hogar</option>
+                                <option value="accesorios">Accesorios</option>
+                                <option value="estudio">Estudio</option>
+                            </select>
+                        </div>
+                        <div id="grupo-cupon-producto" class="oculto">
+                            <label for="cupon-producto">Producto objetivo</label>
+                            <select id="cupon-producto"><option value="">Seleccionar producto</option></select>
+                        </div>
+                    </div>
+
+                    <div class="form-doble">
+                        <div>
+                            <label for="cupon-porcentaje">Porcentaje %</label>
+                            <input type="number" id="cupon-porcentaje" placeholder="10" step="0.01">
+                        </div>
+                        <div>
+                            <label for="cupon-monto">Monto fijo S/</label>
+                            <input type="number" id="cupon-monto" placeholder="5.00" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-doble">
+                        <div>
+                            <label for="cupon-minimo">Compra mínima</label>
+                            <input type="number" id="cupon-minimo" placeholder="0.00" step="0.01">
+                        </div>
+                        <div>
+                            <label for="cupon-usos">Límite de usos</label>
+                            <input type="number" id="cupon-usos" placeholder="Sin límite">
+                        </div>
+                    </div>
+
+                    <label class="check-oferta"><input type="checkbox" id="cupon-activo" checked> Cupón activo</label>
+
+                    <div class="botones-form">
+                        <button type="submit">Guardar cupón</button>
+                        <button type="button" id="btn-limpiar-cupon">Limpiar</button>
+                    </div>
+                </form>
+
+                <div class="usuarios-contenedor">
+                    <div class="acciones-tabla acciones-usuarios">
+                        <input type="text" id="buscar-cupon" placeholder="Buscar cupón...">
+                    </div>
+                    <div class="tabla-scroll">
+                        <table>
+                            <thead><tr><th>Código</th><th>Tipo</th><th>Descuento</th><th>Usos</th><th>Estado</th><th>Acciones</th></tr></thead>
+                            <tbody id="tabla-cupones"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="historial-cupon-panel" class="detalle-panel oculto"></div>
+        </section>
+
+        <section id="panel-vendedores" class="panel-admin">
+            <div class="titulo-section">
+                <h2>Equipo de vendedores</h2>
+                <p>Revisa cada vendedor, sus productos, ventas y pedidos relacionados.</p>
+            </div>
+            <div class="vendedores-grid" id="lista-vendedores-admin"></div>
+        </section>
+
+        <section id="panel-usuarios" class="panel-admin solo-admin">
 
             <div class="titulo-section">
-                <h2>Usuarios y administradores</h2>
+                <h2>Usuarios y permisos</h2>
                 <p>Crea administradores, registra usuarios internos y cambia roles o estados de cuenta.</p>
             </div>
 
@@ -357,6 +495,7 @@
                             <select id="usuario-rol">
                                 <option value="CLIENTE">Cliente</option>
                                 <option value="ADMIN">Administrador</option>
+                                <option value="VENDEDOR">Vendedor</option>
                             </select>
                         </div>
 
@@ -383,6 +522,7 @@
                             <option value="todos">Todos los roles</option>
                             <option value="ADMIN">Administradores</option>
                             <option value="CLIENTE">Clientes</option>
+                            <option value="VENDEDOR">Equipo de vendedores</option>
                         </select>
                     </div>
 
@@ -486,7 +626,7 @@
         <section id="panel-powerbi" class="panel-admin">
 
             <div class="titulo-section">
-                <h2>Gráficos Power BI</h2>
+                <h2>Reportes Power BI</h2>
                 <p>
                     Aquí puedes integrar un reporte de Power BI para visualizar ventas,
                     productos más vendidos, usuarios o crecimiento de la tienda.
@@ -522,23 +662,24 @@
 
     <footer id="pie-de-pagina">
         <div>
-            <h3>FashMarket Admin</h3>
+            <h3>FastMarket Admin</h3>
             <p>Panel de administración para productos, banners, ventas, usuarios e indicadores.</p>
         </div>
 
         <div>
             <h3>Funciones</h3>
             <button class="footer-link" data-panel="panel-productos">Productos</button>
-            <button class="footer-link" data-panel="panel-ventas">Ventas</button>
+            <button class="footer-link" data-panel="panel-ventas">Pedidos y ventas</button>
             <button class="footer-link" data-panel="panel-banners">Banners</button>
-            <button class="footer-link" data-panel="panel-usuarios">Usuarios</button>
+            <button class="footer-link" data-panel="panel-cupones">Marketing y cupones</button>
+            <button class="footer-link solo-admin" data-panel="panel-usuarios">Usuarios</button>
             <button class="footer-link" data-panel="panel-powerbi">Power BI</button>
         </div>
 
         <div>
             <h3>Contacto</h3>
             <p>📞 999999999</p>
-            <p>✉️ FastMarket@gmail.com</p>
+            <p>✉️ soporte@fastmarket.com</p>
             <p>📍 Ica, Perú</p>
         </div>
     </footer>

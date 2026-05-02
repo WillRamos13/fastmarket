@@ -39,8 +39,13 @@ public class AuthDtos {
             Boolean principal
     ) {}
 
+    public record SolicitarRecuperacionRequest(
+            @NotBlank @Email String correo
+    ) {}
+
     public record RecuperarPasswordRequest(
             @NotBlank @Email String correo,
+            @NotBlank String codigoVerificacion,
             @NotBlank @Size(min = 6, message = "La contraseña debe tener mínimo 6 caracteres") String passwordNueva
     ) {}
 

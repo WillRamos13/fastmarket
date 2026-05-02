@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Service
 public class CodigoVerificacionService {
     private static final String TIPO_REGISTRO = "REGISTRO";
+    private static final String TIPO_RECUPERACION = "RECUPERACION_PASSWORD";
 
     private final CodigoVerificacionCorreoRepository codigoRepository;
     private final PasswordService passwordService;
@@ -49,7 +50,33 @@ public class CodigoVerificacionService {
     }
 
     @Transactional
+    public void enviarCodigoRecuperacion(String correoOriginal) {
+        String correo = normalizarCorreo(correoOriginal);
+        String codigo = generarCodigo();
+
+        CodigoVerificacionCorreo entidad = new CodigoVerificacionCorreo();
+        entidad.setCorreo(correo);
+        entidad.setTipo(TIPO_RECUPERACION);
+        entidad.setCodigoHash(passwordService.encriptar(codigo));
+        entidad.setExpiraEn(LocalDateTime.now().plusMinutes(minutosValidez));
+        entidad.setUsado(false);
+        entidad.setIntentos(0);
+
+        codigoRepository.save(entidad);
+        correoService.enviarCodigoRecuperacion(correo, codigo, minutosValidez);
+    }
+
+    @Transactional
+    public void validarCodigoRecuperacion(String correoOriginal, String codigoIngresado) {
+        validarCodigo(correoOriginal, codigoIngresado, TIPO_RECUPERACION, "Solicita un código antes de cambiar tu contraseña");
+    }
+
+    @Transactional
     public void validarCodigoRegistro(String correoOriginal, String codigoIngresado) {
+        validarCodigo(correoOriginal, codigoIngresado, TIPO_REGISTRO, "Solicita un código de verificación antes de registrarte");
+    }
+
+    private void validarCodigo(String correoOriginal, String codigoIngresado, String tipo, String mensajeSinCodigo) {
         String correo = normalizarCorreo(correoOriginal);
 
         if (codigoIngresado == null || codigoIngresado.isBlank()) {
@@ -57,8 +84,8 @@ public class CodigoVerificacionService {
         }
 
         CodigoVerificacionCorreo entidad = codigoRepository
-                .findTopByCorreoIgnoreCaseAndTipoAndUsadoFalseOrderByCreadoEnDesc(correo, TIPO_REGISTRO)
-                .orElseThrow(() -> new IllegalArgumentException("Solicita un código de verificación antes de registrarte"));
+                .findTopByCorreoIgnoreCaseAndTipoAndUsadoFalseOrderByCreadoEnDesc(correo, tipo)
+                .orElseThrow(() -> new IllegalArgumentException(mensajeSinCodigo));
 
         if (entidad.getExpiraEn().isBefore(LocalDateTime.now())) {
             entidad.setUsado(true);

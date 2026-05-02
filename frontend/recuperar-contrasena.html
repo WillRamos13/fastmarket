@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recuperar contraseña | FashMarket</title>
+    <title>Recuperar contraseña | FastMarket</title>
     <link rel="stylesheet" href="recuperar-contrasena.css">
+    <link rel="stylesheet" href="qa-upgrade.css">
 </head>
 
 <body>
@@ -16,14 +17,13 @@
             <div id="recuperar-info">
                 <h1>Recuperar contraseña</h1>
                 <p>
-                    Ingresa el correo con el que te registraste y crea una nueva contraseña
-                    para volver a acceder a tu cuenta.
+Ingresa tu correo, solicita un código de seguridad y luego crea una nueva contraseña.
                 </p>
 
                 <div class="info-pasos">
-                    <p>🔎 Verificamos tu correo</p>
-                    <p>🔐 Cambias tu contraseña</p>
-                    <p>✅ Vuelves a iniciar sesión</p>
+                    <p>1. Solicitas un código por correo</p>
+                    <p>2. Ingresas el código recibido</p>
+                    <p>3. Cambias tu contraseña</p>
                 </div>
             </div>
 
@@ -33,6 +33,10 @@
 
                 <label for="correo">Correo registrado</label>
                 <input type="email" id="correo" placeholder="cliente@gmail.com">
+                <button type="button" id="btn-enviar-codigo" class="btn-secundario-recuperar">Enviar código</button>
+
+                <label for="codigo-verificacion">Código recibido</label>
+                <input type="text" id="codigo-verificacion" maxlength="6" inputmode="numeric" placeholder="Código de 6 dígitos">
 
                 <label for="nueva-password">Nueva contraseña</label>
                 <input type="password" id="nueva-password" placeholder="Nueva contraseña">
@@ -40,7 +44,7 @@
                 <label for="confirmar-password">Confirmar contraseña</label>
                 <input type="password" id="confirmar-password" placeholder="Repite la contraseña">
 
-                <button type="submit">Actualizar contraseña</button>
+                <button type="submit">Actualizar contraseña con código</button>
 
                 <p id="mensaje-recuperar"></p>
 

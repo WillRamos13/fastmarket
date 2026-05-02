@@ -97,4 +97,60 @@ public class CorreoService {
             return false;
         }
     }
+
+    public boolean enviarCodigoRecuperacion(String correo, String codigo, int minutosValidez) {
+        if (!disponible()) {
+            System.out.println("[FashMarket DEV] Código de recuperación para " + correo + ": " + codigo);
+            return false;
+        }
+
+        try {
+            String html = """
+                    <div style="font-family: Arial, sans-serif; background:#f6f6f6; padding:24px;">
+                        <div style="max-width:520px; margin:auto; background:#ffffff; border-radius:16px; padding:28px; border:1px solid #eeeeee;">
+                            <h2 style="color:#fd6403; margin-top:0;">Código para recuperar tu contraseña</h2>
+                            <p>Recibimos una solicitud para cambiar la contraseña de tu cuenta FashMarket.</p>
+                            <div style="font-size:32px; font-weight:800; letter-spacing:8px; color:#111827; background:#fff3eb; padding:16px; text-align:center; border-radius:12px;">
+                                %s
+                            </div>
+                            <p>Este código vence en <strong>%d minutos</strong>.</p>
+                            <p style="color:#666666;">Si no solicitaste este cambio, ignora este mensaje.</p>
+                        </div>
+                    </div>
+                    """.formatted(codigo, minutosValidez);
+
+            String texto = """
+                    Tu código para recuperar tu contraseña en FashMarket es: %s
+
+                    Este código vence en %d minutos.
+                    Si no solicitaste este cambio, ignora este mensaje.
+                    """.formatted(codigo, minutosValidez);
+
+            Map<String, Object> body = Map.of(
+                    "from", remitente,
+                    "to", List.of(correo),
+                    "subject", "Código para recuperar contraseña FashMarket",
+                    "html", html,
+                    "text", texto
+            );
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(resendApiKey);
+            headers.set("User-Agent", "FashMarket/1.0");
+
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                    "https://api.resend.com/emails",
+                    new HttpEntity<>(body, headers),
+                    String.class
+            );
+
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            System.out.println("[FashMarket MAIL] No se pudo enviar recuperación a " + correo + ": " + e.getMessage());
+            System.out.println("[FashMarket DEV] Código de recuperación para " + correo + ": " + codigo);
+            return false;
+        }
+    }
+
 }

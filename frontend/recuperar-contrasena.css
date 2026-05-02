@@ -148,3 +148,12 @@ body {
         padding: 35px;
     }
 }
+.btn-secundario-recuperar {
+    margin-top: -6px;
+    margin-bottom: 8px;
+    background: #111827 !important;
+}
+
+.btn-secundario-recuperar:hover {
+    filter: brightness(1.08);
+}

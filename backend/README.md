@@ -17,33 +17,34 @@ Backend Spring Boot + PostgreSQL para FastMarket.
 
 ## Usuario administrador inicial
 
-Por defecto:
+Por defecto se crea un administrador inicial, pero **no uses una contraseña simple en producción**.
 
-```txt
-Correo: admin@fastmarket.com
-Contraseña: admin123
-```
-
-Cámbialo con variables de entorno:
+Configúralo con variables de entorno:
 
 ```txt
 ADMIN_NOMBRE=Administrador
 ADMIN_CORREO=admin@fastmarket.com
-ADMIN_PASSWORD=admin123
-APP_AUTH_SECRET=cambia-esta-clave-en-produccion
+ADMIN_PASSWORD=usa-una-clave-larga-y-unica
+ADMIN_RESET_PASSWORD=false
+APP_AUTH_SECRET=usa-un-secreto-largo-y-unico
 ```
 
 ## Variables de entorno importantes
 
 ```txt
 PORT=8080
-SPRING_DATASOURCE_URL=jdbc:postgresql://HOST:5432/fastmarket?sslmode=require
-SPRING_DATASOURCE_USERNAME=usuario
-SPRING_DATASOURCE_PASSWORD=password
+DATABASE_URL=jdbc:postgresql://HOST:5432/fastmarket?sslmode=require
 SPRING_JPA_HIBERNATE_DDL_AUTO=update
-CORS_ALLOWED_ORIGINS=http://localhost:5500,http://127.0.0.1:5500,https://tu-frontend.com
-APP_AUTH_SECRET=cambia-esta-clave-en-produccion
+CORS_ALLOWED_ORIGIN_PATTERNS=https://tu-frontend.com,http://localhost:5500,http://127.0.0.1:5500
+ADMIN_CORREO=admin@fastmarket.com
+ADMIN_PASSWORD=usa-una-clave-larga-y-unica
+ADMIN_RESET_PASSWORD=false
+APP_AUTH_SECRET=usa-un-secreto-largo-y-unico
 APP_AUTH_TOKEN_HOURS=12
+OPENAI_API_KEY=opcional
+OPENAI_MODEL=gpt-4.1-mini
+RESEND_API_KEY=opcional
+MAIL_FROM=FastMarket <onboarding@resend.dev>
 ```
 
 ## Endpoints principales

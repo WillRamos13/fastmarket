@@ -13,13 +13,6 @@ const FastMarket = (() => {
         const desdeMeta = normalizar(meta?.content);
         if (desdeMeta) return desdeMeta;
 
-        try {
-            const desdeLocalStorage = normalizar(localStorage.getItem("fashmarket_api_url"));
-            if (desdeLocalStorage) return desdeLocalStorage;
-        } catch {
-            // Si el navegador bloquea localStorage, se usa el valor por defecto.
-        }
-
         const host = window.location.hostname;
         if (host === "localhost" || host === "127.0.0.1") {
             return "http://localhost:8080/api";
@@ -29,47 +22,62 @@ const FastMarket = (() => {
         return "https://fastmarket-573w.onrender.com/api";
     })();
 
+    const STORAGE = {
+        sesion: "fastmarket_sesion",
+        cliente: "fastmarket_cliente",
+        admin: "fastmarket_admin",
+        token: "fastmarket_token",
+        carrito: "fastmarket_carrito",
+        cupon: "fastmarket_cupon"
+    };
+
+    function leerJSONStorage(storage, nuevaClave, claveAnterior, defecto = null) {
+        const valor = storage.getItem(nuevaClave) || storage.getItem(claveAnterior);
+        try { return valor ? JSON.parse(valor) : defecto; } catch { return defecto; }
+    }
+
     function getSesion() {
-        return JSON.parse(localStorage.getItem("fashmarket_sesion")) || null;
+        return leerJSONStorage(sessionStorage, STORAGE.sesion, "fashmarket_sesion", null);
     }
 
     function getCliente() {
         const sesion = getSesion();
-        return sesion?.usuario || JSON.parse(localStorage.getItem("fashmarket_cliente")) || null;
+        return sesion?.usuario || leerJSONStorage(sessionStorage, STORAGE.cliente, "fashmarket_cliente", null) || null;
     }
 
     function getToken() {
-        return getSesion()?.token || localStorage.getItem("fashmarket_token") || "";
+        return getSesion()?.token || sessionStorage.getItem(STORAGE.token) || sessionStorage.getItem("fashmarket_token") || "";
     }
 
     function guardarSesion(authResponse) {
         const usuario = authResponse.usuario || authResponse;
         const token = authResponse.token || "";
-        localStorage.setItem("fashmarket_sesion", JSON.stringify({ usuario, token }));
-        localStorage.setItem("fashmarket_cliente", JSON.stringify(usuario));
+        sessionStorage.setItem(STORAGE.sesion, JSON.stringify({ usuario, token }));
+        sessionStorage.setItem(STORAGE.cliente, JSON.stringify(usuario));
 
-        if (usuario.rol === "ADMIN") {
-            localStorage.setItem("fashmarket_admin", JSON.stringify(usuario));
+        if (["ADMIN", "VENDEDOR"].includes(usuario.rol)) {
+            sessionStorage.setItem(STORAGE.admin, JSON.stringify(usuario));
         } else {
-            localStorage.removeItem("fashmarket_admin");
+            sessionStorage.removeItem(STORAGE.admin); localStorage.removeItem(STORAGE.admin);
+            sessionStorage.removeItem("fashmarket_admin"); localStorage.removeItem("fashmarket_admin");
         }
 
-        if (token) localStorage.setItem("fashmarket_token", token);
+        if (token) sessionStorage.setItem(STORAGE.token, token);
         return usuario;
     }
 
     function actualizarUsuario(usuario) {
         const sesion = getSesion() || {};
-        localStorage.setItem("fashmarket_sesion", JSON.stringify({ usuario, token: sesion.token || getToken() }));
-        localStorage.setItem("fashmarket_cliente", JSON.stringify(usuario));
-        if (usuario.rol === "ADMIN") localStorage.setItem("fashmarket_admin", JSON.stringify(usuario));
+        sessionStorage.setItem(STORAGE.sesion, JSON.stringify({ usuario, token: sesion.token || getToken() }));
+        sessionStorage.setItem(STORAGE.cliente, JSON.stringify(usuario));
+        if (["ADMIN", "VENDEDOR"].includes(usuario.rol)) sessionStorage.setItem(STORAGE.admin, JSON.stringify(usuario));
     }
 
     function cerrarSesion() {
-        localStorage.removeItem("fashmarket_sesion");
-        localStorage.removeItem("fashmarket_cliente");
-        localStorage.removeItem("fashmarket_admin");
-        localStorage.removeItem("fashmarket_token");
+        [STORAGE.sesion, STORAGE.cliente, STORAGE.admin, STORAGE.token, "fashmarket_sesion", "fashmarket_cliente", "fashmarket_admin", "fashmarket_token"].forEach((clave) => {
+            sessionStorage.removeItem(clave);
+            localStorage.removeItem(clave);
+        });
     }
 
     function headers(auth = false) {
@@ -137,6 +145,125 @@ const FastMarket = (() => {
             .replaceAll(">", "&gt;")
             .replaceAll('"', "&quot;")
             .replaceAll("'", "&#039;");
+    }
+
+
+    function notify(mensaje, tipo = "info") {
+        let el = document.getElementById("toast");
+        if (!el) {
+            el = document.createElement("div");
+            el.id = "toast";
+            document.body.appendChild(el);
+        }
+        el.textContent = mensaje;
+        el.className = "";
+        el.classList.add("activo", `toast-${tipo}`);
+        clearTimeout(el._timer);
+        el._timer = setTimeout(() => el.classList.remove("activo"), 3200);
+    }
+
+    function confirmAction(mensaje) {
+        return new Promise((resolve) => {
+            let overlay = document.getElementById("fm-confirm-overlay");
+            if (overlay) overlay.remove();
+
+            overlay = document.createElement("div");
+            overlay.id = "fm-confirm-overlay";
+            overlay.innerHTML = `
+                <div class="fm-confirm-card" role="dialog" aria-modal="true">
+                    <h3>Confirmar acción</h3>
+                    <p>${escapeHTML(mensaje || "Confirma la acción")}</p>
+                    <div class="fm-confirm-actions">
+                        <button type="button" class="fm-confirm-cancelar">Cancelar</button>
+                        <button type="button" class="fm-confirm-aceptar">Confirmar</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+
+            const cerrar = (valor) => { overlay.remove(); resolve(valor); };
+            overlay.querySelector(".fm-confirm-cancelar")?.addEventListener("click", () => cerrar(false));
+            overlay.querySelector(".fm-confirm-aceptar")?.addEventListener("click", () => cerrar(true));
+            overlay.addEventListener("click", (e) => { if (e.target === overlay) cerrar(false); });
+            document.addEventListener("keydown", function esc(e) {
+                if (e.key === "Escape") {
+                    document.removeEventListener("keydown", esc);
+                    cerrar(false);
+                }
+            });
+        });
+    }
+
+    function obtenerCarritoLocal() {
+        try { return leerJSONStorage(localStorage, STORAGE.carrito, "fashmarket_carrito", []) || []; } catch { return []; }
+    }
+
+    function obtenerCuponLocal() {
+        try { return leerJSONStorage(localStorage, STORAGE.cupon, "fashmarket_cupon", null); } catch { return null; }
+    }
+
+    async function obtenerCarrito() {
+        const usuario = getCliente();
+        if (!usuario) return { items: obtenerCarritoLocal(), cuponCodigo: obtenerCuponLocal()?.codigo || null, invitado: true };
+        try {
+            return await request(`/carritos/usuario/${usuario.id}`, { auth: true });
+        } catch {
+            return { items: obtenerCarritoLocal(), cuponCodigo: obtenerCuponLocal()?.codigo || null, invitado: true };
+        }
+    }
+
+    async function sincronizarCarrito(items, cuponCodigo = null) {
+        const normalizados = (items || []).map((item) => ({
+            productoId: Number(item.productoId || item.id),
+            cantidad: Number(item.cantidad || 1)
+        })).filter((item) => item.productoId && item.cantidad > 0);
+
+        const usuario = getCliente();
+        if (!usuario) {
+            localStorage.setItem(STORAGE.carrito, JSON.stringify(items || []));
+            localStorage.removeItem("fashmarket_carrito");
+            if (cuponCodigo) {
+                localStorage.setItem(STORAGE.cupon, JSON.stringify({ codigo: cuponCodigo }));
+            } else {
+                localStorage.removeItem(STORAGE.cupon);
+            }
+            localStorage.removeItem("fashmarket_cupon");
+            return { items: items || [], invitado: true };
+        }
+        const actualizado = await request(`/carritos/usuario/${usuario.id}`, {
+            method: "PUT",
+            auth: true,
+            body: { cuponCodigo, items: normalizados }
+        });
+        localStorage.removeItem(STORAGE.carrito);
+        localStorage.removeItem(STORAGE.cupon);
+        localStorage.removeItem("fashmarket_carrito");
+        localStorage.removeItem("fashmarket_cupon");
+        return actualizado;
+    }
+
+    async function limpiarCarritoUsuario() {
+        const usuario = getCliente();
+        localStorage.removeItem(STORAGE.carrito);
+        localStorage.removeItem(STORAGE.cupon);
+        localStorage.removeItem("fashmarket_carrito");
+        localStorage.removeItem("fashmarket_cupon");
+        if (usuario) {
+            try { await request(`/carritos/usuario/${usuario.id}`, { method: "DELETE", auth: true }); } catch {}
+        }
+    }
+
+    function marcarCargando(elemento, cargando = true, texto = "Procesando...") {
+        if (!elemento) return;
+        if (cargando) {
+            elemento.dataset.fmTextoOriginal = elemento.textContent;
+            elemento.textContent = texto;
+            elemento.disabled = true;
+            elemento.classList.add("cargando");
+        } else {
+            elemento.textContent = elemento.dataset.fmTextoOriginal || elemento.textContent;
+            elemento.disabled = false;
+            elemento.classList.remove("cargando");
+        }
     }
 
     function normalizarEstado(estado) {
@@ -306,7 +433,7 @@ const FastMarket = (() => {
         boton.addEventListener("click", () => {
             chatBox.style.display = "flex";
             if (!mensajes.dataset.fmBienvenida) {
-                agregar("bot", "Hola 👋 Soy el asistente de FashMarket. Puedo ayudarte con productos, ofertas, stock, pedidos, envíos y pagos.");
+                agregar("bot", "Hola 👋 Soy el asistente de FastMarket. Puedo ayudarte con productos, ofertas, stock, pedidos, envíos y pagos.");
                 mensajes.dataset.fmBienvenida = "true";
             }
             input.focus();
@@ -386,6 +513,12 @@ const FastMarket = (() => {
         requireAdmin,
         money,
         escapeHTML,
+        notify,
+        confirmAction,
+        obtenerCarrito,
+        sincronizarCarrito,
+        limpiarCarritoUsuario,
+        marcarCargando,
         normalizarEstado,
         estadoTexto,
         irBusqueda,

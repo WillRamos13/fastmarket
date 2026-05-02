@@ -5,6 +5,7 @@ import com.fashmarket.api.model.Producto;
 import com.fashmarket.api.service.AuthTokenService;
 import com.fashmarket.api.service.ProductoService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,12 +26,24 @@ public class ProductoController {
             @RequestParam(required = false) Boolean oferta,
             @RequestParam(required = false) Boolean destacado,
             @RequestParam(required = false) Boolean incluirInactivos,
+            @RequestParam(required = false) Long vendedorId,
             @RequestHeader(value = "Authorization", required = false) String authorization
     ) {
-        if (Boolean.TRUE.equals(incluirInactivos)) {
+        if (vendedorId != null) {
             authTokenService.requerirAdmin(authorization);
+            return productoService.listarPorVendedor(vendedorId);
+        }
+        if (Boolean.TRUE.equals(incluirInactivos)) {
+            AuthTokenService.TokenData actor = authTokenService.requerirAdminOVendedor(authorization);
+            return productoService.listarParaPanel(actor, incluirInactivos);
         }
         return productoService.listar(oferta, destacado, incluirInactivos);
+    }
+
+    @GetMapping("/page")
+    public Page<Producto> listarPaginado(@RequestHeader(value = "Authorization", required = false) String authorization, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        AuthTokenService.TokenData actor = authTokenService.requerirAdminOVendedor(authorization);
+        return productoService.listarPaginado(actor, page, size);
     }
 
     @GetMapping("/{id}")
@@ -40,19 +53,19 @@ public class ProductoController {
 
     @PostMapping
     public Producto crear(@RequestHeader(value = "Authorization", required = false) String authorization, @Valid @RequestBody ProductoRequest request) {
-        authTokenService.requerirAdmin(authorization);
-        return productoService.crear(request);
+        AuthTokenService.TokenData actor = authTokenService.requerirAdminOVendedor(authorization);
+        return productoService.crear(actor, request);
     }
 
     @PutMapping("/{id}")
     public Producto actualizar(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long id, @Valid @RequestBody ProductoRequest request) {
-        authTokenService.requerirAdmin(authorization);
-        return productoService.actualizar(id, request);
+        AuthTokenService.TokenData actor = authTokenService.requerirAdminOVendedor(authorization);
+        return productoService.actualizar(actor, id, request);
     }
 
     @DeleteMapping("/{id}")
     public void eliminar(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long id) {
-        authTokenService.requerirAdmin(authorization);
-        productoService.eliminar(id);
+        AuthTokenService.TokenData actor = authTokenService.requerirAdminOVendedor(authorization);
+        productoService.eliminar(actor, id);
     }
 }

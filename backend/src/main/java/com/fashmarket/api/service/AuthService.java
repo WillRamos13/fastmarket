@@ -15,17 +15,20 @@ public class AuthService {
     private final PasswordService passwordService;
     private final AuthTokenService authTokenService;
     private final CodigoVerificacionService codigoVerificacionService;
+    private final LoginAttemptService loginAttemptService;
 
     public AuthService(
             UsuarioRepository usuarioRepository,
             PasswordService passwordService,
             AuthTokenService authTokenService,
-            CodigoVerificacionService codigoVerificacionService
+            CodigoVerificacionService codigoVerificacionService,
+            LoginAttemptService loginAttemptService
     ) {
         this.usuarioRepository = usuarioRepository;
         this.passwordService = passwordService;
         this.authTokenService = authTokenService;
         this.codigoVerificacionService = codigoVerificacionService;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Transactional
@@ -69,10 +72,17 @@ public class AuthService {
 
     @Transactional
     public AuthDtos.AuthResponse login(AuthDtos.LoginRequest request) {
-        Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(request.correo().trim())
-                .orElseThrow(() -> new IllegalArgumentException("Correo o contraseña incorrectos"));
+        String correo = request.correo().trim().toLowerCase();
+        loginAttemptService.verificarPermitido(correo);
+
+        Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(correo)
+                .orElseThrow(() -> {
+                    loginAttemptService.registrarFallo(correo);
+                    return new IllegalArgumentException("Correo o contraseña incorrectos");
+                });
 
         if (!passwordService.coincide(request.password(), usuario.getPassword())) {
+            loginAttemptService.registrarFallo(correo);
             throw new IllegalArgumentException("Correo o contraseña incorrectos");
         }
 
@@ -85,15 +95,32 @@ public class AuthService {
             usuarioRepository.save(usuario);
         }
 
+        loginAttemptService.registrarExito(correo);
         return new AuthDtos.AuthResponse(DtoMapper.toUsuarioResponse(usuario), authTokenService.generarToken(usuario));
     }
 
     @Transactional
+    public void solicitarRecuperacionPassword(AuthDtos.SolicitarRecuperacionRequest request) {
+        String correo = request.correo().trim().toLowerCase();
+
+        if (!usuarioRepository.existsByCorreoIgnoreCase(correo)) {
+            // Respuesta neutra: evita confirmar si un correo existe o no.
+            return;
+        }
+
+        codigoVerificacionService.enviarCodigoRecuperacion(correo);
+    }
+
+    @Transactional
     public void recuperarPassword(AuthDtos.RecuperarPasswordRequest request) {
-        Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(request.correo().trim())
-                .orElseThrow(() -> new IllegalArgumentException("No existe una cuenta registrada con ese correo"));
+        String correo = request.correo().trim().toLowerCase();
+        codigoVerificacionService.validarCodigoRecuperacion(correo, request.codigoVerificacion());
+
+        Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(correo)
+                .orElseThrow(() -> new IllegalArgumentException("No se pudo actualizar la contraseña"));
         usuario.setPassword(passwordService.encriptar(request.passwordNueva()));
         usuarioRepository.save(usuario);
+        loginAttemptService.registrarExito(correo);
     }
 
     private String limpiar(String valor) {

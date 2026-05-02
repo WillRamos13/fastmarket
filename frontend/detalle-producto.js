@@ -68,10 +68,10 @@ function cambiarCantidad(valor) {
     setText("cantidad", cantidad);
 }
 
-function agregarCarrito(irCheckout) {
+async function agregarCarrito(irCheckout) {
     if (!productoActual) return;
 
-    let carrito = JSON.parse(localStorage.getItem("fashmarket_carrito")) || [];
+    let carrito = JSON.parse(localStorage.getItem("fastmarket_carrito")) || [];
     const existente = carrito.find((item) => Number(item.id) === Number(productoActual.id));
     const actual = existente ? existente.cantidad : 0;
 
@@ -93,7 +93,7 @@ function agregarCarrito(irCheckout) {
         });
     }
 
-    localStorage.setItem("fashmarket_carrito", JSON.stringify(carrito));
+    await FastMarket.sincronizarCarrito(carrito, null).catch(() => localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito)));
     setText("mensaje-detalle", "Producto agregado al carrito.");
 
     if (irCheckout) window.location.href = "checkout.html";

@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         tabRegistro.classList.toggle("activo", !esLogin);
         tabLogin.classList.toggle("activo", esLogin);
 
-        tituloAuth.textContent = esLogin ? "Inicia sesión en FashMarket" : "Crea tu cuenta en FashMarket";
+        tituloAuth.textContent = esLogin ? "Inicia sesión en FastMarket" : "Crea tu cuenta en FastMarket";
         subtituloAuth.textContent = esLogin
             ? "Accede con tu correo y contraseña para revisar pedidos o entrar al panel si eres administrador."
             : "Regístrate con verificación por correo para comprar, revisar pedidos y guardar tus datos.";
@@ -232,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
             mostrarMensaje(mensajeRegistro, "Cuenta verificada correctamente. Redirigiendo...", "ok");
 
             setTimeout(() => {
-                window.location.href = usuario.rol === "ADMIN" ? "admin.html" : "productos.html";
+                window.location.href = ["ADMIN", "VENDEDOR"].includes(usuario.rol) ? "admin.html" : "productos.html";
             }, 700);
         } catch (error) {
             mostrarMensaje(mensajeRegistro, error.message || "No se pudo crear la cuenta.");
@@ -308,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
             mostrarMensaje(mensajeLogin, "Inicio de sesión correcto. Redirigiendo...", "ok");
 
             setTimeout(() => {
-                window.location.href = usuario.rol === "ADMIN" ? "admin.html" : "productos.html";
+                window.location.href = ["ADMIN", "VENDEDOR"].includes(usuario.rol) ? "admin.html" : "productos.html";
             }, 600);
         } catch (error) {
             mostrarMensaje(mensajeLogin, error.message || "Correo o contraseña incorrectos.");

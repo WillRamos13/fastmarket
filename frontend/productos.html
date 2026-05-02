@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos | FashMarket</title>
+    <title>Productos | FastMarket</title>
     <link rel="stylesheet" href="productos.css">
+    <link rel="stylesheet" href="qa-upgrade.css">
 </head>
 
 <body>
@@ -12,7 +13,7 @@
     <header id="header">
         <div id="cabeza">
             <a href="index.html">
-                <img class="barra" src="img/logo.png" id="logo" alt="Logo FashMarket">
+                <img class="barra" src="img/logo.png" id="logo" alt="Logo FastMarket">
             </a>
 
             <nav class="barra" id="nav-menu">
@@ -123,7 +124,24 @@
             <p class="carrito-vacio">Tu carrito está vacío.</p>
         </div>
 
+        <div class="cupon-carrito-box">
+            <label for="cupon-carrito">Cupón</label>
+            <div class="cupon-carrito-input">
+                <input type="text" id="cupon-carrito" placeholder="Código de cupón">
+                <button type="button" id="aplicar-cupon-carrito">Aplicar</button>
+            </div>
+            <p id="mensaje-cupon-carrito"></p>
+        </div>
+
         <div id="carrito-total">
+            <div>
+                <span>Subtotal:</span>
+                <strong id="subtotal-carrito">S/ 0.00</strong>
+            </div>
+            <div id="fila-descuento-carrito" class="oculto">
+                <span>Descuento:</span>
+                <strong id="descuento-carrito">- S/ 0.00</strong>
+            </div>
             <div>
                 <span>Total:</span>
                 <strong id="total-carrito">S/ 0.00</strong>
@@ -172,14 +190,14 @@
         <div id="footer-contenedor">
 
             <div class="footer-caja">
-                <h3>FashMarket</h3>
+                <h3>FastMarket</h3>
                 <p>Productos variados, ofertas y atención rápida para tus compras.</p>
             </div>
 
             <div class="footer-caja">
                 <h3>Contacto</h3>
                 <a href="https://www.instagram.com/" target="_blank">📞 999999999</a>
-                <a href="https://www.instagram.com/" target="_blank">✉️ FastMarket@gmail.com</a>
+                <a href="https://www.instagram.com/" target="_blank">✉️ soporte@fastmarket.com</a>
                 <a href="https://www.instagram.com/" target="_blank">📍 Ica, Perú</a>
             </div>
 
@@ -195,6 +213,8 @@
     </footer>
 
     <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.88/build/spline-viewer.js"></script>
+    <div id="toast"></div>
+
     <script src="api.js"></script>
     <script src="productos.js"></script>
 

@@ -1256,3 +1256,47 @@ body {
 #preguntas {
     scroll-margin-top: 100px;
 }
+
+/* QA Upgrade 2026: home con más intención comercial */
+:root {
+    --fm-primary: #111827;
+    --fm-accent: #ef6c35;
+    --fm-muted: #6b7280;
+    --fm-border: #e5e7eb;
+    --fm-shadow: 0 18px 45px rgba(15,23,42,.10);
+}
+
+.hero-contenido, .contenedor, .card, .beneficio, .categoria, .producto, .seccion-card {
+    border-radius: 24px !important;
+}
+
+.hero-contenido {
+    box-shadow: var(--fm-shadow);
+}
+
+button, .btn, a.boton, .cta, .boton-principal {
+    border-radius: 999px !important;
+}
+
+input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible {
+    outline: 3px solid rgba(239,108,53,.28) !important;
+    outline-offset: 2px;
+}
+
+#toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 9999;
+    max-width: min(420px, calc(100vw - 40px));
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: #111827;
+    color: white;
+    box-shadow: var(--fm-shadow);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity .2s ease, transform .2s ease;
+}
+#toast.activo { opacity: 1; transform: translateY(0); }

@@ -1,5 +1,6 @@
 package com.fashmarket.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ public class Usuario {
     private String nombre;
     @Column(nullable = false, unique = true, length = 160)
     private String correo;
+    @JsonIgnore
     @Column(nullable = false, length = 160)
     private String password;
     @Enumerated(EnumType.STRING)

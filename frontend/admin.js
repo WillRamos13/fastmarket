@@ -3,25 +3,32 @@ let banners = [];
 let pedidos = [];
 let usuarios = [];
 let indexContenidos = [];
+let cupones = [];
+let vendedores = [];
+let usuarioActual = null;
 const TIPOS_INDEX_PERMITIDOS = ["destacado", "promocion", "opinion", "ayuda"];
+const adminPages = { productos: { page: 0, size: 20, totalPages: 1 }, pedidos: { page: 0, size: 20, totalPages: 1 } };
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const admin = FastMarket.requireAdmin(false);
-    if (!admin) {
-        alert("Debes iniciar sesión como administrador.");
+    const admin = FastMarket.getCliente();
+    if (!admin || !["ADMIN", "VENDEDOR"].includes(admin.rol)) {
+        FastMarket.notify("Debes iniciar sesión como administrador o vendedor.", "warning");
         window.location.href = "login.html";
         return;
     }
-
-    setText("nombre-admin", admin.nombre || "Administrador");
+    usuarioActual = admin;
+    document.body.classList.toggle("modo-vendedor", admin.rol === "VENDEDOR");
+    setText("nombre-admin", admin.nombre || (admin.rol === "VENDEDOR" ? "Vendedor" : "Administrador"));
     activarMenu();
     activarPaneles();
     activarProductos();
     activarBanners();
     activarPedidos();
     activarUsuarios();
+    activarCupones();
     activarIndex();
     activarPowerBI();
+    configurarPermisosPanel();
 
     await cargarTodo();
 });
@@ -32,9 +39,12 @@ async function cargarTodo() {
         cargarBanners(),
         cargarPedidos(),
         cargarUsuarios(),
+        cargarCupones(),
+        cargarVendedores(),
         cargarIndices(),
-        cargarIndexContenidos()
+        usuarioActual?.rol === "ADMIN" ? cargarIndexContenidos() : Promise.resolve()
     ]);
+    pintarVendedoresAdmin();
     cargarPowerBI();
 }
 
@@ -58,8 +68,11 @@ function activarMenu() {
 }
 
 function activarPaneles() {
-    document.querySelectorAll("[data-panel]").forEach((btn) => {
-        btn.addEventListener("click", () => mostrarPanel(btn.dataset.panel));
+    document.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-panel]");
+        if (!btn) return;
+        e.preventDefault();
+        mostrarPanel(btn.dataset.panel);
     });
 }
 
@@ -78,6 +91,8 @@ function activarProductos() {
     document.getElementById("imagen-producto")?.addEventListener("change", (e) => cargarImagen(e, "imagen-producto-valor", "preview-producto", "preview-producto-img"));
     document.getElementById("buscar-admin")?.addEventListener("input", pintarProductos);
     document.getElementById("filtro-categoria")?.addEventListener("change", pintarProductos);
+    document.getElementById("productos-prev")?.addEventListener("click", async () => { if (adminPages.productos.page > 0) { adminPages.productos.page--; await cargarProductos(); } });
+    document.getElementById("productos-next")?.addEventListener("click", async () => { if (adminPages.productos.page + 1 < adminPages.productos.totalPages) { adminPages.productos.page++; await cargarProductos(); } });
     document.getElementById("tabla-productos")?.addEventListener("click", async (e) => {
         const editar = e.target.closest("[data-editar-producto]");
         const eliminar = e.target.closest("[data-eliminar-producto]");
@@ -88,8 +103,12 @@ function activarProductos() {
 
 async function cargarProductos() {
     try {
-        productos = await FastMarket.request("/productos?incluirInactivos=true", { auth: true });
-        productos = productos.filter((p) => p.activo !== false);
+        const page = await FastMarket.request(`/productos/page?page=${adminPages.productos.page}&size=${adminPages.productos.size}`, { auth: true });
+        productos = Array.isArray(page?.content) ? page.content.filter((p) => p.activo !== false) : [];
+        adminPages.productos.totalPages = Math.max(1, Number(page?.totalPages || 1));
+        adminPages.productos.page = Math.min(Number(page?.number || 0), adminPages.productos.totalPages - 1);
+        actualizarPaginacion("productos");
+        poblarSelectProductosCupon();
         pintarProductos();
     } catch (error) {
         toast(error.message);
@@ -109,7 +128,7 @@ function pintarProductos() {
         return textoOk && catOk;
     });
 
-    tbody.innerHTML = lista.length ? "" : `<tr><td colspan="7">No hay productos.</td></tr>`;
+    tbody.innerHTML = lista.length ? "" : `<tr><td colspan="8">No hay productos.</td></tr>`;
 
     lista.forEach((p) => {
         const tr = document.createElement("tr");
@@ -118,11 +137,12 @@ function pintarProductos() {
             <td><strong>${FastMarket.escapeHTML(p.nombre)}</strong><br><small>${FastMarket.escapeHTML(p.descripcion || "")}</small></td>
             <td>${formatearCategoria(p.categoria)}</td>
             <td><strong>${FastMarket.money(p.precio)}</strong>${p.precioAntes ? `<br><small>Antes: ${FastMarket.money(p.precioAntes)}</small>` : ""}</td>
-            <td>${p.stock}</td>
+            <td>${stockBadge(p.stock)}</td>
             <td>
                 <span class="${p.oferta ? "estado-oferta" : "estado-normal"}">${p.oferta ? "Oferta" : "Normal"}</span>
                 ${p.destacado ? `<br><small>Destacado</small>` : ""}
             </td>
+            <td>${FastMarket.escapeHTML(p.vendedor?.nombre || "Tienda")}</td>
             <td>
                 <button class="btn-editar" data-editar-producto="${p.id}">Editar</button>
                 <button class="btn-eliminar" data-eliminar-producto="${p.id}">Eliminar</button>
@@ -144,7 +164,8 @@ async function guardarProducto(e) {
         imagen: value("imagen-producto-valor") || "img/logo.png",
         descripcion: value("descripcion"),
         oferta: checked("oferta"),
-        destacado: checked("destacado")
+        destacado: checked("destacado"),
+        vendedorId: value("producto-vendedor") ? Number(value("producto-vendedor")) : null
     };
 
     if (!payload.nombre || !payload.categoria || payload.precio <= 0 || payload.stock < 0) {
@@ -181,6 +202,7 @@ function editarProducto(id) {
     setValue("descripcion", p.descripcion || "");
     setChecked("oferta", !!p.oferta);
     setChecked("destacado", !!p.destacado);
+    setValue("producto-vendedor", p.vendedor?.id || "");
     setText("titulo-form", "Editar producto");
 
     const preview = document.getElementById("preview-producto");
@@ -192,7 +214,7 @@ function editarProducto(id) {
 }
 
 async function eliminarProducto(id) {
-    if (!confirm("¿Seguro que deseas eliminar este producto del catálogo?")) return;
+    if (!(await FastMarket.confirmAction("¿Seguro que deseas eliminar este producto del catálogo?"))) return;
     try {
         await FastMarket.request(`/productos/${id}`, { method: "DELETE", auth: true });
         toast("Producto desactivado. Los pedidos antiguos se conservan.");
@@ -312,7 +334,7 @@ function editarBanner(id) {
 }
 
 async function eliminarBanner(id) {
-    if (!confirm("¿Seguro que deseas eliminar este banner?")) return;
+    if (!(await FastMarket.confirmAction("¿Seguro que deseas eliminar este banner?"))) return;
     try {
         await FastMarket.request(`/banners/${id}`, { method: "DELETE", auth: true });
         toast("Banner eliminado.");
@@ -338,11 +360,21 @@ function activarPedidos() {
         if (!select) return;
         await actualizarEstadoPedido(Number(select.dataset.estadoPedido), select.value);
     });
+    document.getElementById("tabla-pedidos")?.addEventListener("click", async (e) => {
+        const historial = e.target.closest("[data-historial-pedido]");
+        if (historial) await verHistorialPedido(Number(historial.dataset.historialPedido));
+    });
+    document.getElementById("pedidos-prev")?.addEventListener("click", async () => { if (adminPages.pedidos.page > 0) { adminPages.pedidos.page--; await cargarPedidos(); } });
+    document.getElementById("pedidos-next")?.addEventListener("click", async () => { if (adminPages.pedidos.page + 1 < adminPages.pedidos.totalPages) { adminPages.pedidos.page++; await cargarPedidos(); } });
 }
 
 async function cargarPedidos() {
     try {
-        pedidos = await FastMarket.request("/pedidos", { auth: true });
+        const page = await FastMarket.request(`/pedidos/page?page=${adminPages.pedidos.page}&size=${adminPages.pedidos.size}`, { auth: true });
+        pedidos = Array.isArray(page?.content) ? page.content : [];
+        adminPages.pedidos.totalPages = Math.max(1, Number(page?.totalPages || 1));
+        adminPages.pedidos.page = Math.min(Number(page?.number || 0), adminPages.pedidos.totalPages - 1);
+        actualizarPaginacion("pedidos");
         pintarPedidos();
     } catch (error) {
         toast(error.message);
@@ -353,7 +385,7 @@ function pintarPedidos() {
     const tbody = document.getElementById("tabla-pedidos");
     if (!tbody) return;
 
-    tbody.innerHTML = pedidos.length ? "" : `<tr><td colspan="6">No hay pedidos registrados.</td></tr>`;
+    tbody.innerHTML = pedidos.length ? "" : `<tr><td colspan="8">No hay pedidos registrados.</td></tr>`;
 
     pedidos.forEach((p) => {
         const productosTexto = (p.items || []).map((i) => `${i.productoNombre} x${i.cantidad}`).join(", ");
@@ -363,12 +395,14 @@ function pintarPedidos() {
             <td>${FastMarket.escapeHTML(p.usuarioNombre || "")}</td>
             <td>${FastMarket.escapeHTML(productosTexto)}</td>
             <td>${FastMarket.money(p.total)}</td>
+            <td>${p.descuento ? FastMarket.money(p.descuento) : "-"}${p.cuponCodigo ? `<br><small>${FastMarket.escapeHTML(p.cuponCodigo)}</small>` : ""}</td>
             <td>${FastMarket.estadoTexto(p.estado)}</td>
             <td>
                 <select data-estado-pedido="${p.id}">
                     ${["PENDIENTE","CONFIRMADO","PREPARANDO","CAMINO","ENTREGADO","CANCELADO"].map((estado) => `<option value="${estado}" ${FastMarket.normalizarEstado(p.estado) === estado ? "selected" : ""}>${FastMarket.estadoTexto(estado)}</option>`).join("")}
                 </select>
-            </td>`;
+            </td>
+            <td><button type="button" class="btn-secundario" data-historial-pedido="${p.id}">Ver</button></td>`;
         tbody.appendChild(tr);
     });
 }
@@ -385,6 +419,29 @@ async function actualizarEstadoPedido(id, estado) {
         toast(error.message);
     }
 }
+
+async function verHistorialPedido(id) {
+    const panel = document.getElementById("historial-pedido-panel");
+    if (!panel) return;
+    try {
+        const historial = await FastMarket.request(`/pedidos/${id}/historial`, { auth: true });
+        panel.classList.remove("oculto");
+        panel.innerHTML = `<h3>Historial del pedido</h3>${pintarListaHistorial(historial, "pedido")}`;
+    } catch (error) {
+        toast(error.message);
+    }
+}
+
+function pintarListaHistorial(items, tipo) {
+    if (!items || !items.length) return `<p>No hay historial registrado.</p>`;
+    const lis = items.map((h) => {
+        if (tipo === "pedido") {
+            return `<li><strong>${fecha(h.fecha)}</strong> — ${FastMarket.estadoTexto(h.estadoAnterior || "CREADO")} → ${FastMarket.estadoTexto(h.estadoNuevo)} por ${FastMarket.escapeHTML(h.actorNombre || "Sistema")}<br><small>${FastMarket.escapeHTML(h.motivo || "")}</small></li>`;
+        }
+        return `<li><strong>${fecha(h.fecha)}</strong> — ${FastMarket.escapeHTML(h.usuarioNombre || "Cliente")} usó ${FastMarket.escapeHTML(h.codigo || "")} en ${FastMarket.escapeHTML(h.pedidoCodigo || "pedido")} y ahorró ${FastMarket.money(h.descuentoAplicado)}</li>`;
+    }).join("");
+    return `<ul>${lis}</ul>`;
+}
 /* USUARIOS / ÍNDICES */
 
 function activarUsuarios() {
@@ -399,6 +456,7 @@ function activarUsuarios() {
 }
 
 async function cargarUsuarios() {
+    if (usuarioActual?.rol !== "ADMIN") { usuarios = []; pintarUsuarios(); return; }
     try {
         usuarios = await FastMarket.request("/usuarios", { auth: true });
         pintarUsuarios();
@@ -427,7 +485,7 @@ function pintarUsuarios() {
         tr.innerHTML = `
             <td>${FastMarket.escapeHTML(u.nombre || "")}</td>
             <td>${FastMarket.escapeHTML(u.correo || "")}</td>
-            <td><span class="${u.rol === "ADMIN" ? "estado-oferta" : "estado-normal"}">${u.rol === "ADMIN" ? "Administrador" : "Cliente"}</span></td>
+            <td><span class="${u.rol === "ADMIN" ? "estado-oferta" : u.rol === "VENDEDOR" ? "estado-activo" : "estado-normal"}">${u.rol === "ADMIN" ? "Administrador" : u.rol === "VENDEDOR" ? "Vendedor" : "Cliente"}</span></td>
             <td><span class="${u.estado === "ACTIVO" ? "estado-activo" : "estado-inactivo"}">${FastMarket.escapeHTML(u.estado || "")}</span></td>
             <td>${FastMarket.escapeHTML(u.telefono || "No registrado")}</td>
             <td><button class="btn-editar" data-editar-usuario="${u.id}">Editar</button></td>`;
@@ -502,6 +560,227 @@ function editarUsuarioAdmin(id) {
     mostrarPanel("panel-usuarios");
 }
 
+
+async function cargarVendedores() {
+    if (usuarioActual?.rol !== "ADMIN") {
+        vendedores = usuarioActual?.rol === "VENDEDOR" ? [usuarioActual] : [];
+        llenarSelectVendedores();
+        return;
+    }
+    try {
+        vendedores = await FastMarket.request("/admin/vendedores", { auth: true });
+        llenarSelectVendedores();
+        pintarVendedoresAdmin();
+    } catch (error) {
+        vendedores = usuarios.filter((u) => u.rol === "VENDEDOR");
+        llenarSelectVendedores();
+    }
+}
+
+function llenarSelectVendedores() {
+    const selects = [document.getElementById("producto-vendedor"), document.getElementById("cupon-vendedor")].filter(Boolean);
+    selects.forEach((select) => {
+        const actual = select.value;
+        const primera = select.id === "producto-vendedor" ? `<option value="">Producto general de tienda</option>` : `<option value="">Seleccionar vendedor</option>`;
+        select.innerHTML = primera + vendedores.map((v) => `<option value="${v.id}">${FastMarket.escapeHTML(v.nombre)} - ${FastMarket.escapeHTML(v.correo || "")}</option>`).join("");
+        select.value = actual;
+    });
+}
+
+function pintarVendedoresAdmin() {
+    const cont = document.getElementById("lista-vendedores-admin");
+    if (!cont) return;
+    const lista = vendedores.length ? vendedores : usuarios.filter((u) => u.rol === "VENDEDOR");
+    cont.innerHTML = lista.length ? "" : `<div class="banner-card-admin"><h3>No hay vendedores registrados.</h3><p>Crea un usuario con rol VENDEDOR desde Usuarios y administradores.</p></div>`;
+    lista.forEach((v) => {
+        const prods = productos.filter((p) => p.vendedor?.id === v.id);
+        const pedidosVend = pedidos.filter((p) => (p.items || []).some((i) => prods.some((prod) => prod.id === i.productoId)));
+        const card = document.createElement("article");
+        card.className = "vendedor-card-admin";
+        const nombresProductos = prods.slice(0, 4).map((p) => `• ${FastMarket.escapeHTML(p.nombre)}`).join("<br>") || "Sin productos registrados";
+        const codigosPedidos = pedidosVend.slice(0, 4).map((p) => `• ${FastMarket.escapeHTML(p.codigo)} - ${FastMarket.money(p.total)}`).join("<br>") || "Sin pedidos registrados";
+        card.innerHTML = `
+            <h3>${FastMarket.escapeHTML(v.nombre)}</h3>
+            <p>${FastMarket.escapeHTML(v.correo || "")}</p>
+            <div class="vendedor-metricas">
+                <span>📦 ${prods.length} productos</span>
+                <span>🧾 ${pedidosVend.length} pedidos</span>
+                <span>📞 ${FastMarket.escapeHTML(v.telefono || "Sin teléfono")}</span>
+            </div>
+            <div class="vendedor-detalle-card">
+                <strong>Productos</strong><br>${nombresProductos}
+                <br><br><strong>Pedidos</strong><br>${codigosPedidos}
+            </div>
+            <div class="banner-card-acciones">
+                <button class="btn-editar" data-panel="panel-productos">Ir a productos</button>
+                <button class="btn-editar" data-panel="panel-ventas">Ir a pedidos</button>
+            </div>`;
+        cont.appendChild(card);
+    });
+}
+
+function configurarPermisosPanel() {
+    const esVendedor = usuarioActual?.rol === "VENDEDOR";
+    document.querySelectorAll(".solo-admin").forEach((el) => el.classList.toggle("oculto", esVendedor));
+    const grupoVendedorProducto = document.getElementById("grupo-vendedor-producto");
+    if (grupoVendedorProducto) grupoVendedorProducto.classList.toggle("oculto", esVendedor);
+    const tipoCupon = document.getElementById("cupon-tipo");
+    if (tipoCupon && esVendedor) {
+        tipoCupon.value = "VENDEDOR";
+        tipoCupon.disabled = true;
+        document.getElementById("grupo-cupon-vendedor")?.classList.add("oculto");
+    }
+}
+
+/* CUPONES */
+
+function activarCupones() {
+    document.getElementById("form-cupon")?.addEventListener("submit", guardarCupon);
+    document.getElementById("btn-limpiar-cupon")?.addEventListener("click", limpiarCupon);
+    document.getElementById("buscar-cupon")?.addEventListener("input", pintarCupones);
+    document.getElementById("cupon-tipo")?.addEventListener("change", actualizarVisibilidadCuponVendedor);
+    document.getElementById("tabla-cupones")?.addEventListener("click", async (e) => {
+        const editar = e.target.closest("[data-editar-cupon]");
+        const eliminar = e.target.closest("[data-eliminar-cupon]");
+        const usos = e.target.closest("[data-usos-cupon]");
+        if (editar) editarCupon(Number(editar.dataset.editarCupon));
+        if (eliminar) await eliminarCupon(Number(eliminar.dataset.eliminarCupon));
+        if (usos) await verUsosCupon(Number(usos.dataset.usosCupon));
+    });
+}
+
+async function cargarCupones() {
+    try {
+        cupones = await FastMarket.request("/cupones", { auth: true });
+        pintarCupones();
+    } catch (error) {
+        cupones = [];
+    }
+}
+
+function pintarCupones() {
+    const tbody = document.getElementById("tabla-cupones");
+    if (!tbody) return;
+    const texto = document.getElementById("buscar-cupon")?.value.toLowerCase().trim() || "";
+    const lista = cupones.filter((c) => `${c.codigo} ${c.descripcion} ${c.tipo} ${c.vendedorNombre || ""}`.toLowerCase().includes(texto));
+    tbody.innerHTML = lista.length ? "" : `<tr><td colspan="6">No hay cupones.</td></tr>`;
+    lista.forEach((c) => {
+        const descuento = `${Number(c.porcentaje || 0) > 0 ? `${c.porcentaje}%` : ""}${Number(c.montoFijo || 0) > 0 ? ` S/ ${Number(c.montoFijo).toFixed(2)}` : ""}`.trim();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><strong>${FastMarket.escapeHTML(c.codigo)}</strong><br><small>${FastMarket.escapeHTML(c.descripcion || "")}</small></td>
+            <td>${descripcionTipoCupon(c)}</td>
+            <td>${descuento || "-"}<br><small>Mín: ${FastMarket.money(c.montoMinimo || 0)}</small></td>
+            <td>${c.usosActuales || 0}${c.usosMaximos ? `/${c.usosMaximos}` : ""}</td>
+            <td><span class="${c.activo ? "estado-activo" : "estado-inactivo"}">${c.activo ? "Activo" : "Inactivo"}</span></td>
+            <td><button class="btn-editar" data-editar-cupon="${c.id}">Editar</button><button class="btn-secundario" data-usos-cupon="${c.id}">Usos</button><button class="btn-eliminar" data-eliminar-cupon="${c.id}">Eliminar</button></td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function descripcionTipoCupon(c) {
+    if (c.tipo === "VENDEDOR") return `Vendedor<br><small>${FastMarket.escapeHTML(c.vendedorNombre || "")}</small>`;
+    if (c.tipo === "CATEGORIA") return `Categoría<br><small>${FastMarket.escapeHTML(c.categoriaObjetivo || "")}</small>`;
+    if (c.tipo === "PRODUCTO") return `Producto<br><small>${FastMarket.escapeHTML(c.productoObjetivoNombre || "")}</small>`;
+    return "Global";
+}
+
+function actualizarVisibilidadCuponVendedor() {
+    const tipo = value("cupon-tipo");
+    document.getElementById("grupo-cupon-vendedor")?.classList.toggle("oculto", tipo !== "VENDEDOR" || usuarioActual?.rol === "VENDEDOR");
+    document.getElementById("grupo-cupon-categoria")?.classList.toggle("oculto", tipo !== "CATEGORIA");
+    document.getElementById("grupo-cupon-producto")?.classList.toggle("oculto", tipo !== "PRODUCTO");
+}
+
+function poblarSelectProductosCupon() {
+    const select = document.getElementById("cupon-producto");
+    if (!select) return;
+    const actual = select.value;
+    select.innerHTML = `<option value="">Seleccionar producto</option>` + productos.map((p) => `<option value="${p.id}">${FastMarket.escapeHTML(p.nombre || "Producto")}</option>`).join("");
+    if (actual) select.value = actual;
+}
+
+
+async function guardarCupon(e) {
+    e.preventDefault();
+    const id = value("cupon-id");
+    const payload = {
+        codigo: value("cupon-codigo"),
+        descripcion: value("cupon-descripcion"),
+        tipo: usuarioActual?.rol === "VENDEDOR" ? "VENDEDOR" : value("cupon-tipo"),
+        vendedorId: value("cupon-vendedor") ? Number(value("cupon-vendedor")) : null,
+        categoriaObjetivo: value("cupon-categoria") || null,
+        productoObjetivoId: value("cupon-producto") ? Number(value("cupon-producto")) : null,
+        porcentaje: Number(value("cupon-porcentaje") || 0),
+        montoFijo: Number(value("cupon-monto") || 0),
+        montoMinimo: Number(value("cupon-minimo") || 0),
+        usosMaximos: value("cupon-usos") ? Number(value("cupon-usos")) : null,
+        activo: checked("cupon-activo")
+    };
+    if (!payload.codigo) return toast("Ingresa el código del cupón.");
+    if (payload.porcentaje <= 0 && payload.montoFijo <= 0) return toast("Ingresa porcentaje o monto fijo de descuento.");
+    try {
+        await FastMarket.request(id ? `/cupones/${id}` : "/cupones", { method: id ? "PUT" : "POST", body: payload, auth: true });
+        toast(id ? "Cupón actualizado." : "Cupón creado.");
+        limpiarCupon();
+        await cargarCupones();
+    } catch (error) {
+        toast(error.message);
+    }
+}
+
+function editarCupon(id) {
+    const c = cupones.find((x) => Number(x.id) === Number(id));
+    if (!c) return;
+    setValue("cupon-id", c.id);
+    setValue("cupon-codigo", c.codigo || "");
+    setValue("cupon-descripcion", c.descripcion || "");
+    setValue("cupon-tipo", c.tipo || "GLOBAL");
+    setValue("cupon-vendedor", c.vendedorId || "");
+    setValue("cupon-categoria", c.categoriaObjetivo || "moda");
+    setValue("cupon-producto", c.productoObjetivoId || "");
+    setValue("cupon-porcentaje", c.porcentaje || "");
+    setValue("cupon-monto", c.montoFijo || "");
+    setValue("cupon-minimo", c.montoMinimo || "");
+    setValue("cupon-usos", c.usosMaximos || "");
+    setChecked("cupon-activo", !!c.activo);
+    setText("titulo-form-cupon", "Editar cupón");
+    actualizarVisibilidadCuponVendedor();
+    mostrarPanel("panel-cupones");
+}
+
+async function verUsosCupon(id) {
+    const panel = document.getElementById("historial-cupon-panel");
+    if (!panel) return;
+    try {
+        const usos = await FastMarket.request(`/cupones/${id}/usos`, { auth: true });
+        panel.classList.remove("oculto");
+        panel.innerHTML = `<h3>Historial de usos del cupón</h3>${pintarListaHistorial(usos, "cupon")}`;
+    } catch (error) {
+        toast(error.message);
+    }
+}
+
+async function eliminarCupon(id) {
+    if (!(await FastMarket.confirmAction("¿Seguro que deseas desactivar este cupón?"))) return;
+    try {
+        await FastMarket.request(`/cupones/${id}`, { method: "DELETE", auth: true });
+        toast("Cupón desactivado.");
+        await cargarCupones();
+    } catch (error) {
+        toast(error.message);
+    }
+}
+
+function limpiarCupon() {
+    document.getElementById("form-cupon")?.reset();
+    setValue("cupon-id", "");
+    setValue("cupon-tipo", usuarioActual?.rol === "VENDEDOR" ? "VENDEDOR" : "GLOBAL");
+    setChecked("cupon-activo", true);
+    setText("titulo-form-cupon", "Agregar cupón");
+    actualizarVisibilidadCuponVendedor();
+}
+
 function limpiarUsuarioAdmin() {
     document.getElementById("form-usuario-admin")?.reset();
     setValue("usuario-admin-id", "");
@@ -520,6 +799,7 @@ async function cargarIndices() {
         setText("total-ofertas", i.totalOfertas);
         setText("total-stock", i.totalStock);
         setText("total-pedidos", i.totalPedidos);
+        setText("total-vendedores", i.totalVendedores ?? vendedores.length);
     } catch {
         setText("total-productos", productos.length);
         setText("total-ofertas", productos.filter((p) => p.oferta).length);
@@ -633,7 +913,7 @@ function editarIndex(id) {
 }
 
 async function eliminarIndex(id) {
-    if (!confirm("¿Seguro que deseas eliminar este contenido?")) return;
+    if (!(await FastMarket.confirmAction("¿Seguro que deseas eliminar este contenido?"))) return;
     try {
         await FastMarket.request(`/index-contenido/${id}`, { method: "DELETE", auth: true });
         toast("Contenido eliminado.");
@@ -658,23 +938,33 @@ function activarPowerBI() {
     document.getElementById("btn-limpiar-powerbi")?.addEventListener("click", limpiarPowerBI);
 }
 
-function guardarPowerBI() {
+async function guardarPowerBI() {
     const entrada = value("powerbi-url");
     const url = extraerUrlPowerBI(entrada);
     if (!url || !url.startsWith("http")) {
         toast("Pega un enlace o iframe válido.");
         return;
     }
-    localStorage.setItem("fastmarket_powerbi", url);
-    mostrarPowerBI(url);
-    toast("Reporte guardado.");
+
+    try {
+        await FastMarket.request("/config/powerbi", { method: "PUT", auth: true, body: { valor: url } });
+        mostrarPowerBI(url);
+        toast("Reporte guardado en la base de datos.");
+    } catch (error) {
+        toast(error.message);
+    }
 }
 
-function cargarPowerBI() {
-    const url = localStorage.getItem("fastmarket_powerbi");
-    if (url) {
-        setValue("powerbi-url", url);
-        mostrarPowerBI(url);
+async function cargarPowerBI() {
+    try {
+        const config = await FastMarket.request("/config/powerbi", { auth: true });
+        const url = config?.valor || "";
+        if (url) {
+            setValue("powerbi-url", url);
+            mostrarPowerBI(url);
+        }
+    } catch (error) {
+        toast(error.message);
     }
 }
 
@@ -685,15 +975,21 @@ function mostrarPowerBI(url) {
     cont.innerHTML = `<iframe src="${FastMarket.escapeHTML(url)}" allowfullscreen="true"></iframe>`;
 }
 
-function limpiarPowerBI() {
-    localStorage.removeItem("fastmarket_powerbi");
-    setValue("powerbi-url", "");
-    const cont = document.getElementById("powerbi-reporte");
-    if (cont) {
-        cont.classList.add("powerbi-placeholder");
-        cont.innerHTML = `<p>Espacio para reporte Power BI</p><small>Cuando pegues el enlace, el reporte aparecerá aquí.</small>`;
+async function limpiarPowerBI() {
+    if (!(await FastMarket.confirmAction("¿Seguro que deseas eliminar el reporte Power BI guardado?"))) return;
+
+    try {
+        await FastMarket.request("/config/powerbi", { method: "DELETE", auth: true });
+        setValue("powerbi-url", "");
+        const cont = document.getElementById("powerbi-reporte");
+        if (cont) {
+            cont.classList.add("powerbi-placeholder");
+            cont.innerHTML = `<p>Espacio para reporte Power BI</p><small>Cuando pegues el enlace, el reporte aparecerá aquí.</small>`;
+        }
+        toast("Reporte eliminado de la base de datos.");
+    } catch (error) {
+        toast(error.message);
     }
-    toast("Reporte eliminado.");
 }
 
 function extraerUrlPowerBI(texto) {
@@ -749,7 +1045,7 @@ function setText(id, val) {
 function toast(mensaje) {
     const el = document.getElementById("toast");
     if (!el) {
-        alert(mensaje);
+        if (FastMarket.notify) FastMarket.notify(mensaje);
         return;
     }
     el.textContent = mensaje;
@@ -757,6 +1053,13 @@ function toast(mensaje) {
     setTimeout(() => el.classList.remove("activo"), 2800);
 }
 
+
+function stockBadge(stock) {
+    const n = Number(stock || 0);
+    if (n <= 0) return `<span class="estado-stock estado-stock-agotado">Agotado</span>`;
+    if (n <= 5) return `<span class="estado-stock estado-stock-bajo">Stock bajo · ${n}</span>`;
+    return `<span class="estado-stock estado-stock-ok">${n} unidades</span>`;
+}
 
 function formatearTipoIndex(tipo) {
     const nombres = {
@@ -777,6 +1080,16 @@ function formatearCategoria(valor) {
         estudio: "Estudio"
     };
     return map[valor] || valor || "";
+}
+
+function actualizarPaginacion(tipo) {
+    const estado = adminPages[tipo];
+    const info = document.getElementById(`${tipo}-page-info`);
+    const prev = document.getElementById(`${tipo}-prev`);
+    const next = document.getElementById(`${tipo}-next`);
+    if (info) info.textContent = `Página ${estado.page + 1} de ${estado.totalPages}`;
+    if (prev) prev.disabled = estado.page <= 0;
+    if (next) next.disabled = estado.page + 1 >= estado.totalPages;
 }
 
 function fecha(valor) {

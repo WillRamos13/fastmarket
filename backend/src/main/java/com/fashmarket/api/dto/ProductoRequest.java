@@ -16,5 +16,6 @@ public record ProductoRequest(
         String imagen,
         String descripcion,
         Boolean oferta,
-        Boolean destacado
+        Boolean destacado,
+        Long vendedorId
 ) {}

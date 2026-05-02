@@ -32,6 +32,12 @@ public class AuthController {
         return authService.login(request);
     }
 
+    @PostMapping("/recuperar/enviar-codigo")
+    public Map<String, String> enviarCodigoRecuperacion(@Valid @RequestBody AuthDtos.SolicitarRecuperacionRequest request) {
+        authService.solicitarRecuperacionPassword(request);
+        return Map.of("mensaje", "Si el correo existe, te enviaremos un código para recuperar tu contraseña.");
+    }
+
     @PostMapping("/recuperar")
     public Map<String, String> recuperar(@Valid @RequestBody AuthDtos.RecuperarPasswordRequest request) {
         authService.recuperarPassword(request);

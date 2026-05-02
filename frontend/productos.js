@@ -1,6 +1,7 @@
 let productos = [];
 let bannersActivos = [];
-let carrito = JSON.parse(localStorage.getItem("fashmarket_carrito")) || [];
+let carrito = JSON.parse(localStorage.getItem("fastmarket_carrito")) || [];
+let cuponAplicado = JSON.parse(localStorage.getItem("fastmarket_cupon") || "null");
 
 let categoriaActual = "todos";
 let busquedaActual = "";
@@ -41,6 +42,8 @@ function activarEventos() {
     const finalizarCompra = document.getElementById("finalizar-compra");
     const vaciarCarrito = document.getElementById("vaciar-carrito");
     const listaCarrito = document.getElementById("carrito-lista");
+    const btnCupon = document.getElementById("aplicar-cupon-carrito");
+    const inputCupon = document.getElementById("cupon-carrito");
 
     if (buscarProducto) {
         buscarProducto.addEventListener("input", () => {
@@ -79,11 +82,14 @@ function activarEventos() {
     });
     if (finalizarCompra) finalizarCompra.addEventListener("click", () => {
         if (carrito.length === 0) {
-            alert("Tu carrito está vacío.");
+            FastMarket.notify("Tu carrito está vacío.", "warning");
             return;
         }
         window.location.href = "checkout.html";
     });
+    if (inputCupon && cuponAplicado?.codigo) inputCupon.value = cuponAplicado.codigo;
+    if (btnCupon) btnCupon.addEventListener("click", aplicarCuponCarrito);
+
     if (listaCarrito) {
         listaCarrito.addEventListener("click", (e) => {
             const btn = e.target.closest("[data-accion]");
@@ -135,7 +141,7 @@ function pintarSlider() {
         const titulo = banner.titulo || "";
         const descripcion = banner.descripcion || "";
         slide.innerHTML = `
-            <img src="${FastMarket.escapeHTML(banner.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(titulo || "Banner FashMarket")}" onerror="this.src='img/logo.png'">
+            <img src="${FastMarket.escapeHTML(banner.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(titulo || "Banner FastMarket")}" onerror="this.src='img/logo.png'">
             ${(titulo || descripcion) ? `
                 <div class="slide-info">
                     ${titulo ? `<h2>${FastMarket.escapeHTML(titulo)}</h2>` : ""}
@@ -211,7 +217,7 @@ function mostrarProductos() {
             <div class="producto-info">
                 <p class="categoria-producto">${FastMarket.escapeHTML(producto.categoria || "General")}</p>
                 <h3>${FastMarket.escapeHTML(producto.nombre)}</h3>
-                <p class="descripcion-producto">${FastMarket.escapeHTML(producto.descripcion || "Producto disponible en FashMarket.")}</p>
+                <p class="descripcion-producto">${FastMarket.escapeHTML(producto.descripcion || "Producto disponible en FastMarket.")}</p>
                 <div class="precio-box">
                     <strong>${FastMarket.money(producto.precio)}</strong>
                     ${producto.precioAntes ? `<span>${FastMarket.money(producto.precioAntes)}</span>` : ""}
@@ -247,7 +253,7 @@ function agregarAlCarrito(producto, cantidad) {
     const item = carrito.find((p) => Number(p.id) === Number(producto.id));
     const cantidadActual = item ? item.cantidad : 0;
     if (cantidadActual + cantidad > Number(producto.stock)) {
-        alert("No hay stock suficiente para ese producto.");
+        FastMarket.notify("No hay stock suficiente para ese producto.", "warning");
         return;
     }
 
@@ -274,7 +280,7 @@ function cambiarCantidad(id, accion) {
 
     if (accion === "sumar") {
         if (item.cantidad >= Number(item.stock || 0)) {
-            alert("No hay más stock disponible.");
+            FastMarket.notify("No hay más stock disponible.", "warning");
             return;
         }
         item.cantidad++;
@@ -289,7 +295,12 @@ function cambiarCantidad(id, accion) {
 }
 
 function guardarCarrito() {
-    localStorage.setItem("fashmarket_carrito", JSON.stringify(carrito));
+    const codigo = carrito.length ? cuponAplicado?.codigo || null : null;
+    if (carrito.length === 0) cuponAplicado = null;
+    FastMarket.sincronizarCarrito(carrito, codigo).catch(() => {
+        localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito));
+        if (!codigo) localStorage.removeItem("fastmarket_cupon");
+    });
     actualizarContadorCarrito();
     mostrarCarrito();
 }
@@ -302,12 +313,18 @@ function actualizarContadorCarrito() {
 function mostrarCarrito() {
     const lista = document.getElementById("carrito-lista");
     const total = document.getElementById("total-carrito");
+    const subtotalEl = document.getElementById("subtotal-carrito");
+    const descuentoEl = document.getElementById("descuento-carrito");
+    const filaDescuento = document.getElementById("fila-descuento-carrito");
     if (!lista || !total) return;
 
     lista.innerHTML = "";
 
     if (carrito.length === 0) {
         lista.innerHTML = `<p class="carrito-vacio">Tu carrito está vacío.</p>`;
+        if (subtotalEl) subtotalEl.textContent = FastMarket.money(0);
+        if (descuentoEl) descuentoEl.textContent = `- ${FastMarket.money(0)}`;
+        filaDescuento?.classList.add("oculto");
         total.textContent = FastMarket.money(0);
         return;
     }
@@ -331,7 +348,57 @@ function mostrarCarrito() {
     });
 
     const suma = carrito.reduce((s, p) => s + Number(p.precio) * Number(p.cantidad), 0);
-    total.textContent = FastMarket.money(suma);
+    const descuento = Number(cuponAplicado?.descuento || 0);
+    if (subtotalEl) subtotalEl.textContent = FastMarket.money(suma);
+    if (descuentoEl) descuentoEl.textContent = `- ${FastMarket.money(descuento)}`;
+    filaDescuento?.classList.toggle("oculto", descuento <= 0);
+    total.textContent = FastMarket.money(Math.max(0, suma - descuento));
+}
+
+async function aplicarCuponCarrito() {
+    const input = document.getElementById("cupon-carrito");
+    const mensaje = document.getElementById("mensaje-cupon-carrito");
+    const codigo = input?.value.trim().toUpperCase();
+
+    const pintar = (texto, tipo) => {
+        if (!mensaje) return;
+        mensaje.textContent = texto;
+        mensaje.classList.remove("ok", "error");
+        mensaje.classList.add(tipo);
+    };
+
+    if (!codigo) {
+        cuponAplicado = null;
+        FastMarket.sincronizarCarrito(carrito, null).catch(() => localStorage.removeItem("fastmarket_cupon"));
+        pintar("Cupón eliminado.", "ok");
+        mostrarCarrito();
+        return;
+    }
+
+    if (!carrito.length) {
+        pintar("Agrega productos antes de aplicar un cupón.", "error");
+        return;
+    }
+
+    try {
+        pintar("Validando cupón...", "ok");
+        const respuesta = await FastMarket.request("/cupones/aplicar", {
+            method: "POST",
+            body: {
+                codigo,
+                items: carrito.map((item) => ({ productoId: Number(item.id), cantidad: Number(item.cantidad) }))
+            }
+        });
+        cuponAplicado = respuesta;
+        await FastMarket.sincronizarCarrito(carrito, cuponAplicado.codigo);
+        pintar(`${respuesta.mensaje} Descuento: ${FastMarket.money(respuesta.descuento)}`, "ok");
+        mostrarCarrito();
+    } catch (error) {
+        cuponAplicado = null;
+        await FastMarket.sincronizarCarrito(carrito, null).catch(() => localStorage.removeItem("fastmarket_cupon"));
+        pintar(error.message, "error");
+        mostrarCarrito();
+    }
 }
 
 function abrirCarrito() {

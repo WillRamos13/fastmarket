@@ -1,23 +1,54 @@
 const formRecuperar = document.getElementById("form-recuperar");
 const correo = document.getElementById("correo");
+const codigo = document.getElementById("codigo-verificacion");
 const nuevaPassword = document.getElementById("nueva-password");
 const confirmarPassword = document.getElementById("confirmar-password");
 const mensajeRecuperar = document.getElementById("mensaje-recuperar");
+const btnEnviarCodigo = document.getElementById("btn-enviar-codigo");
+
+btnEnviarCodigo?.addEventListener("click", async () => {
+    const correoValor = correo.value.trim().toLowerCase();
+
+    if (!validarCorreo(correoValor)) {
+        mostrarMensaje("Ingresa un correo válido para enviarte el código.", "error");
+        return;
+    }
+
+    try {
+        FastMarket.marcarCargando(btnEnviarCodigo, true, "Enviando...");
+        const resp = await FastMarket.request("/auth/recuperar/enviar-codigo", {
+            method: "POST",
+            body: { correo: correoValor }
+        });
+        mostrarMensaje(resp?.mensaje || "Revisa tu correo e ingresa el código recibido.", "ok");
+        codigo?.focus();
+    } catch (error) {
+        mostrarMensaje(error.message, "error");
+    } finally {
+        FastMarket.marcarCargando(btnEnviarCodigo, false);
+    }
+});
 
 formRecuperar.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const correoValor = correo.value.trim().toLowerCase();
+    const codigoValor = codigo.value.trim();
     const nuevaValor = nuevaPassword.value.trim();
     const confirmarValor = confirmarPassword.value.trim();
 
-    if (correoValor === "" || nuevaValor === "" || confirmarValor === "") {
-        mostrarMensaje("Completa todos los campos.", "error");
+    if (correoValor === "" || codigoValor === "" || nuevaValor === "" || confirmarValor === "") {
+        mostrarMensaje("Completa todos los campos, incluido el código recibido.", "error");
         return;
     }
 
-    if (!correoValor.includes("@") || !correoValor.includes(".")) {
+    if (!validarCorreo(correoValor)) {
         mostrarMensaje("Ingresa un correo válido.", "error");
+        return;
+    }
+
+    if (!/^\d{6}$/.test(codigoValor)) {
+        mostrarMensaje("El código debe tener 6 dígitos.", "error");
         return;
     }
 
@@ -32,10 +63,12 @@ formRecuperar.addEventListener("submit", async (e) => {
     }
 
     try {
+        FastMarket.marcarCargando(formRecuperar.querySelector('button[type="submit"]'), true, "Actualizando...");
         await FastMarket.request("/auth/recuperar", {
             method: "POST",
             body: {
                 correo: correoValor,
+                codigoVerificacion: codigoValor,
                 passwordNueva: nuevaValor
             }
         });
@@ -48,8 +81,14 @@ formRecuperar.addEventListener("submit", async (e) => {
         }, 1200);
     } catch (error) {
         mostrarMensaje(error.message, "error");
+    } finally {
+        FastMarket.marcarCargando(formRecuperar.querySelector('button[type="submit"]'), false);
     }
 });
+
+function validarCorreo(valor) {
+    return valor.includes("@") && valor.includes(".");
+}
 
 function mostrarMensaje(texto, tipo) {
     mensajeRecuperar.textContent = texto;
