@@ -2,13 +2,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const formRegistro = document.getElementById("form-registro");
     const formLogin = document.getElementById("form-login");
 
-    const mostrarLoginBtn = document.getElementById("mostrar-login");
-    const mostrarRegistroBtn = document.getElementById("mostrar-registro");
-    const linkLoginSuperior = document.getElementById("link-login-superior");
+    const tabRegistro = document.getElementById("tab-registro");
+    const tabLogin = document.getElementById("tab-login");
 
     const tituloAuth = document.getElementById("titulo-auth");
+    const subtituloAuth = document.getElementById("subtitulo-auth");
 
     const btnRegistro = document.getElementById("btn-registro");
+    const btnReenviar = document.getElementById("reenviar-codigo");
+    const codigoPanel = document.getElementById("codigo-panel");
+    const codigoVerificacion = document.getElementById("codigo-verificacion");
 
     const registroCorreo = document.getElementById("registro-correo");
     const registroNombre = document.getElementById("registro-nombre");
@@ -34,9 +37,11 @@ document.addEventListener("DOMContentLoaded", () => {
         special: document.getElementById("rule-special")
     };
 
+    let codigoEnviado = false;
+    let correoCodigoEnviado = "";
+
     function mostrarMensaje(elemento, texto, tipo = "error") {
         if (!elemento) return;
-
         elemento.textContent = texto;
         elemento.classList.remove("error", "ok");
         elemento.classList.add(tipo);
@@ -44,46 +49,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function limpiarMensaje(elemento) {
         if (!elemento) return;
-
         elemento.textContent = "";
         elemento.classList.remove("error", "ok");
     }
 
-    function mostrarLogin() {
-        formRegistro.classList.add("oculto");
-        formLogin.classList.remove("oculto");
-        tituloAuth.textContent = "Inicia sesión para comprar";
+    function activarTab(tab) {
+        const esLogin = tab === "login";
+
+        formRegistro.classList.toggle("oculto", esLogin);
+        formLogin.classList.toggle("oculto", !esLogin);
+        tabRegistro.classList.toggle("activo", !esLogin);
+        tabLogin.classList.toggle("activo", esLogin);
+
+        tituloAuth.textContent = esLogin ? "Inicia sesión en FashMarket" : "Crea tu cuenta en FashMarket";
+        subtituloAuth.textContent = esLogin
+            ? "Accede con tu correo y contraseña para revisar pedidos o entrar al panel si eres administrador."
+            : "Regístrate con verificación por correo para comprar, revisar pedidos y guardar tus datos.";
+
         limpiarMensaje(mensajeRegistro);
         limpiarMensaje(mensajeLogin);
     }
 
-    function mostrarRegistro() {
-        formLogin.classList.add("oculto");
-        formRegistro.classList.remove("oculto");
-        tituloAuth.textContent = "Inicia sesión o regístrate para comprar";
-        limpiarMensaje(mensajeRegistro);
-        limpiarMensaje(mensajeLogin);
-    }
-
-    if (mostrarLoginBtn) {
-        mostrarLoginBtn.addEventListener("click", mostrarLogin);
-    }
-
-    if (linkLoginSuperior) {
-        linkLoginSuperior.addEventListener("click", mostrarLogin);
-    }
-
-    if (mostrarRegistroBtn) {
-        mostrarRegistroBtn.addEventListener("click", mostrarRegistro);
-    }
+    tabRegistro.addEventListener("click", () => activarTab("registro"));
+    tabLogin.addEventListener("click", () => activarTab("login"));
 
     document.querySelectorAll(".toggle-password").forEach((boton) => {
         boton.addEventListener("click", () => {
-            const targetId = boton.dataset.target;
-            const input = document.getElementById(targetId);
-
+            const input = document.getElementById(boton.dataset.target);
             if (!input) return;
-
             input.type = input.type === "password" ? "text" : "password";
             boton.textContent = input.type === "password" ? "👁️" : "🙈";
         });
@@ -95,7 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function validarPassword(password) {
         const prohibidos = /[\\\/"'°¬¿¡Ññ]/;
-
         return {
             length: password.length >= 8,
             lower: /[a-z]/.test(password),
@@ -108,20 +100,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function pintarRegla(elemento, cumple) {
         if (!elemento) return;
-
         elemento.classList.remove("ok", "bad");
-        elemento.classList.add(cumple ? "ok" : "bad");
+        if (registroPassword.value.length > 0) {
+            elemento.classList.add(cumple ? "ok" : "bad");
+        }
+    }
+
+    function datosRegistro() {
+        const nombre = registroNombre.value.trim();
+        const apellidos = registroApellidos.value.trim();
+
+        return {
+            correo: registroCorreo.value.trim().toLowerCase(),
+            nombre,
+            apellidos,
+            nombreCompleto: `${nombre} ${apellidos}`.trim(),
+            documento: registroDocumento.value.trim(),
+            celular: registroCelular.value.trim(),
+            password: registroPassword.value,
+            codigo: codigoVerificacion ? codigoVerificacion.value.trim() : ""
+        };
+    }
+
+    function resetearCodigoSiCambioCorreo() {
+        const correoActual = registroCorreo.value.trim().toLowerCase();
+
+        if (codigoEnviado && correoActual !== correoCodigoEnviado) {
+            codigoEnviado = false;
+            correoCodigoEnviado = "";
+            if (codigoVerificacion) codigoVerificacion.value = "";
+            if (codigoPanel) codigoPanel.classList.add("oculto");
+            btnRegistro.textContent = "Enviar código al correo";
+        }
     }
 
     function validarFormularioRegistro() {
-        const correo = registroCorreo.value.trim();
-        const nombre = registroNombre.value.trim();
-        const apellidos = registroApellidos.value.trim();
-        const documento = registroDocumento.value.trim();
-        const celular = registroCelular.value.trim();
-        const password = registroPassword.value;
+        resetearCodigoSiCambioCorreo();
 
-        const pass = validarPassword(password);
+        const datos = datosRegistro();
+        const pass = validarPassword(datos.password);
 
         pintarRegla(reglas.length, pass.length);
         pintarRegla(reglas.lower, pass.lower);
@@ -133,18 +150,95 @@ document.addEventListener("DOMContentLoaded", () => {
         const passwordOk = Object.values(pass).every(Boolean);
 
         const formularioOk =
-            validarCorreo(correo) &&
-            nombre.length >= 2 &&
-            apellidos.length >= 2 &&
-            documento.length >= 8 &&
-            celular.length >= 9 &&
+            validarCorreo(datos.correo) &&
+            datos.nombre.length >= 2 &&
+            datos.apellidos.length >= 2 &&
+            datos.documento.length >= 8 &&
+            datos.celular.replace(/\D/g, "").length >= 9 &&
             passwordOk &&
             aceptaTerminos.checked &&
             aceptaPoliticas.checked;
 
-        btnRegistro.disabled = !formularioOk;
+        if (!codigoEnviado) {
+            btnRegistro.disabled = !formularioOk;
+        } else {
+            btnRegistro.disabled = !formularioOk || datos.codigo.length !== 6;
+        }
 
         return formularioOk;
+    }
+
+    async function enviarCodigo() {
+        const datos = datosRegistro();
+
+        if (!validarFormularioRegistro()) {
+            mostrarMensaje(mensajeRegistro, "Completa correctamente todos los campos antes de solicitar el código.");
+            return;
+        }
+
+        btnRegistro.disabled = true;
+        btnRegistro.textContent = "Enviando código...";
+        mostrarMensaje(mensajeRegistro, "Enviando código de verificación...", "ok");
+
+        try {
+            const respuesta = await FastMarket.request("/auth/registro/enviar-codigo", {
+                method: "POST",
+                body: {
+                    correo: datos.correo,
+                    nombre: datos.nombreCompleto
+                }
+            });
+
+            codigoEnviado = true;
+            correoCodigoEnviado = datos.correo;
+            if (codigoPanel) codigoPanel.classList.remove("oculto");
+            btnRegistro.textContent = "Verificar y crear cuenta";
+            if (codigoVerificacion) codigoVerificacion.focus();
+            mostrarMensaje(mensajeRegistro, respuesta?.mensaje || "Te enviamos un código a tu correo.", "ok");
+        } catch (error) {
+            mostrarMensaje(mensajeRegistro, error.message || "No se pudo enviar el código.");
+            btnRegistro.textContent = "Enviar código al correo";
+        } finally {
+            validarFormularioRegistro();
+        }
+    }
+
+    async function registrarCuenta() {
+        const datos = datosRegistro();
+
+        if (!validarFormularioRegistro() || datos.codigo.length !== 6) {
+            mostrarMensaje(mensajeRegistro, "Ingresa el código de 6 dígitos enviado a tu correo.");
+            return;
+        }
+
+        btnRegistro.disabled = true;
+        btnRegistro.textContent = "Creando cuenta...";
+        mostrarMensaje(mensajeRegistro, "Verificando código y creando tu cuenta...", "ok");
+
+        try {
+            const respuesta = await FastMarket.request("/auth/registro", {
+                method: "POST",
+                body: {
+                    nombre: datos.nombreCompleto,
+                    correo: datos.correo,
+                    telefono: datos.celular,
+                    documento: datos.documento,
+                    password: datos.password,
+                    codigoVerificacion: datos.codigo
+                }
+            });
+
+            const usuario = FastMarket.guardarSesion(respuesta);
+            mostrarMensaje(mensajeRegistro, "Cuenta verificada correctamente. Redirigiendo...", "ok");
+
+            setTimeout(() => {
+                window.location.href = usuario.rol === "ADMIN" ? "admin.html" : "productos.html";
+            }, 700);
+        } catch (error) {
+            mostrarMensaje(mensajeRegistro, error.message || "No se pudo crear la cuenta.");
+            btnRegistro.textContent = "Verificar y crear cuenta";
+            validarFormularioRegistro();
+        }
     }
 
     [
@@ -155,116 +249,73 @@ document.addEventListener("DOMContentLoaded", () => {
         registroCelular,
         registroPassword,
         aceptaTerminos,
-        aceptaPoliticas
+        aceptaPoliticas,
+        codigoVerificacion
     ].forEach((elemento) => {
         if (!elemento) return;
-
         elemento.addEventListener("input", validarFormularioRegistro);
         elemento.addEventListener("change", validarFormularioRegistro);
     });
 
-    if (formRegistro) {
-        formRegistro.addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            if (!validarFormularioRegistro()) {
-                mostrarMensaje(mensajeRegistro, "Completa correctamente todos los campos.");
-                return;
-            }
-
-            const correo = registroCorreo.value.trim().toLowerCase();
-            const nombre = registroNombre.value.trim();
-            const apellidos = registroApellidos.value.trim();
-            const celular = registroCelular.value.trim();
-            const password = registroPassword.value;
-
-            const nombreCompleto = `${nombre} ${apellidos}`.trim();
-
-            btnRegistro.disabled = true;
-            btnRegistro.textContent = "Registrando...";
-            mostrarMensaje(mensajeRegistro, "Creando tu cuenta...", "ok");
-
-            try {
-                const respuesta = await FastMarket.request("/auth/registro", {
-                    method: "POST",
-                    body: {
-                        nombre: nombreCompleto,
-                        correo,
-                        telefono: celular,
-                        password
-                    }
-                });
-
-                const usuario = FastMarket.guardarSesion(respuesta);
-
-                mostrarMensaje(mensajeRegistro, "Cuenta creada correctamente. Redirigiendo...", "ok");
-
-                setTimeout(() => {
-                    if (usuario.rol === "ADMIN") {
-                        window.location.href = "admin.html";
-                    } else {
-                        window.location.href = "productos.html";
-                    }
-                }, 700);
-
-            } catch (error) {
-                mostrarMensaje(mensajeRegistro, error.message || "No se pudo registrar la cuenta.");
-                btnRegistro.disabled = false;
-                btnRegistro.textContent = "Regístrate";
-            }
+    if (codigoVerificacion) {
+        codigoVerificacion.addEventListener("input", () => {
+            codigoVerificacion.value = codigoVerificacion.value.replace(/\D/g, "").slice(0, 6);
+            validarFormularioRegistro();
         });
     }
 
-    if (formLogin) {
-        formLogin.addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            const correo = loginCorreo.value.trim().toLowerCase();
-            const password = loginPassword.value.trim();
-
-            if (!validarCorreo(correo)) {
-                mostrarMensaje(mensajeLogin, "Ingresa un correo válido.");
-                return;
-            }
-
-            if (!password) {
-                mostrarMensaje(mensajeLogin, "Ingresa tu contraseña.");
-                return;
-            }
-
-            const boton = formLogin.querySelector(".btn-auth");
-            boton.disabled = true;
-            boton.textContent = "Ingresando...";
-            mostrarMensaje(mensajeLogin, "Validando tus datos...", "ok");
-
-            try {
-                const respuesta = await FastMarket.request("/auth/login", {
-                    method: "POST",
-                    body: {
-                        correo,
-                        password
-                    }
-                });
-
-                const usuario = FastMarket.guardarSesion(respuesta);
-
-                mostrarMensaje(mensajeLogin, "Inicio de sesión correcto. Redirigiendo...", "ok");
-
-                setTimeout(() => {
-                    if (usuario.rol === "ADMIN") {
-                        window.location.href = "admin.html";
-                    } else {
-                        window.location.href = "productos.html";
-                    }
-                }, 600);
-
-            } catch (error) {
-                mostrarMensaje(mensajeLogin, error.message || "Correo o contraseña incorrectos.");
-                boton.disabled = false;
-                boton.textContent = "Iniciar sesión";
-            }
-        });
+    if (btnReenviar) {
+        btnReenviar.addEventListener("click", enviarCodigo);
     }
+
+    formRegistro.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!codigoEnviado) {
+            await enviarCodigo();
+        } else {
+            await registrarCuenta();
+        }
+    });
+
+    formLogin.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const correo = loginCorreo.value.trim().toLowerCase();
+        const password = loginPassword.value.trim();
+
+        if (!validarCorreo(correo)) {
+            mostrarMensaje(mensajeLogin, "Ingresa un correo válido.");
+            return;
+        }
+
+        if (!password) {
+            mostrarMensaje(mensajeLogin, "Ingresa tu contraseña.");
+            return;
+        }
+
+        const boton = formLogin.querySelector(".btn-auth");
+        boton.disabled = true;
+        boton.textContent = "Ingresando...";
+        mostrarMensaje(mensajeLogin, "Validando tus datos...", "ok");
+
+        try {
+            const respuesta = await FastMarket.request("/auth/login", {
+                method: "POST",
+                body: { correo, password }
+            });
+
+            const usuario = FastMarket.guardarSesion(respuesta);
+            mostrarMensaje(mensajeLogin, "Inicio de sesión correcto. Redirigiendo...", "ok");
+
+            setTimeout(() => {
+                window.location.href = usuario.rol === "ADMIN" ? "admin.html" : "productos.html";
+            }, 600);
+        } catch (error) {
+            mostrarMensaje(mensajeLogin, error.message || "Correo o contraseña incorrectos.");
+            boton.disabled = false;
+            boton.textContent = "Iniciar sesión";
+        }
+    });
 
     validarFormularioRegistro();
 });

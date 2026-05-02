@@ -11,7 +11,16 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
-    public AuthController(AuthService authService) { this.authService = authService; }
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
+    @PostMapping("/registro/enviar-codigo")
+    public Map<String, String> enviarCodigoRegistro(@Valid @RequestBody AuthDtos.EnviarCodigoRegistroRequest request) {
+        authService.enviarCodigoRegistro(request);
+        return Map.of("mensaje", "Te enviamos un código de verificación a tu correo.");
+    }
 
     @PostMapping("/registro")
     public AuthDtos.AuthResponse registrar(@Valid @RequestBody AuthDtos.RegistroRequest request) {

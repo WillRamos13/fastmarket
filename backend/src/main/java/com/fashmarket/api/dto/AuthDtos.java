@@ -9,13 +9,20 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 
 public class AuthDtos {
+
+    public record EnviarCodigoRegistroRequest(
+            @NotBlank @Email String correo,
+            String nombre
+    ) {}
+
     public record RegistroRequest(
             @NotBlank String nombre,
             @NotBlank @Email String correo,
             @NotBlank @Size(min = 6, message = "La contraseña debe tener mínimo 6 caracteres") String password,
             String telefono,
             String documento,
-            String direccion
+            String direccion,
+            @NotBlank String codigoVerificacion
     ) {}
 
     public record LoginRequest(

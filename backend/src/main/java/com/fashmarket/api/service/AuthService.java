@@ -14,19 +14,40 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordService passwordService;
     private final AuthTokenService authTokenService;
+    private final CodigoVerificacionService codigoVerificacionService;
 
-    public AuthService(UsuarioRepository usuarioRepository, PasswordService passwordService, AuthTokenService authTokenService) {
+    public AuthService(
+            UsuarioRepository usuarioRepository,
+            PasswordService passwordService,
+            AuthTokenService authTokenService,
+            CodigoVerificacionService codigoVerificacionService
+    ) {
         this.usuarioRepository = usuarioRepository;
         this.passwordService = passwordService;
         this.authTokenService = authTokenService;
+        this.codigoVerificacionService = codigoVerificacionService;
+    }
+
+    @Transactional
+    public void enviarCodigoRegistro(AuthDtos.EnviarCodigoRegistroRequest request) {
+        String correo = request.correo().trim().toLowerCase();
+
+        if (usuarioRepository.existsByCorreoIgnoreCase(correo)) {
+            throw new IllegalArgumentException("El correo ya está registrado");
+        }
+
+        codigoVerificacionService.enviarCodigoRegistro(correo, request.nombre());
     }
 
     @Transactional
     public AuthDtos.AuthResponse registrar(AuthDtos.RegistroRequest request) {
         String correo = request.correo().trim().toLowerCase();
+
         if (usuarioRepository.existsByCorreoIgnoreCase(correo)) {
             throw new IllegalArgumentException("El correo ya está registrado");
         }
+
+        codigoVerificacionService.validarCodigoRegistro(correo, request.codigoVerificacion());
 
         Usuario usuario = new Usuario();
         usuario.setNombre(request.nombre().trim());
@@ -66,7 +87,6 @@ public class AuthService {
 
         return new AuthDtos.AuthResponse(DtoMapper.toUsuarioResponse(usuario), authTokenService.generarToken(usuario));
     }
-
 
     @Transactional
     public void recuperarPassword(AuthDtos.RecuperarPasswordRequest request) {
