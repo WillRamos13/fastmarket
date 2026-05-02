@@ -1,7 +1,7 @@
 package com.fashmarket.api.controller;
 
 import com.fashmarket.api.dto.ProductoRequest;
-import com.fashmarket.api.model.Producto;
+import com.fashmarket.api.dto.ProductoDtos;
 import com.fashmarket.api.service.AuthTokenService;
 import com.fashmarket.api.service.ProductoService;
 import jakarta.validation.Valid;
@@ -22,7 +22,7 @@ public class ProductoController {
     }
 
     @GetMapping
-    public List<Producto> listar(
+    public List<ProductoDtos.ProductoResponse> listar(
             @RequestParam(required = false) Boolean oferta,
             @RequestParam(required = false) Boolean destacado,
             @RequestParam(required = false) Boolean incluirInactivos,
@@ -41,24 +41,24 @@ public class ProductoController {
     }
 
     @GetMapping("/page")
-    public Page<Producto> listarPaginado(@RequestHeader(value = "Authorization", required = false) String authorization, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+    public Page<ProductoDtos.ProductoResponse> listarPaginado(@RequestHeader(value = "Authorization", required = false) String authorization, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
         AuthTokenService.TokenData actor = authTokenService.requerirAdminOVendedor(authorization);
         return productoService.listarPaginado(actor, page, size);
     }
 
     @GetMapping("/{id}")
-    public Producto obtener(@PathVariable Long id) {
+    public ProductoDtos.ProductoResponse obtener(@PathVariable Long id) {
         return productoService.obtener(id);
     }
 
     @PostMapping
-    public Producto crear(@RequestHeader(value = "Authorization", required = false) String authorization, @Valid @RequestBody ProductoRequest request) {
+    public ProductoDtos.ProductoResponse crear(@RequestHeader(value = "Authorization", required = false) String authorization, @Valid @RequestBody ProductoRequest request) {
         AuthTokenService.TokenData actor = authTokenService.requerirAdminOVendedor(authorization);
         return productoService.crear(actor, request);
     }
 
     @PutMapping("/{id}")
-    public Producto actualizar(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long id, @Valid @RequestBody ProductoRequest request) {
+    public ProductoDtos.ProductoResponse actualizar(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long id, @Valid @RequestBody ProductoRequest request) {
         AuthTokenService.TokenData actor = authTokenService.requerirAdminOVendedor(authorization);
         return productoService.actualizar(actor, id, request);
     }

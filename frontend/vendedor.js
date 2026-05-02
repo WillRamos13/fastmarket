@@ -245,7 +245,7 @@ function pintarPedidos() {
             <td>${FastMarket.escapeHTML(productosTexto)}</td>
             <td>${FastMarket.money(p.total)}</td>
             <td>${FastMarket.estadoTexto(p.estado)}</td>
-            <td><select data-estado-pedido="${p.id}">${estadosPedido.map((estado) => `<option value="${estado}" ${FastMarket.normalizarEstado(p.estado) === estado ? "selected" : ""}>${FastMarket.estadoTexto(estado)}</option>`).join("")}</select></td>
+            <td><span class="estado-normal">Solo admin</span></td>
             <td><button class="btn-mini secondary" data-historial-pedido="${p.id}">Ver</button></td>`;
         tbody.appendChild(tr);
     });
@@ -307,13 +307,14 @@ function pintarCupones() {
     if (!tbody) return;
     const q = value("vc-buscar").toLowerCase();
     const lista = cupones.filter((c) => `${c.codigo} ${c.descripcion}`.toLowerCase().includes(q));
-    tbody.innerHTML = lista.length ? "" : `<tr><td colspan="5">No tienes cupones registrados.</td></tr>`;
+    tbody.innerHTML = lista.length ? "" : `<tr><td colspan="6">No tienes cupones registrados.</td></tr>`;
     lista.forEach((c) => {
         const descuento = `${Number(c.porcentaje || 0) > 0 ? `${c.porcentaje}%` : ""}${Number(c.montoFijo || 0) > 0 ? ` S/ ${Number(c.montoFijo).toFixed(2)}` : ""}`.trim();
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td><strong>${FastMarket.escapeHTML(c.codigo)}</strong><br><small>${FastMarket.escapeHTML(c.descripcion || "")}</small></td>
             <td>${descuento || "-"}<br><small>Mín: ${FastMarket.money(c.montoMinimo || 0)}</small></td>
+            <td>${vigenciaCupon(c)}</td>
             <td>${c.usosActuales || 0}${c.usosMaximos ? `/${c.usosMaximos}` : ""}</td>
             <td><span class="${c.activo ? "estado-activo" : "estado-inactivo"}">${c.activo ? "Activo" : "Inactivo"}</span></td>
             <td><button class="btn-mini" data-editar-cupon="${c.id}">Editar</button> <button class="btn-mini secondary" data-usos-cupon="${c.id}">Usos</button> <button class="btn-mini secondary" data-eliminar-cupon="${c.id}">Eliminar</button></td>`;
@@ -332,6 +333,8 @@ async function guardarCupon(e) {
         montoFijo: Number(value("vc-monto") || 0),
         montoMinimo: Number(value("vc-minimo") || 0),
         usosMaximos: value("vc-usos") ? Number(value("vc-usos")) : null,
+        fechaInicio: value("vc-inicio") || null,
+        fechaFin: value("vc-fin") || null,
         activo: checked("vc-activo")
     };
     if (!payload.codigo) return toast("Ingresa el código del cupón.");
@@ -356,6 +359,8 @@ function editarCupon(id) {
     setValue("vc-monto", c.montoFijo || "");
     setValue("vc-minimo", c.montoMinimo || "");
     setValue("vc-usos", c.usosMaximos || "");
+    setValue("vc-inicio", toDatetimeLocal(c.fechaInicio));
+    setValue("vc-fin", toDatetimeLocal(c.fechaFin));
     setChecked("vc-activo", !!c.activo);
     setText("vc-form-title", "Editar cupón");
     mostrarPanel("panel-cupones");
@@ -387,8 +392,25 @@ async function eliminarCupon(id) {
 function limpiarCupon() {
     document.getElementById("form-vendedor-cupon")?.reset();
     setValue("vc-id", "");
+    setValue("vc-inicio", "");
+    setValue("vc-fin", "");
     setChecked("vc-activo", true);
     setText("vc-form-title", "Agregar cupón");
+}
+
+
+function vigenciaCupon(c) {
+    const inicio = c.fechaInicio ? fecha(c.fechaInicio) : "Ahora";
+    const fin = c.fechaFin ? fecha(c.fechaFin) : "30 días por defecto";
+    return `<small>${FastMarket.escapeHTML(inicio)}<br>hasta ${FastMarket.escapeHTML(fin)}</small>`;
+}
+
+function toDatetimeLocal(valor) {
+    if (!valor) return "";
+    const d = new Date(valor);
+    if (Number.isNaN(d.getTime())) return "";
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function pintarMetricas() {

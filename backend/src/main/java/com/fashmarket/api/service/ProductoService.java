@@ -1,6 +1,7 @@
 package com.fashmarket.api.service;
 
 import com.fashmarket.api.dto.ProductoRequest;
+import com.fashmarket.api.dto.ProductoDtos;
 import com.fashmarket.api.model.Producto;
 import com.fashmarket.api.model.Rol;
 import com.fashmarket.api.model.Usuario;
@@ -25,56 +26,58 @@ public class ProductoService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    public Page<Producto> listarPaginado(AuthTokenService.TokenData actor, int page, int size) {
+    public Page<ProductoDtos.ProductoResponse> listarPaginado(AuthTokenService.TokenData actor, int page, int size) {
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), 100), Sort.by(Sort.Direction.DESC, "id"));
         if (actor.rol() == Rol.VENDEDOR) {
-            return productoRepository.findByVendedorId(actor.usuarioId(), pageable);
+            return productoRepository.findByVendedorId(actor.usuarioId(), pageable).map(DtoMapper::toProductoResponse);
         }
-        return productoRepository.findAll(pageable);
+        return productoRepository.findAll(pageable).map(DtoMapper::toProductoResponse);
     }
 
-    public List<Producto> listar(Boolean oferta, Boolean destacado, Boolean incluirInactivos) {
-        if (Boolean.TRUE.equals(incluirInactivos)) return productoRepository.findAll();
-        if (Boolean.TRUE.equals(oferta) && Boolean.TRUE.equals(destacado)) return productoRepository.findByActivoTrueAndOfertaTrueAndDestacadoTrueOrderByIdDesc();
-        if (Boolean.TRUE.equals(oferta)) return productoRepository.findByActivoTrueAndOfertaTrueOrderByIdDesc();
-        if (Boolean.TRUE.equals(destacado)) return productoRepository.findByActivoTrueAndDestacadoTrueOrderByIdDesc();
-        return productoRepository.findByActivoTrueOrderByIdDesc();
+    public List<ProductoDtos.ProductoResponse> listar(Boolean oferta, Boolean destacado, Boolean incluirInactivos) {
+        if (Boolean.TRUE.equals(incluirInactivos)) return productoRepository.findAll().stream().map(DtoMapper::toProductoResponse).toList();
+        if (Boolean.TRUE.equals(oferta) && Boolean.TRUE.equals(destacado)) return productoRepository.findByActivoTrueAndOfertaTrueAndDestacadoTrueOrderByIdDesc().stream().map(DtoMapper::toProductoResponse).toList();
+        if (Boolean.TRUE.equals(oferta)) return productoRepository.findByActivoTrueAndOfertaTrueOrderByIdDesc().stream().map(DtoMapper::toProductoResponse).toList();
+        if (Boolean.TRUE.equals(destacado)) return productoRepository.findByActivoTrueAndDestacadoTrueOrderByIdDesc().stream().map(DtoMapper::toProductoResponse).toList();
+        return productoRepository.findByActivoTrueOrderByIdDesc().stream().map(DtoMapper::toProductoResponse).toList();
     }
 
-    public List<Producto> listarParaPanel(AuthTokenService.TokenData actor, Boolean incluirInactivos) {
+    public List<ProductoDtos.ProductoResponse> listarParaPanel(AuthTokenService.TokenData actor, Boolean incluirInactivos) {
         if (actor.rol() == Rol.VENDEDOR) {
-            return Boolean.TRUE.equals(incluirInactivos)
+            return (Boolean.TRUE.equals(incluirInactivos)
                     ? productoRepository.findByVendedorIdOrderByIdDesc(actor.usuarioId())
-                    : productoRepository.findByVendedorIdAndActivoTrueOrderByIdDesc(actor.usuarioId());
+                    : productoRepository.findByVendedorIdAndActivoTrueOrderByIdDesc(actor.usuarioId()))
+                    .stream().map(DtoMapper::toProductoResponse).toList();
         }
-        return Boolean.TRUE.equals(incluirInactivos) ? productoRepository.findAll() : productoRepository.findByActivoTrueOrderByIdDesc();
+        return (Boolean.TRUE.equals(incluirInactivos) ? productoRepository.findAll() : productoRepository.findByActivoTrueOrderByIdDesc())
+                .stream().map(DtoMapper::toProductoResponse).toList();
     }
 
-    public List<Producto> listarPorVendedor(Long vendedorId) {
-        return productoRepository.findByVendedorIdOrderByIdDesc(vendedorId);
+    public List<ProductoDtos.ProductoResponse> listarPorVendedor(Long vendedorId) {
+        return productoRepository.findByVendedorIdOrderByIdDesc(vendedorId).stream().map(DtoMapper::toProductoResponse).toList();
     }
 
-    public Producto obtener(Long id) {
+    public ProductoDtos.ProductoResponse obtener(Long id) {
         Producto producto = productoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
         if (!Boolean.TRUE.equals(producto.getActivo())) throw new IllegalArgumentException("Producto no disponible");
-        return producto;
+        return DtoMapper.toProductoResponse(producto);
     }
 
     @Transactional
-    public Producto crear(AuthTokenService.TokenData actor, ProductoRequest request) {
+    public ProductoDtos.ProductoResponse crear(AuthTokenService.TokenData actor, ProductoRequest request) {
         Producto producto = new Producto();
         producto.setActivo(true);
         aplicarDatos(producto, actor, request);
-        return productoRepository.save(producto);
+        return DtoMapper.toProductoResponse(productoRepository.save(producto));
     }
 
     @Transactional
-    public Producto actualizar(AuthTokenService.TokenData actor, Long id, ProductoRequest request) {
+    public ProductoDtos.ProductoResponse actualizar(AuthTokenService.TokenData actor, Long id, ProductoRequest request) {
         Producto producto = productoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
         validarPropietarioOVendedor(actor, producto);
         producto.setActivo(true);
         aplicarDatos(producto, actor, request);
-        return productoRepository.save(producto);
+        return DtoMapper.toProductoResponse(productoRepository.save(producto));
     }
 
     @Transactional

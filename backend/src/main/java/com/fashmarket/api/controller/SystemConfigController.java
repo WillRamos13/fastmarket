@@ -19,6 +19,14 @@ public class SystemConfigController {
         this.authTokenService = authTokenService;
     }
 
+
+    @GetMapping("/public")
+    public Map<String, String> obtenerPublico() {
+        return Map.of(
+                "costoEnvio", configService.obtenerDecimal(SystemConfigService.COSTO_ENVIO, new java.math.BigDecimal("8.00")).toPlainString()
+        );
+    }
+
     @GetMapping("/powerbi")
     public SystemConfigDtos.ConfigResponse obtenerPowerBi(@RequestHeader(value = "Authorization", required = false) String authorization) {
         authTokenService.requerirAdminOVendedor(authorization);

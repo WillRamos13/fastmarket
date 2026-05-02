@@ -435,6 +435,19 @@
                         </div>
                     </div>
 
+
+                    <div class="form-doble">
+                        <div>
+                            <label for="cupon-inicio">Inicio del cupón</label>
+                            <input type="datetime-local" id="cupon-inicio">
+                        </div>
+                        <div>
+                            <label for="cupon-fin">Fin del cupón</label>
+                            <input type="datetime-local" id="cupon-fin">
+                            <small class="texto-ayuda">Si lo dejas vacío, dura 30 días.</small>
+                        </div>
+                    </div>
+
                     <label class="check-oferta"><input type="checkbox" id="cupon-activo" checked> Cupón activo</label>
 
                     <div class="botones-form">
@@ -449,7 +462,7 @@
                     </div>
                     <div class="tabla-scroll">
                         <table>
-                            <thead><tr><th>Código</th><th>Tipo</th><th>Descuento</th><th>Usos</th><th>Estado</th><th>Acciones</th></tr></thead>
+                            <thead><tr><th>Código</th><th>Tipo</th><th>Descuento</th><th>Vigencia</th><th>Usos</th><th>Estado</th><th>Acciones</th></tr></thead>
                             <tbody id="tabla-cupones"></tbody>
                         </table>
                     </div>
@@ -674,28 +687,54 @@
     </main>
 
     <footer id="pie-de-pagina">
-        <div>
-            <h3>FastMarket Admin</h3>
-            <p>Panel de administración para productos, banners, ventas, usuarios e indicadores.</p>
-        </div>
+            <div id="contactos-redes">
 
-        <div>
-            <h3>Funciones</h3>
-            <button class="footer-link" data-panel="panel-productos">Productos</button>
-            <button class="footer-link" data-panel="panel-ventas">Pedidos y ventas</button>
-            <button class="footer-link" data-panel="panel-banners">Banners</button>
-            <button class="footer-link" data-panel="panel-cupones">Marketing y cupones</button>
-            <button class="footer-link solo-admin" data-panel="panel-usuarios">Usuarios</button>
-            <button class="footer-link" data-panel="panel-powerbi">Power BI</button>
-        </div>
+                <div id="contactos-redes1">
+                    <h3 id="redes">Síguenos en</h3>
 
-        <div>
-            <h3>Contacto</h3>
-            <p>📞 999999999</p>
-            <p>✉️ soporte@fastmarket.com</p>
-            <p>📍 Ica, Perú</p>
-        </div>
-    </footer>
+                    <nav class="redes nav-redes">
+                        <ul>
+                            <li class="redes">
+                                <a href="https://www.instagram.com/" target="_blank">
+                                    <img class="logo-redes" src="img/instagram.png" alt="Instagram"> Instagram
+                                </a>
+                            </li>
+
+                            <li class="redes">
+                                <a href="https://www.facebook.com/?locale=es_LA" target="_blank">
+                                    <img class="logo-redes" src="img/facebook.png" alt="Facebook"> Facebook
+                                </a>
+                            </li>
+
+                            <li class="redes">
+                                <a href="https://web.whatsapp.com/" target="_blank">
+                                    <img class="logo-redes" src="img/whatsapp.png" alt="WhatsApp"> WhatsApp
+                                </a>
+                            </li>
+
+                            <li class="redes">
+                                <a href="https://www.tiktok.com/es-419/" target="_blank">
+                                    <img class="logo-redes" src="img/tiktok.png" alt="TikTok"> Tik Tok
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div id="contactos-redes2">
+                    <h3 class="footer-titulo">Contacto</h3>
+
+                    <nav class="redes nav-redes contacto-footer">
+                        <ul>
+                            <li class="redes"><a href="https://www2.claro.com.pe/institucional/centro-de-prensa/ampliacion-sms/">📞 999999999</a></li>
+                            <li class="redes"><a href="https://mail.google.com/mail/u/0/#inbox">✉️ soporte@fastmarket.com</a></li>
+                            <li class="redes"><a href="https://maps.app.goo.gl/H98FeKnEgCrhqcXd9">📍 Ica, Perú</a></li>
+                        </ul>
+                    </nav>
+                </div>
+
+            </div>
+        </footer>
 
     <div id="toast"></div>
 

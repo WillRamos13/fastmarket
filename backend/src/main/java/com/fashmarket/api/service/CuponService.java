@@ -16,6 +16,7 @@ import java.util.List;
 
 @Service
 public class CuponService {
+    private static final long DURACION_PREDETERMINADA_DIAS = 30;
     private final CuponRepository cuponRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
@@ -58,7 +59,7 @@ public class CuponService {
         validarPermiso(actor, cupon);
 
         String codigo = normalizarCodigo(request.codigo());
-        if (!cupon.getCodigo().equalsIgnoreCase(codigo) && cuponRepository.existsByCodigoIgnoreCase(codigo)) {
+        if (!valor(cupon.getCodigo(), "").equalsIgnoreCase(codigo) && cuponRepository.existsByCodigoIgnoreCase(codigo)) {
             throw new IllegalArgumentException("Ya existe un cupón con ese código");
         }
         cupon.setCodigo(codigo);
@@ -75,13 +76,17 @@ public class CuponService {
     }
 
     public CuponDtos.AplicarCuponResponse aplicar(CuponDtos.AplicarCuponRequest request) {
-        CalculoCupon calculo = calcularDescuento(request.codigo(), request.items());
-        if (calculo.cupon() == null) {
+        return aplicar(request, null);
+    }
+
+    public CuponDtos.AplicarCuponResponse aplicar(CuponDtos.AplicarCuponRequest request, Long usuarioId) {
+        if (request == null || request.codigo() == null || request.codigo().isBlank()) {
             throw new IllegalArgumentException("Ingresa un código de cupón.");
         }
+        CalculoCupon calculo = calcularDescuento(request.codigo(), request.items(), usuarioId);
         return new CuponDtos.AplicarCuponResponse(
                 calculo.cupon().getCodigo(),
-                calculo.cupon().getDescripcion(),
+                valor(calculo.cupon().getDescripcion(), ""),
                 calculo.subtotalAplicable(),
                 calculo.descuento(),
                 calculo.descuento().compareTo(BigDecimal.ZERO) > 0 ? "Cupón aplicado correctamente." : "El cupón no genera descuento para estos productos."
@@ -105,12 +110,16 @@ public class CuponService {
         if (subtotalAplicable.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El cupón no aplica a los productos del carrito.");
         }
-        if (subtotalAplicable.compareTo(cupon.getMontoMinimo()) < 0) {
-            throw new IllegalArgumentException("El cupón requiere una compra mínima de S/ " + cupon.getMontoMinimo().setScale(2, RoundingMode.HALF_UP));
+
+        BigDecimal montoMinimo = monto(cupon.getMontoMinimo());
+        if (subtotalAplicable.compareTo(montoMinimo) < 0) {
+            throw new IllegalArgumentException("El cupón requiere una compra mínima de S/ " + montoMinimo.setScale(2, RoundingMode.HALF_UP));
         }
 
-        BigDecimal descuentoPorcentaje = subtotalAplicable.multiply(cupon.getPorcentaje()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-        BigDecimal descuento = descuentoPorcentaje.add(cupon.getMontoFijo()).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal porcentaje = monto(cupon.getPorcentaje());
+        BigDecimal montoFijo = monto(cupon.getMontoFijo());
+        BigDecimal descuentoPorcentaje = subtotalAplicable.multiply(porcentaje).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        BigDecimal descuento = descuentoPorcentaje.add(montoFijo).setScale(2, RoundingMode.HALF_UP);
         if (descuento.compareTo(subtotalAplicable) > 0) descuento = subtotalAplicable;
         if (descuento.compareTo(BigDecimal.ZERO) < 0) descuento = BigDecimal.ZERO;
 
@@ -120,7 +129,7 @@ public class CuponService {
     @Transactional
     public void registrarUso(Cupon cupon) {
         if (cupon == null) return;
-        cupon.setUsosActuales((cupon.getUsosActuales() == null ? 0 : cupon.getUsosActuales()) + 1);
+        cupon.setUsosActuales(entero(cupon.getUsosActuales()) + 1);
         cuponRepository.save(cupon);
     }
 
@@ -132,31 +141,33 @@ public class CuponService {
         uso.setCupon(cupon);
         uso.setUsuario(usuario);
         uso.setPedido(pedido);
-        uso.setDescuentoAplicado(descuento == null ? BigDecimal.ZERO : descuento);
+        uso.setDescuentoAplicado(monto(descuento));
         cuponUsoRepository.save(uso);
     }
 
     private BigDecimal calcularSubtotalAplicable(Cupon cupon, List<CuponDtos.AplicarCuponItemRequest> items) {
         if (items == null || items.isEmpty()) throw new IllegalArgumentException("El carrito está vacío");
         BigDecimal subtotal = BigDecimal.ZERO;
+        TipoCupon tipo = tipoSeguro(cupon);
         for (CuponDtos.AplicarCuponItemRequest item : items) {
-            if (item.productoId() == null || item.cantidad() == null || item.cantidad() <= 0) continue;
+            if (item == null || item.productoId() == null || item.cantidad() == null || item.cantidad() <= 0) continue;
             Producto producto = productoRepository.findById(item.productoId()).orElse(null);
             if (producto == null || !Boolean.TRUE.equals(producto.getActivo())) continue;
-            if (cupon.getTipo() == TipoCupon.VENDEDOR) {
+
+            if (tipo == TipoCupon.VENDEDOR) {
                 Long vendedorProductoId = producto.getVendedor() != null ? producto.getVendedor().getId() : null;
                 Long vendedorCuponId = cupon.getVendedor() != null ? cupon.getVendedor().getId() : null;
                 if (vendedorProductoId == null || vendedorCuponId == null || !vendedorProductoId.equals(vendedorCuponId)) continue;
             }
-            if (cupon.getTipo() == TipoCupon.CATEGORIA) {
+            if (tipo == TipoCupon.CATEGORIA) {
                 String categoria = cupon.getCategoriaObjetivo();
                 if (categoria == null || categoria.isBlank() || producto.getCategoria() == null || !producto.getCategoria().equalsIgnoreCase(categoria)) continue;
             }
-            if (cupon.getTipo() == TipoCupon.PRODUCTO) {
+            if (tipo == TipoCupon.PRODUCTO) {
                 Long productoObjetivoId = cupon.getProductoObjetivo() != null ? cupon.getProductoObjetivo().getId() : null;
                 if (productoObjetivoId == null || !productoObjetivoId.equals(producto.getId())) continue;
             }
-            subtotal = subtotal.add(producto.getPrecio().multiply(BigDecimal.valueOf(item.cantidad())));
+            subtotal = subtotal.add(monto(producto.getPrecio()).multiply(BigDecimal.valueOf(item.cantidad())));
         }
         return subtotal.setScale(2, RoundingMode.HALF_UP);
     }
@@ -173,19 +184,28 @@ public class CuponService {
         LocalDateTime ahora = LocalDateTime.now();
         if (cupon.getFechaInicio() != null && cupon.getFechaInicio().isAfter(ahora)) throw new IllegalArgumentException("El cupón todavía no está disponible");
         if (cupon.getFechaFin() != null && cupon.getFechaFin().isBefore(ahora)) throw new IllegalArgumentException("El cupón venció");
-        if (cupon.getUsosMaximos() != null && cupon.getUsosMaximos() > 0 && cupon.getUsosActuales() >= cupon.getUsosMaximos()) {
+        Integer usosMaximos = cupon.getUsosMaximos();
+        int usosActuales = entero(cupon.getUsosActuales());
+        if (usosMaximos != null && usosMaximos > 0 && usosActuales >= usosMaximos) {
             throw new IllegalArgumentException("El cupón alcanzó su límite de usos");
         }
     }
 
     private void aplicarDatos(Cupon cupon, AuthTokenService.TokenData actor, CuponDtos.CuponRequest request) {
         cupon.setDescripcion(limpiar(request.descripcion()));
-        cupon.setPorcentaje(normalizarMonto(request.porcentaje()));
-        cupon.setMontoFijo(normalizarMonto(request.montoFijo()));
-        cupon.setMontoMinimo(normalizarMonto(request.montoMinimo()));
+        cupon.setPorcentaje(monto(request.porcentaje()));
+        cupon.setMontoFijo(monto(request.montoFijo()));
+        cupon.setMontoMinimo(monto(request.montoMinimo()));
         cupon.setUsosMaximos(request.usosMaximos());
-        cupon.setFechaInicio(request.fechaInicio());
-        cupon.setFechaFin(request.fechaFin());
+        cupon.setUsosActuales(entero(cupon.getUsosActuales()));
+
+        LocalDateTime fechaInicio = request.fechaInicio() == null ? LocalDateTime.now() : request.fechaInicio();
+        LocalDateTime fechaFin = request.fechaFin() == null ? fechaInicio.plusDays(DURACION_PREDETERMINADA_DIAS) : request.fechaFin();
+        if (!fechaFin.isAfter(fechaInicio)) {
+            throw new IllegalArgumentException("La fecha de fin del cupón debe ser posterior a la fecha de inicio");
+        }
+        cupon.setFechaInicio(fechaInicio);
+        cupon.setFechaFin(fechaFin);
         cupon.setActivo(request.activo() == null || Boolean.TRUE.equals(request.activo()));
 
         if (cupon.getPorcentaje().compareTo(BigDecimal.ZERO) <= 0 && cupon.getMontoFijo().compareTo(BigDecimal.ZERO) <= 0) {
@@ -232,14 +252,14 @@ public class CuponService {
 
     private CuponDtos.CuponResponse toResponse(Cupon c) {
         return new CuponDtos.CuponResponse(
-                c.getId(), c.getCodigo(), c.getDescripcion(), c.getTipo(),
+                c.getId(), valor(c.getCodigo(), ""), valor(c.getDescripcion(), ""), tipoSeguro(c),
                 c.getVendedor() != null ? c.getVendedor().getId() : null,
                 c.getVendedor() != null ? c.getVendedor().getNombre() : null,
                 c.getCategoriaObjetivo(),
                 c.getProductoObjetivo() != null ? c.getProductoObjetivo().getId() : null,
                 c.getProductoObjetivo() != null ? c.getProductoObjetivo().getNombre() : null,
-                c.getPorcentaje(), c.getMontoFijo(), c.getMontoMinimo(), c.getUsosMaximos(), c.getUsosActuales(),
-                c.getFechaInicio(), c.getFechaFin(), c.getActivo()
+                monto(c.getPorcentaje()), monto(c.getMontoFijo()), monto(c.getMontoMinimo()), c.getUsosMaximos(), entero(c.getUsosActuales()),
+                c.getFechaInicio(), c.getFechaFin(), Boolean.TRUE.equals(c.getActivo())
         );
     }
 
@@ -252,13 +272,21 @@ public class CuponService {
                 uso.getUsuario() != null ? uso.getUsuario().getNombre() : "Cliente",
                 uso.getPedido() != null ? uso.getPedido().getId() : null,
                 uso.getPedido() != null ? uso.getPedido().getCodigo() : null,
-                uso.getDescuentoAplicado(),
+                monto(uso.getDescuentoAplicado()),
                 uso.getFecha()
         );
     }
 
-    private BigDecimal normalizarMonto(BigDecimal valor) {
-        return valor == null ? BigDecimal.ZERO : valor.setScale(2, RoundingMode.HALF_UP);
+    private BigDecimal monto(BigDecimal valor) {
+        return valor == null ? BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP) : valor.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private int entero(Integer valor) {
+        return valor == null ? 0 : valor;
+    }
+
+    private TipoCupon tipoSeguro(Cupon cupon) {
+        return cupon == null || cupon.getTipo() == null ? TipoCupon.GLOBAL : cupon.getTipo();
     }
 
     private String normalizarCodigo(String codigo) {
@@ -268,6 +296,10 @@ public class CuponService {
 
     private String limpiar(String valor) {
         return valor == null || valor.isBlank() ? "" : valor.trim();
+    }
+
+    private String valor(String valor, String defecto) {
+        return valor == null || valor.isBlank() ? defecto : valor;
     }
 
     public record CalculoCupon(Cupon cupon, BigDecimal subtotalAplicable, BigDecimal descuento) {}

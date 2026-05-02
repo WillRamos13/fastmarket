@@ -100,7 +100,7 @@ public class CarritoService {
                 List<CuponDtos.AplicarCuponItemRequest> itemsCupon = items.stream()
                         .map(i -> new CuponDtos.AplicarCuponItemRequest(i.productoId(), i.cantidad()))
                         .toList();
-                descuento = cuponService.calcularDescuento(carrito.getCuponCodigo(), itemsCupon).descuento();
+                descuento = cuponService.calcularDescuento(carrito.getCuponCodigo(), itemsCupon, carrito.getUsuario().getId()).descuento();
             } catch (RuntimeException ignored) {
                 descuento = BigDecimal.ZERO;
             }

@@ -49,7 +49,18 @@ public class CuponController {
     }
 
     @PostMapping("/aplicar")
-    public CuponDtos.AplicarCuponResponse aplicar(@RequestBody CuponDtos.AplicarCuponRequest request) {
-        return cuponService.aplicar(request);
+    public CuponDtos.AplicarCuponResponse aplicar(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestBody CuponDtos.AplicarCuponRequest request
+    ) {
+        Long usuarioId = null;
+        if (authorization != null && !authorization.isBlank()) {
+            try {
+                usuarioId = authTokenService.validar(authorization).usuarioId();
+            } catch (SecurityException ignored) {
+                usuarioId = null;
+            }
+        }
+        return cuponService.aplicar(request, usuarioId);
     }
 }

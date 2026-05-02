@@ -201,6 +201,11 @@ const FastMarket = (() => {
         try { return leerJSONStorage(localStorage, STORAGE.cupon, "fashmarket_cupon", null); } catch { return null; }
     }
 
+
+    async function obtenerConfigPublica() {
+        return request("/config/public");
+    }
+
     async function obtenerCarrito() {
         const usuario = getCliente();
         if (!usuario) return { items: obtenerCarritoLocal(), cuponCodigo: obtenerCuponLocal()?.codigo || null, invitado: true };
@@ -516,6 +521,7 @@ const FastMarket = (() => {
         escapeHTML,
         notify,
         confirmAction,
+        obtenerConfigPublica,
         obtenerCarrito,
         sincronizarCarrito,
         limpiarCarritoUsuario,

@@ -1,5 +1,6 @@
 package com.fashmarket.api.controller;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -36,9 +37,17 @@ public class ApiExceptionHandler {
         return ResponseEntity.badRequest().body(Map.of("error", mensaje));
     }
 
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<Map<String, String>> manejarBaseDatos(DataAccessException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "error", "La base de datos no está actualizada. Ejecuta las migraciones pendientes, especialmente MIGRACION_QA_19_CONEXIONES_NEGOCIO.sql, y vuelve a desplegar.",
+                "detalle", ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage()
+        ));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> manejarGeneral(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Error interno del servidor", "detalle", ex.getMessage()));
+                .body(Map.of("error", "Error interno del servidor", "detalle", ex.getMessage() == null ? "Sin detalle" : ex.getMessage()));
     }
 }

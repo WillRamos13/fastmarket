@@ -26,33 +26,35 @@ public class PedidoService {
     private final CuponService cuponService;
     private final PedidoHistorialRepository pedidoHistorialRepository;
     private final CarritoService carritoService;
+    private final SystemConfigService systemConfigService;
 
-    public PedidoService(PedidoRepository pedidoRepository, ProductoRepository productoRepository, UsuarioRepository usuarioRepository, CuponService cuponService, PedidoHistorialRepository pedidoHistorialRepository, CarritoService carritoService) {
+    public PedidoService(PedidoRepository pedidoRepository, ProductoRepository productoRepository, UsuarioRepository usuarioRepository, CuponService cuponService, PedidoHistorialRepository pedidoHistorialRepository, CarritoService carritoService, SystemConfigService systemConfigService) {
         this.pedidoRepository = pedidoRepository;
         this.productoRepository = productoRepository;
         this.usuarioRepository = usuarioRepository;
         this.cuponService = cuponService;
         this.pedidoHistorialRepository = pedidoHistorialRepository;
         this.carritoService = carritoService;
+        this.systemConfigService = systemConfigService;
     }
 
     public Page<PedidoDtos.PedidoResponse> listarPaginado(AuthTokenService.TokenData actor, int page, int size) {
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), 100), Sort.by(Sort.Direction.DESC, "fecha"));
         if (actor.rol() == Rol.VENDEDOR) {
-            return pedidoRepository.findByVendedorId(actor.usuarioId(), pageable).map(DtoMapper::toPedidoResponse);
+            return pedidoRepository.findByVendedorId(actor.usuarioId(), pageable).map(p -> DtoMapper.toPedidoResponse(p, actor.usuarioId()));
         }
         return pedidoRepository.findAll(pageable).map(DtoMapper::toPedidoResponse);
     }
 
     public List<PedidoDtos.PedidoResponse> listar(AuthTokenService.TokenData actor) {
         if (actor.rol() == Rol.VENDEDOR) {
-            return pedidoRepository.findByVendedorIdOrderByFechaDesc(actor.usuarioId()).stream().map(DtoMapper::toPedidoResponse).toList();
+            return pedidoRepository.findByVendedorIdOrderByFechaDesc(actor.usuarioId()).stream().map(p -> DtoMapper.toPedidoResponse(p, actor.usuarioId())).toList();
         }
         return pedidoRepository.findAllByOrderByFechaDesc().stream().map(DtoMapper::toPedidoResponse).toList();
     }
 
     public List<PedidoDtos.PedidoResponse> listarPorVendedor(Long vendedorId) {
-        return pedidoRepository.findByVendedorIdOrderByFechaDesc(vendedorId).stream().map(DtoMapper::toPedidoResponse).toList();
+        return pedidoRepository.findByVendedorIdOrderByFechaDesc(vendedorId).stream().map(p -> DtoMapper.toPedidoResponse(p, vendedorId)).toList();
     }
 
     public List<PedidoDtos.PedidoResponse> listarPorUsuario(Long usuarioId) {
@@ -119,8 +121,7 @@ public class PedidoService {
             subtotalPedido = subtotalPedido.add(subtotalItem);
         }
 
-        BigDecimal costoEnvio = request.costoEnvio() == null ? BigDecimal.ZERO : request.costoEnvio();
-        if (costoEnvio.compareTo(BigDecimal.ZERO) < 0) costoEnvio = BigDecimal.ZERO;
+        BigDecimal costoEnvio = calcularCostoEnvio(subtotalPedido);
 
         BigDecimal descuento = BigDecimal.ZERO;
         if (request.cuponCodigo() != null && !request.cuponCodigo().isBlank()) {
@@ -157,8 +158,7 @@ public class PedidoService {
     public PedidoDtos.PedidoResponse actualizarEstado(AuthTokenService.TokenData actor, Long id, EstadoPedido estado) {
         Pedido pedido = pedidoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
         if (actor.rol() == Rol.VENDEDOR) {
-            boolean pertenece = pedido.getItems().stream().anyMatch(i -> i.getVendedor() != null && i.getVendedor().getId().equals(actor.usuarioId()));
-            if (!pertenece) throw new SecurityException("No autorizado para actualizar este pedido");
+            throw new SecurityException("El vendedor no puede cambiar el estado general del pedido. El administrador controla el estado completo.");
         }
         EstadoPedido anterior = pedido.getEstado();
         if (anterior == estado) {
@@ -169,6 +169,15 @@ public class PedidoService {
         Usuario actorUsuario = usuarioRepository.findById(actor.usuarioId()).orElse(null);
         registrarHistorial(guardado, anterior, estado, actorUsuario, "Cambio de estado");
         return DtoMapper.toPedidoResponse(guardado);
+    }
+
+
+    private BigDecimal calcularCostoEnvio(BigDecimal subtotalPedido) {
+        BigDecimal costoConfigurado = systemConfigService.obtenerDecimal(SystemConfigService.COSTO_ENVIO, new BigDecimal("8.00"));
+        if (costoConfigurado.compareTo(BigDecimal.ZERO) < 0) return BigDecimal.ZERO;
+        // Regla básica: envío gratis desde S/ 250.00. Puede cambiarse luego a configuración avanzada.
+        if (subtotalPedido != null && subtotalPedido.compareTo(new BigDecimal("250.00")) >= 0) return BigDecimal.ZERO;
+        return costoConfigurado;
     }
 
     private void registrarHistorial(Pedido pedido, EstadoPedido anterior, EstadoPedido nuevo, Usuario actor, String motivo) {

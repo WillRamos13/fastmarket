@@ -184,7 +184,7 @@ async function cargarProductos() {
         if (filtroVendedorProductos !== "todos") {
             const lista = await FastMarket.request(filtroVendedorProductos === "general" ? "/productos?incluirInactivos=true" : `/productos?vendedorId=${Number(filtroVendedorProductos)}`, { auth: true });
             productos = Array.isArray(lista) ? lista.filter((p) => p.activo !== false) : [];
-            if (filtroVendedorProductos === "general") productos = productos.filter((p) => !p.vendedor?.id);
+            if (filtroVendedorProductos === "general") productos = productos.filter((p) => !p.vendedorId);
             adminPages.productos.totalPages = 1;
             adminPages.productos.page = 0;
         } else {
@@ -248,7 +248,7 @@ function pintarProductos() {
                 <span class="${p.oferta ? "estado-oferta" : "estado-normal"}">${p.oferta ? "Oferta" : "Normal"}</span>
                 ${p.destacado ? `<br><small>Destacado</small>` : ""}
             </td>
-            <td>${FastMarket.escapeHTML(p.vendedor?.nombre || "Tienda")}</td>
+            <td>${FastMarket.escapeHTML(p.vendedorNombre || "Tienda")}</td>
             <td>
                 <button class="btn-editar" data-editar-producto="${p.id}">Editar</button>
                 <button class="btn-eliminar" data-eliminar-producto="${p.id}">Eliminar</button>
@@ -308,7 +308,7 @@ function editarProducto(id) {
     setValue("descripcion", p.descripcion || "");
     setChecked("oferta", !!p.oferta);
     setChecked("destacado", !!p.destacado);
-    setValue("producto-vendedor", p.vendedor?.id || "");
+    setValue("producto-vendedor", p.vendedorId || "");
     setText("titulo-form", "Editar producto");
 
     const preview = document.getElementById("preview-producto");
@@ -737,7 +737,7 @@ function pintarVendedoresAdmin() {
     const lista = vendedores.length ? vendedores : usuarios.filter((u) => u.rol === "VENDEDOR");
     cont.innerHTML = lista.length ? "" : `<div class="banner-card-admin"><h3>No hay vendedores registrados.</h3><p>Crea un usuario con rol VENDEDOR desde Usuarios y administradores.</p></div>`;
     lista.forEach((v) => {
-        const prods = productos.filter((p) => p.vendedor?.id === v.id);
+        const prods = productos.filter((p) => Number(p.vendedorId) === Number(v.id));
         const pedidosVend = pedidos.filter((p) => (p.items || []).some((i) => prods.some((prod) => prod.id === i.productoId)));
         const card = document.createElement("article");
         card.className = "vendedor-card-admin";
@@ -807,7 +807,7 @@ function pintarCupones() {
     if (!tbody) return;
     const texto = document.getElementById("buscar-cupon")?.value.toLowerCase().trim() || "";
     const lista = cupones.filter((c) => `${c.codigo} ${c.descripcion} ${c.tipo} ${c.vendedorNombre || ""}`.toLowerCase().includes(texto));
-    tbody.innerHTML = lista.length ? "" : `<tr><td colspan="6">No hay cupones.</td></tr>`;
+    tbody.innerHTML = lista.length ? "" : `<tr><td colspan="7">No hay cupones.</td></tr>`;
     lista.forEach((c) => {
         const descuento = `${Number(c.porcentaje || 0) > 0 ? `${c.porcentaje}%` : ""}${Number(c.montoFijo || 0) > 0 ? ` S/ ${Number(c.montoFijo).toFixed(2)}` : ""}`.trim();
         const tr = document.createElement("tr");
@@ -815,11 +815,27 @@ function pintarCupones() {
             <td><strong>${FastMarket.escapeHTML(c.codigo)}</strong><br><small>${FastMarket.escapeHTML(c.descripcion || "")}</small></td>
             <td>${descripcionTipoCupon(c)}</td>
             <td>${descuento || "-"}<br><small>Mín: ${FastMarket.money(c.montoMinimo || 0)}</small></td>
+            <td>${vigenciaCupon(c)}</td>
             <td>${c.usosActuales || 0}${c.usosMaximos ? `/${c.usosMaximos}` : ""}</td>
             <td><span class="${c.activo ? "estado-activo" : "estado-inactivo"}">${c.activo ? "Activo" : "Inactivo"}</span></td>
             <td><button class="btn-editar" data-editar-cupon="${c.id}">Editar</button><button class="btn-secundario" data-usos-cupon="${c.id}">Usos</button><button class="btn-eliminar" data-eliminar-cupon="${c.id}">Eliminar</button></td>`;
         tbody.appendChild(tr);
     });
+}
+
+
+function vigenciaCupon(c) {
+    const inicio = c.fechaInicio ? fecha(c.fechaInicio) : "Ahora";
+    const fin = c.fechaFin ? fecha(c.fechaFin) : "30 días por defecto";
+    return `<small>${FastMarket.escapeHTML(inicio)}<br>hasta ${FastMarket.escapeHTML(fin)}</small>`;
+}
+
+function toDatetimeLocal(valor) {
+    if (!valor) return "";
+    const d = new Date(valor);
+    if (Number.isNaN(d.getTime())) return "";
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function descripcionTipoCupon(c) {
@@ -859,6 +875,8 @@ async function guardarCupon(e) {
         montoFijo: Number(value("cupon-monto") || 0),
         montoMinimo: Number(value("cupon-minimo") || 0),
         usosMaximos: value("cupon-usos") ? Number(value("cupon-usos")) : null,
+        fechaInicio: value("cupon-inicio") || null,
+        fechaFin: value("cupon-fin") || null,
         activo: checked("cupon-activo")
     };
     if (!payload.codigo) return toast("Ingresa el código del cupón.");
@@ -887,6 +905,8 @@ function editarCupon(id) {
     setValue("cupon-monto", c.montoFijo || "");
     setValue("cupon-minimo", c.montoMinimo || "");
     setValue("cupon-usos", c.usosMaximos || "");
+    setValue("cupon-inicio", toDatetimeLocal(c.fechaInicio));
+    setValue("cupon-fin", toDatetimeLocal(c.fechaFin));
     setChecked("cupon-activo", !!c.activo);
     setText("titulo-form-cupon", "Editar cupón");
     actualizarVisibilidadCuponVendedor();
@@ -920,6 +940,8 @@ function limpiarCupon() {
     document.getElementById("form-cupon")?.reset();
     setValue("cupon-id", "");
     setValue("cupon-tipo", usuarioActual?.rol === "VENDEDOR" ? "VENDEDOR" : "GLOBAL");
+    setValue("cupon-inicio", "");
+    setValue("cupon-fin", "");
     setChecked("cupon-activo", true);
     setText("titulo-form-cupon", "Agregar cupón");
     actualizarVisibilidadCuponVendedor();

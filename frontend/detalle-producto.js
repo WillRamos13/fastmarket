@@ -14,6 +14,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     await cargarProducto();
 });
 
+
+function normalizarItemCarrito(item) {
+    return {
+        id: Number(item.productoId || item.id),
+        nombre: item.nombre || "Producto",
+        precio: Number(item.precio || 0),
+        imagen: item.imagen || "img/logo.png",
+        stock: Number(item.stockDisponible ?? item.stock ?? 0),
+        cantidad: Number(item.cantidad || 1)
+    };
+}
+
+async function obtenerCarritoActual() {
+    try {
+        const data = await FastMarket.obtenerCarrito();
+        return (data.items || []).map(normalizarItemCarrito);
+    } catch {
+        return JSON.parse(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fashmarket_carrito") || "[]").map(normalizarItemCarrito);
+    }
+}
+
 async function cargarProducto() {
     const id = new URLSearchParams(window.location.search).get("id");
     const mensaje = document.getElementById("mensaje-detalle");
@@ -71,7 +92,7 @@ function cambiarCantidad(valor) {
 async function agregarCarrito(irCheckout) {
     if (!productoActual) return;
 
-    let carrito = JSON.parse(localStorage.getItem("fastmarket_carrito")) || [];
+    let carrito = await obtenerCarritoActual();
     const existente = carrito.find((item) => Number(item.id) === Number(productoActual.id));
     const actual = existente ? existente.cantidad : 0;
 

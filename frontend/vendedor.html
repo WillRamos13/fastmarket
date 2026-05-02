@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Vendedor | FastMarket</title>
-    <link rel="stylesheet" href="vendedor.css">
     <link rel="stylesheet" href="qa-upgrade.css">
+    <link rel="stylesheet" href="vendedor.css">
 </head>
 <body>
     <aside class="vendor-sidebar">
@@ -148,6 +148,12 @@
                         <div><label>Compra mínima</label><input id="vc-minimo" type="number" step="0.01" placeholder="0.00"></div>
                         <div><label>Límite de usos</label><input id="vc-usos" type="number" placeholder="Sin límite"></div>
                     </div>
+
+                    <div class="form-grid-2">
+                        <div><label>Inicio del cupón</label><input id="vc-inicio" type="datetime-local"></div>
+                        <div><label>Fin del cupón</label><input id="vc-fin" type="datetime-local"><small class="texto-ayuda">Vacío = 30 días.</small></div>
+                    </div>
+
                     <label class="check-line"><input id="vc-activo" type="checkbox" checked> Cupón activo</label>
                     <div class="button-row">
                         <button type="submit">Guardar cupón</button>
@@ -158,7 +164,7 @@
                     <div class="table-tools"><input id="vc-buscar" type="text" placeholder="Buscar cupón..."></div>
                     <div class="table-wrap">
                         <table>
-                            <thead><tr><th>Código</th><th>Descuento</th><th>Usos</th><th>Estado</th><th>Acciones</th></tr></thead>
+                            <thead><tr><th>Código</th><th>Descuento</th><th>Vigencia</th><th>Usos</th><th>Estado</th><th>Acciones</th></tr></thead>
                             <tbody id="vc-tabla"></tbody>
                         </table>
                     </div>
