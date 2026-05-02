@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     activarIndex();
     activarPowerBI();
     configurarPermisosPanel();
+    marcarMenuActivo("panel-inicio");
 
     await cargarTodo();
 });
@@ -129,7 +130,14 @@ function mostrarPanel(id) {
     document.querySelectorAll(".panel-admin").forEach((panel) => panel.classList.remove("activo"));
     document.getElementById(id)?.classList.add("activo");
     document.getElementById("opciones-admin")?.classList.remove("activo");
+    marcarMenuActivo(id);
     window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function marcarMenuActivo(id) {
+    document.querySelectorAll("#opciones-admin [data-panel]").forEach((btn) => {
+        btn.classList.toggle("activo", btn.dataset.panel === id);
+    });
 }
 
 /* PRODUCTOS */

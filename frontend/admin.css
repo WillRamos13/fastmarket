@@ -1421,3 +1421,535 @@ body {
     .admin-layout { grid-template-columns: 1fr; }
     .acciones-tabla { grid-template-columns: 1fr; }
 }
+
+/* =========================================================
+   QA-14: CORRECCIÓN VISUAL FINAL INTEGRADA EN admin.css
+   Antes estos estilos estaban en admin-pro.css. Ahora quedan
+   dentro de admin.css para evitar parches externos y mejorar
+   contraste, sidebar, panel inicial, formularios y tablas.
+   ========================================================= */
+/* QA-13: Corrección visual definitiva del panel administrador.
+   Este archivo carga al final para evitar que otros estilos dejen el menú ilegible. */
+
+:root {
+    --admin-bg: #f4f6fb;
+    --admin-sidebar: #0b1220;
+    --admin-sidebar-2: #111827;
+    --admin-orange: #fd6403;
+    --admin-orange-dark: #e25700;
+    --admin-text: #111827;
+    --admin-muted: #64748b;
+    --admin-border: #e5e7eb;
+    --admin-card: #ffffff;
+    --admin-shadow: 0 18px 45px rgba(15, 23, 42, .10);
+}
+
+html,
+body {
+    min-height: 100%;
+    background: var(--admin-bg) !important;
+    color: var(--admin-text) !important;
+    font-family: Arial, sans-serif !important;
+}
+
+body {
+    margin: 0 !important;
+    overflow-x: hidden;
+}
+
+/* SIDEBAR */
+body #header {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: 300px !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+    background: linear-gradient(180deg, var(--admin-sidebar), var(--admin-sidebar-2)) !important;
+    border-right: 1px solid rgba(255, 255, 255, .08) !important;
+    box-shadow: 20px 0 55px rgba(15, 23, 42, .22) !important;
+    backdrop-filter: none !important;
+}
+
+body #cabeza-admin {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    padding: 22px 18px !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 18px !important;
+}
+
+body #logo-admin {
+    width: 100% !important;
+    min-height: 64px !important;
+    padding: 12px 14px !important;
+    border-radius: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, .18) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .18) !important;
+}
+
+body #logo-admin img {
+    width: 120px !important;
+    max-height: 44px !important;
+    object-fit: contain !important;
+    display: block !important;
+}
+
+body #bienvenida-admin {
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    padding: 16px !important;
+    margin: 0 !important;
+    border-radius: 18px !important;
+    background: rgba(255, 255, 255, .09) !important;
+    border: 1px solid rgba(255, 255, 255, .12) !important;
+    color: #e2e8f0 !important;
+    text-align: left !important;
+    font-size: .96rem !important;
+    font-weight: 800 !important;
+    line-height: 1.4 !important;
+    white-space: normal !important;
+}
+
+body #nombre-admin {
+    display: block !important;
+    color: #fed7aa !important;
+    margin-top: 4px !important;
+    font-size: 1.03rem !important;
+}
+
+body #menu-admin {
+    position: static !important;
+    z-index: 1 !important;
+    display: flex !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+}
+
+body #btn-menu-admin {
+    display: none !important;
+}
+
+body #opciones-admin,
+body #opciones-admin.activo {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    flex: 1 !important;
+    padding: 2px 4px 10px 0 !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+body #opciones-admin a,
+body #opciones-admin button {
+    width: 100% !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    padding: 11px 14px !important;
+    margin: 0 !important;
+    border: 1px solid transparent !important;
+    border-radius: 14px !important;
+    background: transparent !important;
+    color: #dbeafe !important;
+    text-align: left !important;
+    text-decoration: none !important;
+    font-size: .94rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -.01em !important;
+    cursor: pointer !important;
+    transition: background .18s ease, color .18s ease, transform .18s ease, border-color .18s ease !important;
+}
+
+body #opciones-admin button::before,
+body #opciones-admin a::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: rgba(253, 100, 3, .65);
+    box-shadow: 0 0 0 3px rgba(253, 100, 3, .10);
+}
+
+body #opciones-admin a:hover,
+body #opciones-admin button:hover,
+body #opciones-admin button.activo {
+    background: var(--admin-orange) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, .14) !important;
+    transform: translateX(3px) !important;
+}
+
+body #opciones-admin a:hover::before,
+body #opciones-admin button:hover::before,
+body #opciones-admin button.activo::before {
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, .18);
+}
+
+body #cerrar-sesion {
+    margin-top: auto !important;
+    background: rgba(239, 68, 68, .15) !important;
+    color: #fecaca !important;
+    border-color: rgba(248, 113, 113, .28) !important;
+}
+
+body #cerrar-sesion:hover {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+}
+
+/* CONTENIDO */
+body #admin-main {
+    min-height: 100vh !important;
+    margin-left: 300px !important;
+    padding: 0 !important;
+    background:
+        radial-gradient(circle at 18% 0%, rgba(253, 100, 3, .08), transparent 28%),
+        linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%) !important;
+}
+
+body .panel-admin {
+    display: none !important;
+    min-height: 100vh !important;
+    padding: 34px clamp(22px, 4vw, 56px) !important;
+    background: transparent !important;
+    color: var(--admin-text) !important;
+}
+
+body .panel-admin.activo {
+    display: block !important;
+}
+
+body .titulo-section {
+    max-width: none !important;
+    margin: 0 0 24px 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+}
+
+body .titulo-section h2 {
+    margin: 0 0 8px !important;
+    color: #0f172a !important;
+    font-size: clamp(1.8rem, 3vw, 2.7rem) !important;
+    line-height: 1.1 !important;
+    letter-spacing: -.04em !important;
+}
+
+body .titulo-section p {
+    max-width: 920px !important;
+    margin: 0 !important;
+    color: var(--admin-muted) !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+}
+
+/* INICIO */
+body #panel-inicio {
+    background: transparent !important;
+    color: var(--admin-text) !important;
+}
+
+body .panel-bienvenida {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: clamp(28px, 4vw, 46px) !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(15, 23, 42, .08) !important;
+    border-radius: 28px !important;
+    box-shadow: var(--admin-shadow) !important;
+    color: var(--admin-text) !important;
+}
+
+body .panel-bienvenida .subtitulo {
+    display: inline-flex !important;
+    margin: 0 0 12px !important;
+    padding: 8px 12px !important;
+    border-radius: 999px !important;
+    background: #fff7ed !important;
+    color: var(--admin-orange-dark) !important;
+    font-weight: 900 !important;
+    font-size: .88rem !important;
+    letter-spacing: .02em !important;
+}
+
+body #panel-inicio h1,
+body .panel-bienvenida h1 {
+    display: block !important;
+    margin: 0 0 12px !important;
+    color: #0f172a !important;
+    font-size: clamp(2rem, 4vw, 3.6rem) !important;
+    line-height: 1.02 !important;
+    letter-spacing: -.05em !important;
+    font-weight: 900 !important;
+}
+
+body #panel-inicio p,
+body .panel-bienvenida p {
+    max-width: 860px !important;
+    margin: 0 !important;
+    color: #475569 !important;
+    font-size: 1.05rem !important;
+    line-height: 1.65 !important;
+}
+
+body .atajos-admin {
+    width: 100% !important;
+    margin-top: 30px !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+    gap: 16px !important;
+}
+
+body .atajo {
+    min-height: 150px !important;
+    padding: 22px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 22px !important;
+    background: #f8fafc !important;
+    color: var(--admin-text) !important;
+    box-shadow: none !important;
+    text-align: left !important;
+}
+
+body .atajo:hover {
+    transform: translateY(-4px) !important;
+    background: #ffffff !important;
+    border-color: rgba(253, 100, 3, .45) !important;
+    box-shadow: 0 18px 36px rgba(15, 23, 42, .10) !important;
+}
+
+body .atajo h3 {
+    margin: 0 0 8px !important;
+    color: #0f172a !important;
+    font-size: 1.04rem !important;
+    font-weight: 900 !important;
+}
+
+body .atajo h3::before {
+    content: "" !important;
+    display: inline-block !important;
+    width: 9px !important;
+    height: 9px !important;
+    border-radius: 999px !important;
+    margin-right: 9px !important;
+    background: var(--admin-orange) !important;
+}
+
+body .atajo p {
+    margin: 0 !important;
+    color: #64748b !important;
+    font-size: .95rem !important;
+    line-height: 1.5 !important;
+}
+
+/* FORMULARIOS, TABLAS Y TARJETAS */
+body form,
+body .tabla-contenedor,
+body .pedidos-contenedor,
+body .usuarios-contenedor,
+body .powerbi-contenedor,
+body .detalle-panel,
+body .banner-card-admin,
+body .vendedor-card-admin,
+body .card-estadistica {
+    background: #ffffff !important;
+    color: var(--admin-text) !important;
+    border: 1px solid rgba(15, 23, 42, .08) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 12px 34px rgba(15, 23, 42, .07) !important;
+}
+
+body form h3,
+body .tabla-contenedor h3,
+body .pedidos-contenedor h3,
+body .vendedor-card-admin h3,
+body .card-estadistica h3 {
+    color: #0f172a !important;
+}
+
+body label,
+body th {
+    color: #334155 !important;
+    font-weight: 900 !important;
+}
+
+body input,
+body select,
+body textarea {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #dbe3ef !important;
+}
+
+body input::placeholder,
+body textarea::placeholder {
+    color: #94a3b8 !important;
+}
+
+body table {
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 10px !important;
+}
+
+body thead th {
+    background: #f8fafc !important;
+    padding: 13px 12px !important;
+    color: #334155 !important;
+    text-align: left !important;
+    font-size: .86rem !important;
+}
+
+body tbody tr {
+    background: #ffffff !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .05) !important;
+}
+
+body tbody td {
+    padding: 13px 12px !important;
+    color: #334155 !important;
+    border: 0 !important;
+    vertical-align: middle !important;
+}
+
+body .acciones-tabla {
+    display: grid !important;
+    grid-template-columns: minmax(220px, 1fr) repeat(auto-fit, minmax(170px, 220px)) !important;
+    gap: 10px !important;
+    align-items: center !important;
+}
+
+body .admin-layout {
+    gap: 22px !important;
+    align-items: start !important;
+}
+
+body .paginacion-admin {
+    color: #334155 !important;
+}
+
+body .paginacion-admin button,
+body .btn-secundario,
+body .btn-editar,
+body #btn-guardar,
+body #btn-guardar-banner,
+body #btn-guardar-usuario,
+body #btn-guardar-cupon,
+body #btn-guardar-index,
+body #btn-guardar-powerbi {
+    border-radius: 13px !important;
+    font-weight: 900 !important;
+}
+
+body #btn-guardar,
+body #btn-guardar-banner,
+body #btn-guardar-usuario,
+body #btn-guardar-cupon,
+body #btn-guardar-index,
+body #btn-guardar-powerbi {
+    background: var(--admin-orange) !important;
+    color: #ffffff !important;
+    border: 0 !important;
+}
+
+body #btn-guardar:hover,
+body #btn-guardar-banner:hover,
+body #btn-guardar-usuario:hover,
+body #btn-guardar-cupon:hover,
+body #btn-guardar-index:hover,
+body #btn-guardar-powerbi:hover {
+    background: var(--admin-orange-dark) !important;
+}
+
+/* MOBILE */
+@media (max-width: 1050px) {
+    body #header {
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+    }
+
+    body #cabeza-admin {
+        padding: 14px !important;
+    }
+
+    body #opciones-admin,
+    body #opciones-admin.activo {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        overflow: visible !important;
+    }
+
+    body #admin-main {
+        margin-left: 0 !important;
+    }
+
+    body .panel-admin {
+        padding: 22px 14px !important;
+    }
+
+    body .admin-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    body .acciones-tabla {
+        grid-template-columns: 1fr !important;
+    }
+
+    body .tabla-scroll,
+    body .pedidos-contenedor {
+        overflow-x: auto !important;
+    }
+
+    body table {
+        min-width: 840px !important;
+    }
+}
+
+@media (max-width: 620px) {
+    body #opciones-admin,
+    body #opciones-admin.activo {
+        grid-template-columns: 1fr !important;
+    }
+
+    body .panel-bienvenida {
+        padding: 24px 18px !important;
+        border-radius: 22px !important;
+    }
+
+    body .atajos-admin {
+        grid-template-columns: 1fr !important;
+    }
+}
