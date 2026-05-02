@@ -8,16 +8,27 @@ let vendedores = [];
 let usuarioActual = null;
 const TIPOS_INDEX_PERMITIDOS = ["destacado", "promocion", "opinion", "ayuda"];
 const adminPages = { productos: { page: 0, size: 20, totalPages: 1 }, pedidos: { page: 0, size: 20, totalPages: 1 } };
+let filtroVendedorProductos = "todos";
+let filtroVendedorPedidos = "todos";
 
 document.addEventListener("DOMContentLoaded", async () => {
     const admin = FastMarket.getCliente();
-    if (!admin || !["ADMIN", "VENDEDOR"].includes(admin.rol)) {
-        FastMarket.notify("Debes iniciar sesión como administrador o vendedor.", "warning");
+    if (!admin) {
+        FastMarket.notify("Debes iniciar sesión.", "warning");
         window.location.href = "login.html";
         return;
     }
+    if (admin.rol === "VENDEDOR") {
+        window.location.href = "vendedor.html";
+        return;
+    }
+    if (admin.rol !== "ADMIN") {
+        FastMarket.notify("No tienes permisos para entrar al panel administrador.", "warning");
+        window.location.href = "productos.html";
+        return;
+    }
     usuarioActual = admin;
-    document.body.classList.toggle("modo-vendedor", admin.rol === "VENDEDOR");
+    document.body.classList.toggle("modo-vendedor", false);
     setText("nombre-admin", admin.nombre || (admin.rol === "VENDEDOR" ? "Vendedor" : "Administrador"));
     activarMenu();
     activarPaneles();
@@ -68,10 +79,48 @@ function activarMenu() {
 }
 
 function activarPaneles() {
-    document.addEventListener("click", (e) => {
+    document.addEventListener("click", async (e) => {
+        const productosVendor = e.target.closest("[data-ver-productos-vendedor]");
+        if (productosVendor) {
+            e.preventDefault();
+            filtroVendedorProductos = productosVendor.dataset.verProductosVendedor;
+            const select = document.getElementById("filtro-vendedor-productos");
+            if (select) select.value = filtroVendedorProductos;
+            adminPages.productos.page = 0;
+            await cargarProductos();
+            mostrarPanel("panel-productos");
+            return;
+        }
+
+        const pedidosVendor = e.target.closest("[data-ver-pedidos-vendedor]");
+        if (pedidosVendor) {
+            e.preventDefault();
+            filtroVendedorPedidos = pedidosVendor.dataset.verPedidosVendedor;
+            const select = document.getElementById("filtro-vendedor-pedidos");
+            if (select) select.value = filtroVendedorPedidos;
+            adminPages.pedidos.page = 0;
+            await cargarPedidos();
+            mostrarPanel("panel-ventas");
+            return;
+        }
+
         const btn = e.target.closest("[data-panel]");
         if (!btn) return;
         e.preventDefault();
+        if (btn.dataset.panel === "panel-productos") {
+            filtroVendedorProductos = "todos";
+            const select = document.getElementById("filtro-vendedor-productos");
+            if (select) select.value = "todos";
+            adminPages.productos.page = 0;
+            await cargarProductos();
+        }
+        if (btn.dataset.panel === "panel-ventas") {
+            filtroVendedorPedidos = "todos";
+            const select = document.getElementById("filtro-vendedor-pedidos");
+            if (select) select.value = "todos";
+            adminPages.pedidos.page = 0;
+            await cargarPedidos();
+        }
         mostrarPanel(btn.dataset.panel);
     });
 }
@@ -91,6 +140,27 @@ function activarProductos() {
     document.getElementById("imagen-producto")?.addEventListener("change", (e) => cargarImagen(e, "imagen-producto-valor", "preview-producto", "preview-producto-img"));
     document.getElementById("buscar-admin")?.addEventListener("input", pintarProductos);
     document.getElementById("filtro-categoria")?.addEventListener("change", pintarProductos);
+    document.getElementById("filtro-vendedor-productos")?.addEventListener("change", async (e) => {
+        filtroVendedorProductos = e.target.value || "todos";
+        adminPages.productos.page = 0;
+        await cargarProductos();
+    });
+    document.getElementById("btn-productos-generales")?.addEventListener("click", async () => {
+        filtroVendedorProductos = "general";
+        const select = document.getElementById("filtro-vendedor-productos");
+        if (select) select.value = "general";
+        adminPages.productos.page = 0;
+        await cargarProductos();
+        mostrarPanel("panel-productos");
+    });
+    document.getElementById("btn-productos-todos")?.addEventListener("click", async () => {
+        filtroVendedorProductos = "todos";
+        const select = document.getElementById("filtro-vendedor-productos");
+        if (select) select.value = "todos";
+        adminPages.productos.page = 0;
+        await cargarProductos();
+        mostrarPanel("panel-productos");
+    });
     document.getElementById("productos-prev")?.addEventListener("click", async () => { if (adminPages.productos.page > 0) { adminPages.productos.page--; await cargarProductos(); } });
     document.getElementById("productos-next")?.addEventListener("click", async () => { if (adminPages.productos.page + 1 < adminPages.productos.totalPages) { adminPages.productos.page++; await cargarProductos(); } });
     document.getElementById("tabla-productos")?.addEventListener("click", async (e) => {
@@ -103,16 +173,44 @@ function activarProductos() {
 
 async function cargarProductos() {
     try {
-        const page = await FastMarket.request(`/productos/page?page=${adminPages.productos.page}&size=${adminPages.productos.size}`, { auth: true });
-        productos = Array.isArray(page?.content) ? page.content.filter((p) => p.activo !== false) : [];
-        adminPages.productos.totalPages = Math.max(1, Number(page?.totalPages || 1));
-        adminPages.productos.page = Math.min(Number(page?.number || 0), adminPages.productos.totalPages - 1);
+        if (filtroVendedorProductos !== "todos") {
+            const lista = await FastMarket.request(filtroVendedorProductos === "general" ? "/productos?incluirInactivos=true" : `/productos?vendedorId=${Number(filtroVendedorProductos)}`, { auth: true });
+            productos = Array.isArray(lista) ? lista.filter((p) => p.activo !== false) : [];
+            if (filtroVendedorProductos === "general") productos = productos.filter((p) => !p.vendedor?.id);
+            adminPages.productos.totalPages = 1;
+            adminPages.productos.page = 0;
+        } else {
+            const page = await FastMarket.request(`/productos/page?page=${adminPages.productos.page}&size=${adminPages.productos.size}`, { auth: true });
+            productos = Array.isArray(page?.content) ? page.content.filter((p) => p.activo !== false) : [];
+            adminPages.productos.totalPages = Math.max(1, Number(page?.totalPages || 1));
+            adminPages.productos.page = Math.min(Number(page?.number || 0), adminPages.productos.totalPages - 1);
+        }
         actualizarPaginacion("productos");
+        actualizarTituloProductos();
         poblarSelectProductosCupon();
         pintarProductos();
     } catch (error) {
         toast(error.message);
     }
+}
+
+function actualizarTituloProductos() {
+    const titulo = document.getElementById("titulo-productos-admin");
+    const subtitulo = document.getElementById("subtitulo-productos-admin");
+    if (!titulo || !subtitulo) return;
+    if (filtroVendedorProductos === "todos") {
+        titulo.textContent = "Catálogo general de productos";
+        subtitulo.textContent = "Vista administrativa completa: productos de tienda y productos asignados a vendedores.";
+        return;
+    }
+    if (filtroVendedorProductos === "general") {
+        titulo.textContent = "Productos generales de la tienda";
+        subtitulo.textContent = "Solo productos propios de FastMarket, sin vendedor asignado.";
+        return;
+    }
+    const vendedor = vendedores.find((v) => Number(v.id) === Number(filtroVendedorProductos));
+    titulo.textContent = `Productos de ${vendedor?.nombre || "vendedor"}`;
+    subtitulo.textContent = "Vista filtrada: aquí solo aparecen los productos del vendedor seleccionado.";
 }
 
 function pintarProductos() {
@@ -355,6 +453,11 @@ function limpiarBanner() {
 /* PEDIDOS */
 
 function activarPedidos() {
+    document.getElementById("filtro-vendedor-pedidos")?.addEventListener("change", async (e) => {
+        filtroVendedorPedidos = e.target.value || "todos";
+        adminPages.pedidos.page = 0;
+        await cargarPedidos();
+    });
     document.getElementById("tabla-pedidos")?.addEventListener("change", async (e) => {
         const select = e.target.closest("[data-estado-pedido]");
         if (!select) return;
@@ -370,15 +473,36 @@ function activarPedidos() {
 
 async function cargarPedidos() {
     try {
-        const page = await FastMarket.request(`/pedidos/page?page=${adminPages.pedidos.page}&size=${adminPages.pedidos.size}`, { auth: true });
-        pedidos = Array.isArray(page?.content) ? page.content : [];
-        adminPages.pedidos.totalPages = Math.max(1, Number(page?.totalPages || 1));
-        adminPages.pedidos.page = Math.min(Number(page?.number || 0), adminPages.pedidos.totalPages - 1);
+        if (filtroVendedorPedidos !== "todos") {
+            pedidos = await FastMarket.request(`/pedidos/vendedor/${Number(filtroVendedorPedidos)}`, { auth: true });
+            adminPages.pedidos.totalPages = 1;
+            adminPages.pedidos.page = 0;
+        } else {
+            const page = await FastMarket.request(`/pedidos/page?page=${adminPages.pedidos.page}&size=${adminPages.pedidos.size}`, { auth: true });
+            pedidos = Array.isArray(page?.content) ? page.content : [];
+            adminPages.pedidos.totalPages = Math.max(1, Number(page?.totalPages || 1));
+            adminPages.pedidos.page = Math.min(Number(page?.number || 0), adminPages.pedidos.totalPages - 1);
+        }
         actualizarPaginacion("pedidos");
+        actualizarTituloPedidos();
         pintarPedidos();
     } catch (error) {
         toast(error.message);
     }
+}
+
+function actualizarTituloPedidos() {
+    const titulo = document.getElementById("titulo-pedidos-admin");
+    const subtitulo = document.getElementById("subtitulo-pedidos-admin");
+    if (!titulo || !subtitulo) return;
+    if (filtroVendedorPedidos === "todos") {
+        titulo.textContent = "Pedidos y ventas generales";
+        subtitulo.textContent = "Vista administrativa completa de pedidos registrados.";
+        return;
+    }
+    const vendedor = vendedores.find((v) => Number(v.id) === Number(filtroVendedorPedidos));
+    titulo.textContent = `Pedidos de ${vendedor?.nombre || "vendedor"}`;
+    subtitulo.textContent = "Vista filtrada: pedidos que contienen productos de este vendedor.";
 }
 
 function pintarPedidos() {
@@ -578,6 +702,18 @@ async function cargarVendedores() {
 }
 
 function llenarSelectVendedores() {
+    const filtroProductos = document.getElementById("filtro-vendedor-productos");
+    if (filtroProductos) {
+        const actual = filtroProductos.value || filtroVendedorProductos;
+        filtroProductos.innerHTML = `<option value="todos">Todos los productos</option><option value="general">Solo productos generales</option>` + vendedores.map((v) => `<option value="${v.id}">${FastMarket.escapeHTML(v.nombre)} - ${FastMarket.escapeHTML(v.correo || "")}</option>`).join("");
+        filtroProductos.value = actual || "todos";
+    }
+    const filtroPedidos = document.getElementById("filtro-vendedor-pedidos");
+    if (filtroPedidos) {
+        const actual = filtroPedidos.value || filtroVendedorPedidos;
+        filtroPedidos.innerHTML = `<option value="todos">Todos los pedidos</option>` + vendedores.map((v) => `<option value="${v.id}">${FastMarket.escapeHTML(v.nombre)} - ${FastMarket.escapeHTML(v.correo || "")}</option>`).join("");
+        filtroPedidos.value = actual || "todos";
+    }
     const selects = [document.getElementById("producto-vendedor"), document.getElementById("cupon-vendedor")].filter(Boolean);
     selects.forEach((select) => {
         const actual = select.value;
@@ -612,8 +748,8 @@ function pintarVendedoresAdmin() {
                 <br><br><strong>Pedidos</strong><br>${codigosPedidos}
             </div>
             <div class="banner-card-acciones">
-                <button class="btn-editar" data-panel="panel-productos">Ir a productos</button>
-                <button class="btn-editar" data-panel="panel-ventas">Ir a pedidos</button>
+                <button class="btn-editar" data-ver-productos-vendedor="${v.id}">Ver solo sus productos</button>
+                <button class="btn-editar" data-ver-pedidos-vendedor="${v.id}">Ver solo sus pedidos</button>
             </div>`;
         cont.appendChild(card);
     });

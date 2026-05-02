@@ -140,10 +140,9 @@
         <section id="panel-productos" class="panel-admin">
 
             <div class="titulo-section">
-                <h2>Gestión de productos</h2>
-                <p>
-                    Agrega nuevos productos, sube imágenes, actualiza precios,
-                    cambia stock, marca ofertas o elimina productos del catálogo.
+                <h2 id="titulo-productos-admin">Catálogo general de productos</h2>
+                <p id="subtitulo-productos-admin">
+                    Vista administrativa completa: productos de tienda y productos asignados a vendedores.
                 </p>
             </div>
 
@@ -229,7 +228,16 @@
                             <option value="accesorios">Accesorios</option>
                             <option value="estudio">Estudio</option>
                         </select>
+
+                        <select id="filtro-vendedor-productos">
+                            <option value="todos">Todos los productos</option>
+                            <option value="general">Solo productos generales</option>
+                        </select>
+
+                        <button type="button" id="btn-productos-todos" class="btn-secundario">Ver catálogo completo</button>
+                        <button type="button" id="btn-productos-generales" class="btn-secundario">Ver productos generales</button>
                     </div>
+
 
                     <div class="tabla-scroll">
                         <table>
@@ -319,11 +327,16 @@
         <section id="panel-ventas" class="panel-admin">
 
             <div class="titulo-section">
-                <h2>Revisar ventas</h2>
-                <p>Control básico de pedidos realizados por los clientes.</p>
+                <h2 id="titulo-pedidos-admin">Pedidos y ventas generales</h2>
+                <p id="subtitulo-pedidos-admin">Vista administrativa completa de pedidos registrados.</p>
             </div>
 
             <div class="pedidos-contenedor">
+                <div class="filtros-pedidos-admin">
+                    <select id="filtro-vendedor-pedidos">
+                        <option value="todos">Todos los pedidos</option>
+                    </select>
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -448,7 +461,7 @@
         <section id="panel-vendedores" class="panel-admin">
             <div class="titulo-section">
                 <h2>Equipo de vendedores</h2>
-                <p>Revisa cada vendedor, sus productos, ventas y pedidos relacionados.</p>
+                <p>Revisa cada vendedor, sus productos, ventas y pedidos relacionados. Los botones ahora filtran por vendedor y no muestran el catálogo completo.</p>
             </div>
             <div class="vendedores-grid" id="lista-vendedores-admin"></div>
         </section>

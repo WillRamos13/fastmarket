@@ -275,6 +275,7 @@ const FastMarket = (() => {
             PENDIENTE: "Pendiente",
             CONFIRMADO: "Confirmado",
             PREPARANDO: "Preparando",
+            EN_CAMINO: "En camino",
             CAMINO: "En camino",
             ENTREGADO: "Entregado",
             CANCELADO: "Cancelado"

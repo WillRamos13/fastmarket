@@ -232,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
             mostrarMensaje(mensajeRegistro, "Cuenta verificada correctamente. Redirigiendo...", "ok");
 
             setTimeout(() => {
-                window.location.href = ["ADMIN", "VENDEDOR"].includes(usuario.rol) ? "admin.html" : "productos.html";
+                window.location.href = usuario.rol === "ADMIN" ? "admin.html" : (usuario.rol === "VENDEDOR" ? "vendedor.html" : "productos.html");
             }, 700);
         } catch (error) {
             mostrarMensaje(mensajeRegistro, error.message || "No se pudo crear la cuenta.");
@@ -308,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
             mostrarMensaje(mensajeLogin, "Inicio de sesión correcto. Redirigiendo...", "ok");
 
             setTimeout(() => {
-                window.location.href = ["ADMIN", "VENDEDOR"].includes(usuario.rol) ? "admin.html" : "productos.html";
+                window.location.href = usuario.rol === "ADMIN" ? "admin.html" : (usuario.rol === "VENDEDOR" ? "vendedor.html" : "productos.html");
             }, 600);
         } catch (error) {
             mostrarMensaje(mensajeLogin, error.message || "Correo o contraseña incorrectos.");
