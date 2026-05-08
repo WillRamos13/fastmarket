@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle de producto | FastMarket</title>
+    <link rel="stylesheet" href="estilos-globales.css">
     <link rel="stylesheet" href="detalle-producto.css">
-    <link rel="stylesheet" href="qa-upgrade.css">
 </head>
 
 <body>
 
     <header id="header">
         <div id="cabeza">
-            <a href="index.html">
+            <a href="index.html" class="logo-link">
                 <img class="barra" src="img/logo.png" id="logo" alt="Logo FastMarket">
             </a>
 
@@ -21,6 +21,7 @@
                     <li class="barra"><a href="index.html">Inicio</a></li>
                     <li class="barra"><a href="productos.html">Productos</a></li>
                     <li class="barra"><a href="nosotros.html">Nosotros</a></li>
+                    <li class="barra"><a href="index.html#ofertas">Ofertas</a></li>
                     <li class="barra"><a href="#pie-de-pagina">Contacto</a></li>
 
                     <li class="barra" id="busqueda">
@@ -29,7 +30,7 @@
                     </li>
 
                     <li class="barra" id="carrito">
-                        <a href="productos.html">
+                        <a href="productos.html" aria-label="Carrito de compras">
                             <img class="icono-menu" src="img/carrito.png" alt="Carrito">
                         </a>
                     </li>
@@ -58,114 +59,143 @@
 
     <main id="detalle-main">
 
+        <div class="ruta-producto">
+            <a href="index.html">Inicio</a>
+            <span>&gt;</span>
+            <a href="productos.html">Productos</a>
+            <span>&gt;</span>
+            <strong id="ruta-nombre">Producto</strong>
+        </div>
+
         <section id="detalle-producto">
 
-            <div id="imagen-producto">
-                <img id="producto-img" src="img/logo.png" alt="Producto">
-                <span id="etiqueta-oferta" class="oculto">Oferta</span>
+            <div id="galeria-producto">
+                <div id="miniaturas-producto"></div>
+
+                <div id="imagen-producto">
+                    <img id="producto-img" src="img/logo.png" alt="Producto">
+                    <span id="etiqueta-oferta" class="oculto">Oferta</span>
+                </div>
             </div>
 
             <div id="info-producto">
-                <p id="producto-categoria">Categoría</p>
                 <h1 id="producto-nombre">Producto</h1>
-                <p id="producto-descripcion">Descripción del producto.</p>
+
+                <div class="valoracion-producto">
+                    <span class="estrellas">★★★★★</span>
+                    <span id="producto-resenas">(128 reseñas)</span>
+                </div>
 
                 <div id="precio-producto">
                     <strong id="producto-precio">S/ 0.00</strong>
                     <span id="producto-precio-antes"></span>
                 </div>
 
-                <div id="cantidad-box">
-                    <button id="restar">-</button>
-                    <span id="cantidad">1</span>
-                    <button id="sumar">+</button>
-                </div>
+                <p id="producto-descripcion">Descripción del producto.</p>
 
-                <button id="agregar-carrito">Agregar al carrito</button>
-                <button id="comprar-ahora">Comprar ahora</button>
+                <ul id="caracteristicas-producto">
+                    <li>Conexión rápida y estable</li>
+                    <li>Diseño cómodo para uso diario</li>
+                    <li>Producto revisado antes del envío</li>
+                    <li>Atención disponible para consultas</li>
+                </ul>
+
+                <p id="producto-stock" class="stock-disponible">En stock</p>
+
+                <div class="compra-producto">
+                    <div id="cantidad-box">
+                        <button id="restar" type="button">−</button>
+                        <span id="cantidad">1</span>
+                        <button id="sumar" type="button">+</button>
+                    </div>
+
+                    <button id="agregar-carrito" type="button">🛒 Agregar al carrito</button>
+                    <button id="comprar-ahora" type="button">Comprar ahora</button>
+                </div>
 
                 <p id="mensaje-detalle"></p>
-
-                <div id="beneficios-producto">
-                    <article>
-                        <h3>🚚 Envío rápido</h3>
-                        <p>Entrega coordinada dentro de Ica.</p>
-                    </article>
-
-                    <article>
-                        <h3>🔒 Compra segura</h3>
-                        <p>Pedido registrado en tu cuenta.</p>
-                    </article>
-
-                    <article>
-                        <h3>💬 Soporte</h3>
-                        <p>Consulta disponibilidad antes de comprar.</p>
-                    </article>
-                </div>
             </div>
 
-        </section>
+            <aside id="info-adicional">
+                <h2>Información adicional</h2>
 
-        <section id="relacionados-section">
-            <div class="titulo-section">
-                <h2>Productos relacionados</h2>
-                <p>También podrían interesarte estos productos.</p>
-            </div>
+                <dl>
+                    <div>
+                        <dt>Marca:</dt>
+                        <dd id="info-marca">FastMarket</dd>
+                    </div>
+                    <div>
+                        <dt>Modelo:</dt>
+                        <dd id="info-modelo">FM-001</dd>
+                    </div>
+                    <div>
+                        <dt>Color:</dt>
+                        <dd id="info-color">Según disponibilidad</dd>
+                    </div>
+                    <div>
+                        <dt>Garantía:</dt>
+                        <dd id="info-garantia">12 meses</dd>
+                    </div>
+                    <div>
+                        <dt>Categoría:</dt>
+                        <dd id="info-categoria">Categoría</dd>
+                    </div>
+                </dl>
+            </aside>
 
-            <div id="productos-relacionados"></div>
         </section>
 
     </main>
 
     <footer id="pie-de-pagina">
-            <div id="contactos-redes">
+        <div id="contactos-redes">
 
-                <div id="contactos-redes1">
-                    <h3 id="redes">Síguenos en</h3>
+            <div id="contactos-redes1">
+                <h3 id="redes">Síguenos en</h3>
 
-                    <nav class="redes nav-redes">
-                        <ul>
-                            <li class="redes">
-                                <a href="https://www.instagram.com/" target="_blank">
-                                    <img class="logo-redes" src="img/instagram.png" alt="Instagram"> Instagram
-                                </a>
-                            </li>
+                <nav class="redes nav-redes">
+                    <ul>
+                        <li class="redes">
+                            <a href="https://www.instagram.com/" target="_blank">
+                                <img class="logo-redes" src="img/instagram.png" alt="Instagram"> Instagram
+                            </a>
+                        </li>
 
-                            <li class="redes">
-                                <a href="https://www.facebook.com/?locale=es_LA" target="_blank">
-                                    <img class="logo-redes" src="img/facebook.png" alt="Facebook"> Facebook
-                                </a>
-                            </li>
+                        <li class="redes">
+                            <a href="https://www.facebook.com/?locale=es_LA" target="_blank">
+                                <img class="logo-redes" src="img/facebook.png" alt="Facebook"> Facebook
+                            </a>
+                        </li>
 
-                            <li class="redes">
-                                <a href="https://web.whatsapp.com/" target="_blank">
-                                    <img class="logo-redes" src="img/whatsapp.png" alt="WhatsApp"> WhatsApp
-                                </a>
-                            </li>
+                        <li class="redes">
+                            <a href="https://web.whatsapp.com/" target="_blank">
+                                <img class="logo-redes" src="img/whatsapp.png" alt="WhatsApp"> WhatsApp
+                            </a>
+                        </li>
 
-                            <li class="redes">
-                                <a href="https://www.tiktok.com/es-419/" target="_blank">
-                                    <img class="logo-redes" src="img/tiktok.png" alt="TikTok"> Tik Tok
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-
-                <div id="contactos-redes2">
-                    <h3 class="footer-titulo">Contacto</h3>
-
-                    <nav class="redes nav-redes contacto-footer">
-                        <ul>
-                            <li class="redes"><a href="https://www2.claro.com.pe/institucional/centro-de-prensa/ampliacion-sms/">📞 999999999</a></li>
-                            <li class="redes"><a href="https://mail.google.com/mail/u/0/#inbox">✉️ soporte@fastmarket.com</a></li>
-                            <li class="redes"><a href="https://maps.app.goo.gl/H98FeKnEgCrhqcXd9">📍 Ica, Perú</a></li>
-                        </ul>
-                    </nav>
-                </div>
-
+                        <li class="redes">
+                            <a href="https://www.tiktok.com/es-419/" target="_blank">
+                                <img class="logo-redes" src="img/tiktok.png" alt="Tik Tok"> Tik Tok
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
-        </footer>
+
+            <div id="contactos-redes2">
+                <h3 class="footer-titulo">Contacto</h3>
+
+                <nav class="redes nav-redes contacto-footer">
+                    <ul>
+                        <li class="redes"><a href="https://www2.claro.com.pe/institucional/centro-de-prensa/ampliacion-sms/">📞 999999999</a></li>
+                        <li class="redes"><a href="https://mail.google.com/mail/u/0/#inbox">✉️ FastMarket@gmail.com</a></li>
+                        <li class="redes"><a href="https://maps.app.goo.gl/H98FeKnEgCrhqcXd9">📍 Ica, Perú</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </footer>
 
     <div id="toast"></div>
 

@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     await cargarProducto();
 });
 
-
 function normalizarItemCarrito(item) {
     return {
         id: Number(item.productoId || item.id),
@@ -49,6 +48,7 @@ async function cargarProducto() {
         const todos = await FastMarket.request("/productos");
         relacionados = todos.filter((p) => Number(p.id) !== Number(id));
         pintarProducto();
+        pintarMiniaturas();
         pintarRelacionados();
     } catch (error) {
         if (mensaje) mensaje.textContent = error.message;
@@ -58,28 +58,95 @@ async function cargarProducto() {
 function pintarProducto() {
     if (!productoActual) return;
 
+    const imagen = productoActual.imagen || "img/logo.png";
     const img = document.getElementById("producto-img");
     if (img) {
-        img.src = productoActual.imagen || "img/logo.png";
+        img.src = imagen;
+        img.alt = productoActual.nombre || "Producto";
         img.onerror = () => img.src = "img/logo.png";
     }
 
-    setText("producto-categoria", productoActual.categoria);
-    setText("producto-nombre", productoActual.nombre);
-    setText("producto-descripcion", productoActual.descripcion);
+    setText("ruta-nombre", productoActual.nombre || "Producto");
+    setText("producto-nombre", productoActual.nombre || "Producto");
+    setText("producto-descripcion", productoActual.descripcion || "Producto disponible en FastMarket.");
     setText("producto-precio", FastMarket.money(productoActual.precio));
     setText("producto-precio-antes", productoActual.precioAntes ? FastMarket.money(productoActual.precioAntes) : "");
+    setText("info-marca", "FastMarket");
+    setText("info-modelo", `FM-${String(productoActual.id || 1).padStart(3, "0")}`);
+    setText("info-color", obtenerColorPorCategoria(productoActual.categoria));
+    setText("info-garantia", "12 meses");
+    setText("info-categoria", productoActual.categoria || "General");
+
+    pintarCaracteristicas();
 
     const etiqueta = document.getElementById("etiqueta-oferta");
     if (etiqueta) etiqueta.classList.toggle("oculto", !productoActual.oferta);
 
     const agregar = document.getElementById("agregar-carrito");
     const comprar = document.getElementById("comprar-ahora");
-    const sinStock = Number(productoActual.stock || 0) <= 0;
+    const stock = Number(productoActual.stock || 0);
+    const sinStock = stock <= 0;
 
     if (agregar) agregar.disabled = sinStock;
     if (comprar) comprar.disabled = sinStock;
+
+    const stockEl = document.getElementById("producto-stock");
+    if (stockEl) {
+        stockEl.className = sinStock ? "stock-agotado" : "stock-disponible";
+        stockEl.textContent = sinStock ? "Sin stock" : "En stock";
+    }
+
     if (sinStock) setText("mensaje-detalle", "Producto sin stock disponible.");
+}
+
+function pintarMiniaturas() {
+    const contenedor = document.getElementById("miniaturas-producto");
+    const imagenPrincipal = document.getElementById("producto-img");
+    if (!contenedor || !imagenPrincipal || !productoActual) return;
+
+    const imagen = productoActual.imagen || "img/logo.png";
+    const imagenes = [imagen, imagen, imagen, imagen];
+
+    contenedor.innerHTML = imagenes.map((src, index) => `
+        <button class="miniatura-producto ${index === 0 ? "activa" : ""}" type="button" aria-label="Imagen ${index + 1}">
+            <img src="${FastMarket.escapeHTML(src)}" alt="${FastMarket.escapeHTML(productoActual.nombre || "Producto")}" onerror="this.src='img/logo.png'">
+        </button>
+    `).join("");
+
+    contenedor.querySelectorAll(".miniatura-producto").forEach((boton, index) => {
+        boton.addEventListener("click", () => {
+            contenedor.querySelectorAll(".miniatura-producto").forEach((item) => item.classList.remove("activa"));
+            boton.classList.add("activa");
+            imagenPrincipal.src = imagenes[index] || "img/logo.png";
+        });
+    });
+}
+
+function pintarCaracteristicas() {
+    const lista = document.getElementById("caracteristicas-producto");
+    if (!lista || !productoActual) return;
+
+    const categoria = (productoActual.categoria || "producto").toLowerCase();
+    const stock = Number(productoActual.stock || 0);
+    const items = [
+        `Categoría ${categoria}`,
+        stock > 0 ? `Disponible para compra inmediata` : "Consulta disponibilidad antes de comprar",
+        "Producto revisado antes del envío",
+        "Atención por WhatsApp o correo"
+    ];
+
+    lista.innerHTML = items.map((item) => `<li>${FastMarket.escapeHTML(item)}</li>`).join("");
+}
+
+function obtenerColorPorCategoria(categoria) {
+    const texto = (categoria || "").toLowerCase();
+
+    if (texto.includes("audio") || texto.includes("audífono") || texto.includes("audifono")) return "Negro";
+    if (texto.includes("ropa") || texto.includes("moda")) return "Según talla";
+    if (texto.includes("hogar")) return "Variado";
+    if (texto.includes("tecnología") || texto.includes("tecnologia")) return "Negro / Gris";
+
+    return "Según disponibilidad";
 }
 
 function cambiarCantidad(valor) {
@@ -133,9 +200,11 @@ function pintarRelacionados() {
     contenedor.innerHTML = final.map((p) => `
         <article class="card-relacionado">
             <img src="${FastMarket.escapeHTML(p.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(p.nombre)}" onerror="this.src='img/logo.png'">
-            <h3>${FastMarket.escapeHTML(p.nombre)}</h3>
-            <p>${FastMarket.money(p.precio)}</p>
-            <a href="detalle-producto.html?id=${p.id}">Ver producto</a>
+            <div>
+                <h3>${FastMarket.escapeHTML(p.nombre)}</h3>
+                <p>${FastMarket.money(p.precio)}</p>
+                <a href="detalle-producto.html?id=${p.id}">Ver producto</a>
+            </div>
         </article>
     `).join("");
 }
