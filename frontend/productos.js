@@ -24,9 +24,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     activarEventos();
-    await cargarCarritoPersistente();
-    actualizarContadorCarrito();
-    mostrarCarrito();
+    if (window.FastMarketCart) {
+        await FastMarketCart.cargar();
+    } else {
+        await cargarCarritoPersistente();
+        actualizarContadorCarrito();
+        mostrarCarrito();
+    }
     await cargarBanners();
     await cargarProductos();
 });
@@ -126,32 +130,34 @@ function activarEventos() {
 
     if (btnAnterior) btnAnterior.addEventListener("click", () => moverSlide(-1));
     if (btnSiguiente) btnSiguiente.addEventListener("click", () => moverSlide(1));
-    if (carritoIcono) carritoIcono.addEventListener("click", (e) => {
-        e.preventDefault();
-        abrirCarrito();
-    });
-    if (cerrarCarrito) cerrarCarrito.addEventListener("click", cerrarPanelCarrito);
-    if (overlayCarrito) overlayCarrito.addEventListener("click", cerrarPanelCarrito);
-    if (vaciarCarrito) vaciarCarrito.addEventListener("click", () => {
-        carrito = [];
-        guardarCarrito();
-    });
-    if (finalizarCompra) finalizarCompra.addEventListener("click", () => {
-        if (carrito.length === 0) {
-            FastMarket.notify("Tu carrito está vacío.", "warning");
-            return;
-        }
-        window.location.href = "checkout.html";
-    });
-    if (inputCupon && cuponAplicado?.codigo) inputCupon.value = cuponAplicado.codigo;
-    if (btnCupon) btnCupon.addEventListener("click", aplicarCuponCarrito);
-
-    if (listaCarrito) {
-        listaCarrito.addEventListener("click", (e) => {
-            const btn = e.target.closest("[data-accion]");
-            if (!btn) return;
-            cambiarCantidad(Number(btn.dataset.id), btn.dataset.accion);
+    if (!window.FastMarketCart) {
+        if (carritoIcono) carritoIcono.addEventListener("click", (e) => {
+            e.preventDefault();
+            abrirCarrito();
         });
+        if (cerrarCarrito) cerrarCarrito.addEventListener("click", cerrarPanelCarrito);
+        if (overlayCarrito) overlayCarrito.addEventListener("click", cerrarPanelCarrito);
+        if (vaciarCarrito) vaciarCarrito.addEventListener("click", () => {
+            carrito = [];
+            guardarCarrito();
+        });
+        if (finalizarCompra) finalizarCompra.addEventListener("click", () => {
+            if (carrito.length === 0) {
+                FastMarket.notify("Tu carrito está vacío.", "warning");
+                return;
+            }
+            window.location.href = "checkout.html";
+        });
+        if (inputCupon && cuponAplicado?.codigo) inputCupon.value = cuponAplicado.codigo;
+        if (btnCupon) btnCupon.addEventListener("click", aplicarCuponCarrito);
+
+        if (listaCarrito) {
+            listaCarrito.addEventListener("click", (e) => {
+                const btn = e.target.closest("[data-accion]");
+                if (!btn) return;
+                cambiarCantidad(Number(btn.dataset.id), btn.dataset.accion);
+            });
+        }
     }
 }
 
@@ -306,6 +312,10 @@ function mostrarProductos() {
 }
 
 function agregarAlCarrito(producto, cantidad) {
+    if (window.FastMarketCart) {
+        FastMarketCart.agregar(producto, cantidad);
+        return;
+    }
     const item = carrito.find((p) => Number(p.id) === Number(producto.id));
     const cantidadActual = item ? item.cantidad : 0;
     if (cantidadActual + cantidad > Number(producto.stock)) {

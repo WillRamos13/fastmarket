@@ -40,7 +40,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<Map<String, String>> manejarBaseDatos(DataAccessException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "error", "La base de datos no está actualizada. Ejecuta las migraciones pendientes, especialmente MIGRACION_QA_19_CONEXIONES_NEGOCIO.sql, y vuelve a desplegar.",
+                "error", "La base de datos no está actualizada. Ejecuta las migraciones pendientes del proyecto y vuelve a desplegar el backend.",
                 "detalle", ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage()
         ));
     }

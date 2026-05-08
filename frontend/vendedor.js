@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     setText("nombre-vendedor", vendedor.nombre || "Vendedor");
     setText("nombre-vendedor-hero", vendedor.nombre || "vendedor");
+    pintarPerfilVendedor(vendedor);
     activarNavegacion();
     activarProductos();
     activarPedidos();
@@ -36,6 +37,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await cargarTodo();
 });
+
+function pintarPerfilVendedor(usuario) {
+    const nombre = usuario?.nombre || "Vendedor";
+    setText("perfil-vendedor-nombre", nombre);
+    setText("perfil-vendedor-correo", usuario?.correo || "Correo no registrado");
+    setText("perfil-vendedor-rol", usuario?.rol || "VENDEDOR");
+    setText("perfil-vendedor-telefono", usuario?.telefono || "No registrado");
+    setText("perfil-vendedor-documento", usuario?.documento || "No registrado");
+    setText("perfil-vendedor-inicial", nombre.trim().charAt(0).toUpperCase() || "V");
+}
 
 async function cargarTodo() {
     await Promise.allSettled([cargarProductos(), cargarPedidos(), cargarCupones()]);
@@ -101,12 +112,12 @@ function pintarProductos() {
     const tbody = document.getElementById("vp-tabla");
     if (!tbody) return;
     const q = value("vp-buscar").toLowerCase();
-    const lista = productos.filter((p) => `${p.nombre} ${p.descripcion} ${p.categoria}`.toLowerCase().includes(q));
+    const lista = productos.filter((p) => `${p.nombre} ${p.descripcion} ${p.categoria} ${p.marca || ""} ${p.modelo || ""} ${p.color || ""}`.toLowerCase().includes(q));
     tbody.innerHTML = lista.length ? "" : `<tr><td colspan="6">No tienes productos registrados.</td></tr>`;
     lista.forEach((p) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td><strong>${FastMarket.escapeHTML(p.nombre)}</strong><br><small>${FastMarket.escapeHTML(p.descripcion || "")}</small></td>
+            <td><strong>${FastMarket.escapeHTML(p.nombre)}</strong><br><small>${FastMarket.escapeHTML(detalleCortoProducto(p))}</small></td>
             <td>${formatearCategoria(p.categoria)}</td>
             <td><strong>${FastMarket.money(p.precio)}</strong>${p.precioAntes ? `<br><small>Antes: ${FastMarket.money(p.precioAntes)}</small>` : ""}</td>
             <td>${stockBadge(p.stock)}</td>
@@ -114,6 +125,11 @@ function pintarProductos() {
             <td><button class="btn-mini" data-editar-producto="${p.id}">Editar</button> <button class="btn-mini secondary" data-eliminar-producto="${p.id}">Eliminar</button></td>`;
         tbody.appendChild(tr);
     });
+}
+
+function detalleCortoProducto(p) {
+    const detalles = [p.marca, p.modelo, p.color, p.descripcion].filter(Boolean);
+    return detalles.join(" · ") || "Sin descripción";
 }
 
 async function guardarProducto(e) {
@@ -128,6 +144,14 @@ async function guardarProducto(e) {
         imagenes: obtenerImagenesFormulario("vp-imagenes", value("vp-imagen")),
         imagen: obtenerImagenesFormulario("vp-imagenes", value("vp-imagen"))[0] || "img/logo.png",
         descripcion: value("vp-descripcion"),
+        marca: value("vp-marca"),
+        modelo: value("vp-modelo"),
+        color: value("vp-color"),
+        material: value("vp-material"),
+        talla: value("vp-talla"),
+        garantia: value("vp-garantia"),
+        condicion: value("vp-condicion"),
+        detallesAdicionales: value("vp-detalles-adicionales"),
         oferta: checked("vp-oferta"),
         destacado: checked("vp-destacado")
     };
@@ -164,6 +188,14 @@ function editarProducto(id) {
     setValue("vp-imagen", imagenes[0] || p.imagen || "");
     setValue("vp-imagenes", JSON.stringify(imagenes));
     setValue("vp-descripcion", p.descripcion || "");
+    setValue("vp-marca", p.marca || "");
+    setValue("vp-modelo", p.modelo || "");
+    setValue("vp-color", p.color || "");
+    setValue("vp-material", p.material || "");
+    setValue("vp-talla", p.talla || "");
+    setValue("vp-garantia", p.garantia || "");
+    setValue("vp-condicion", p.condicion || "");
+    setValue("vp-detalles-adicionales", p.detallesAdicionales || "");
     setChecked("vp-oferta", !!p.oferta);
     setChecked("vp-destacado", !!p.destacado);
     setText("vp-form-title", "Editar producto");

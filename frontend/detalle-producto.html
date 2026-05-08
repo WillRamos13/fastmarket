@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle de producto | FastMarket</title>
     <link rel="stylesheet" href="estilos-globales.css">
+    <link rel="stylesheet" href="carrito-global.css">
     <link rel="stylesheet" href="detalle-producto.css">
 </head>
 
@@ -36,7 +37,7 @@
                     </li>
 
                     <li class="barra" id="cliente-area">
-                        <a href="login.html" id="login-btn">Login</a>
+                        <a href="login.html" id="login-btn">Iniciar sesión</a>
 
                         <div id="cliente-menu" class="oculto">
                             <button id="btn-cliente">
@@ -133,8 +134,20 @@
                         <dd id="info-color">Según disponibilidad</dd>
                     </div>
                     <div>
+                        <dt>Material:</dt>
+                        <dd id="info-material">Según producto</dd>
+                    </div>
+                    <div>
+                        <dt>Talla o medida:</dt>
+                        <dd id="info-talla">Según disponibilidad</dd>
+                    </div>
+                    <div>
                         <dt>Garantía:</dt>
                         <dd id="info-garantia">12 meses</dd>
+                    </div>
+                    <div>
+                        <dt>Condición:</dt>
+                        <dd id="info-condicion">Nuevo</dd>
                     </div>
                     <div>
                         <dt>Categoría:</dt>
@@ -200,6 +213,7 @@
     <div id="toast"></div>
 
     <script src="api.js"></script>
+    <script src="carrito-global.js"></script>
     <script src="detalle-producto.js"></script>
 </body>
 </html>

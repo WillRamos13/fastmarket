@@ -58,6 +58,20 @@
                 </div>
             </div>
 
+            <div id="perfil-admin-card" class="perfil-panel-card">
+                <div class="perfil-avatar-panel" id="perfil-admin-inicial">A</div>
+                <div class="perfil-panel-info">
+                    <span>Cuenta activa</span>
+                    <h2 id="perfil-admin-nombre">Administrador</h2>
+                    <p id="perfil-admin-correo">correo@fastmarket.com</p>
+                </div>
+                <div class="perfil-panel-datos">
+                    <p><strong>Rol:</strong> <span id="perfil-admin-rol">ADMIN</span></p>
+                    <p><strong>Teléfono:</strong> <span id="perfil-admin-telefono">No registrado</span></p>
+                    <p><strong>Documento:</strong> <span id="perfil-admin-documento">No registrado</span></p>
+                </div>
+            </div>
+
             <div class="resumen-inicio-admin">
                 <article>
                     <span>Revisión rápida</span>
@@ -154,6 +168,42 @@
                     <label for="stock">Stock</label>
                     <input type="number" id="stock" placeholder="10">
 
+                    <div class="form-doble">
+                        <div>
+                            <label for="marca">Marca</label>
+                            <input type="text" id="marca" placeholder="Ej: Samsung, Nike, Genérico">
+                        </div>
+                        <div>
+                            <label for="modelo">Modelo</label>
+                            <input type="text" id="modelo" placeholder="Ej: A15, Urban Pro">
+                        </div>
+                    </div>
+
+                    <div class="form-doble">
+                        <div>
+                            <label for="color">Color</label>
+                            <input type="text" id="color" placeholder="Ej: Negro, Azul, Variado">
+                        </div>
+                        <div>
+                            <label for="material">Material</label>
+                            <input type="text" id="material" placeholder="Ej: Algodón, plástico, acero">
+                        </div>
+                    </div>
+
+                    <div class="form-doble">
+                        <div>
+                            <label for="talla">Talla o medida</label>
+                            <input type="text" id="talla" placeholder="Ej: M, 42, 30 cm">
+                        </div>
+                        <div>
+                            <label for="garantia">Garantía</label>
+                            <input type="text" id="garantia" placeholder="Ej: 6 meses, 1 año">
+                        </div>
+                    </div>
+
+                    <label for="condicion">Condición</label>
+                    <input type="text" id="condicion" placeholder="Ej: Nuevo, sellado, importado">
+
                     <div id="grupo-vendedor-producto" class="oculto">
                         <label for="producto-vendedor">Vendedor asignado</label>
                         <select id="producto-vendedor">
@@ -174,6 +224,9 @@
 
                     <label for="descripcion">Descripción</label>
                     <textarea id="descripcion" placeholder="Descripción corta del producto"></textarea>
+
+                    <label for="detalles-adicionales">Detalles adicionales</label>
+                    <textarea id="detalles-adicionales" placeholder="Especificaciones, contenido de la caja, medidas, cuidados u otra información importante"></textarea>
 
                     <label class="check-oferta">
                         <input type="checkbox" id="oferta">

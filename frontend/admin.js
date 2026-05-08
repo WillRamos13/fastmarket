@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     usuarioActual = admin;
     document.body.classList.toggle("modo-vendedor", false);
     setText("nombre-admin", admin.nombre || (admin.rol === "VENDEDOR" ? "Vendedor" : "Administrador"));
+    pintarPerfilAdmin(admin);
     activarMenu();
     activarPaneles();
     activarProductos();
@@ -44,6 +45,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await cargarTodo();
 });
+
+function pintarPerfilAdmin(usuario) {
+    const nombre = usuario?.nombre || "Administrador";
+    setText("perfil-admin-nombre", nombre);
+    setText("perfil-admin-correo", usuario?.correo || "Correo no registrado");
+    setText("perfil-admin-rol", usuario?.rol || "ADMIN");
+    setText("perfil-admin-telefono", usuario?.telefono || "No registrado");
+    setText("perfil-admin-documento", usuario?.documento || "No registrado");
+    setText("perfil-admin-inicial", nombre.trim().charAt(0).toUpperCase() || "A");
+}
 
 async function cargarTodo() {
     await Promise.allSettled([
@@ -228,7 +239,7 @@ function pintarProductos() {
     const categoria = document.getElementById("filtro-categoria")?.value || "todos";
 
     const lista = productos.filter((p) => {
-        const textoOk = `${p.nombre} ${p.descripcion} ${p.categoria}`.toLowerCase().includes(texto);
+        const textoOk = `${p.nombre} ${p.descripcion} ${p.categoria} ${p.marca || ""} ${p.modelo || ""} ${p.color || ""}`.toLowerCase().includes(texto);
         const catOk = categoria === "todos" || p.categoria === categoria;
         return textoOk && catOk;
     });
@@ -239,7 +250,7 @@ function pintarProductos() {
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td><img src="${FastMarket.escapeHTML(p.imagen || "img/logo.png")}" class="img-tabla" alt="${FastMarket.escapeHTML(p.nombre)}" onerror="this.src='img/logo.png'"></td>
-            <td><strong>${FastMarket.escapeHTML(p.nombre)}</strong><br><small>${FastMarket.escapeHTML(p.descripcion || "")}</small></td>
+            <td><strong>${FastMarket.escapeHTML(p.nombre)}</strong><br><small>${FastMarket.escapeHTML(detalleCortoProducto(p))}</small></td>
             <td>${formatearCategoria(p.categoria)}</td>
             <td><strong>${FastMarket.money(p.precio)}</strong>${p.precioAntes ? `<br><small>Antes: ${FastMarket.money(p.precioAntes)}</small>` : ""}</td>
             <td>${stockBadge(p.stock)}</td>
@@ -256,6 +267,11 @@ function pintarProductos() {
     });
 }
 
+function detalleCortoProducto(p) {
+    const detalles = [p.marca, p.modelo, p.color, p.descripcion].filter(Boolean);
+    return detalles.join(" · ") || "Sin descripción";
+}
+
 async function guardarProducto(e) {
     e.preventDefault();
 
@@ -270,6 +286,14 @@ async function guardarProducto(e) {
         imagenes: imagenesProducto,
         imagen: imagenesProducto[0] || "img/logo.png",
         descripcion: value("descripcion"),
+        marca: value("marca"),
+        modelo: value("modelo"),
+        color: value("color"),
+        material: value("material"),
+        talla: value("talla"),
+        garantia: value("garantia"),
+        condicion: value("condicion"),
+        detallesAdicionales: value("detalles-adicionales"),
         oferta: checked("oferta"),
         destacado: checked("destacado"),
         vendedorId: value("producto-vendedor") ? Number(value("producto-vendedor")) : null
@@ -309,6 +333,14 @@ function editarProducto(id) {
     setValue("imagen-producto-valor", imagenes[0] || p.imagen || "");
     setValue("imagenes-producto-valor", JSON.stringify(imagenes));
     setValue("descripcion", p.descripcion || "");
+    setValue("marca", p.marca || "");
+    setValue("modelo", p.modelo || "");
+    setValue("color", p.color || "");
+    setValue("material", p.material || "");
+    setValue("talla", p.talla || "");
+    setValue("garantia", p.garantia || "");
+    setValue("condicion", p.condicion || "");
+    setValue("detalles-adicionales", p.detallesAdicionales || "");
     setChecked("oferta", !!p.oferta);
     setChecked("destacado", !!p.destacado);
     setValue("producto-vendedor", p.vendedorId || "");

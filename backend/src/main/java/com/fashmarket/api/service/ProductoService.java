@@ -30,9 +30,9 @@ public class ProductoService {
     public Page<ProductoDtos.ProductoResponse> listarPaginado(AuthTokenService.TokenData actor, int page, int size) {
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), 100), Sort.by(Sort.Direction.DESC, "id"));
         if (actor.rol() == Rol.VENDEDOR) {
-            return productoRepository.findByVendedorId(actor.usuarioId(), pageable).map(DtoMapper::toProductoResponse);
+            return productoRepository.findByVendedorIdAndActivoTrue(actor.usuarioId(), pageable).map(DtoMapper::toProductoResponse);
         }
-        return productoRepository.findAll(pageable).map(DtoMapper::toProductoResponse);
+        return productoRepository.findByActivoTrue(pageable).map(DtoMapper::toProductoResponse);
     }
 
     public List<ProductoDtos.ProductoResponse> listar(Boolean oferta, Boolean destacado, Boolean incluirInactivos) {
@@ -99,6 +99,14 @@ public class ProductoService {
         producto.setImagen(imagenes.isEmpty() ? "img/logo.png" : imagenes.get(0));
         producto.setImagenes(String.join("\n", imagenes));
         producto.setDescripcion(request.descripcion() == null ? "" : request.descripcion().trim());
+        producto.setMarca(limpiarTexto(request.marca()));
+        producto.setModelo(limpiarTexto(request.modelo()));
+        producto.setColor(limpiarTexto(request.color()));
+        producto.setMaterial(limpiarTexto(request.material()));
+        producto.setTalla(limpiarTexto(request.talla()));
+        producto.setGarantia(limpiarTexto(request.garantia()));
+        producto.setCondicion(limpiarTexto(request.condicion()));
+        producto.setDetallesAdicionales(limpiarTexto(request.detallesAdicionales()));
         producto.setOferta(Boolean.TRUE.equals(request.oferta()));
         producto.setDestacado(Boolean.TRUE.equals(request.destacado()));
 
@@ -112,9 +120,13 @@ public class ProductoService {
             Usuario vendedor = usuarioRepository.findById(request.vendedorId()).orElseThrow(() -> new IllegalArgumentException("Vendedor no encontrado"));
             if (vendedor.getRol() != Rol.VENDEDOR) throw new IllegalArgumentException("El usuario seleccionado no es vendedor");
             producto.setVendedor(vendedor);
-        } else if (producto.getVendedor() == null) {
+        } else {
             producto.setVendedor(null);
         }
+    }
+
+    private String limpiarTexto(String valor) {
+        return valor == null ? "" : valor.trim();
     }
 
 

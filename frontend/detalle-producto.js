@@ -5,6 +5,7 @@ let cantidad = 1;
 document.addEventListener("DOMContentLoaded", async () => {
     FastMarket.activarBuscador("buscador", "busqueda");
     FastMarket.activarMenuCliente();
+    if (window.FastMarketCart) await FastMarketCart.cargar();
 
     document.getElementById("sumar")?.addEventListener("click", () => cambiarCantidad(1));
     document.getElementById("restar")?.addEventListener("click", () => cambiarCantidad(-1));
@@ -89,10 +90,13 @@ function pintarProducto() {
     setText("producto-descripcion", productoActual.descripcion || "Producto disponible en FastMarket.");
     setText("producto-precio", FastMarket.money(productoActual.precio));
     setText("producto-precio-antes", productoActual.precioAntes ? FastMarket.money(productoActual.precioAntes) : "");
-    setText("info-marca", "FastMarket");
-    setText("info-modelo", `FM-${String(productoActual.id || 1).padStart(3, "0")}`);
-    setText("info-color", obtenerColorPorCategoria(productoActual.categoria));
-    setText("info-garantia", "12 meses");
+    setText("info-marca", productoActual.marca || "FastMarket");
+    setText("info-modelo", productoActual.modelo || `FM-${String(productoActual.id || 1).padStart(3, "0")}`);
+    setText("info-color", productoActual.color || obtenerColorPorCategoria(productoActual.categoria));
+    setText("info-material", productoActual.material || "Según producto");
+    setText("info-talla", productoActual.talla || "Según disponibilidad");
+    setText("info-garantia", productoActual.garantia || "12 meses");
+    setText("info-condicion", productoActual.condicion || "Nuevo");
     setText("info-categoria", productoActual.categoria || "General");
 
     pintarCaracteristicas();
@@ -146,11 +150,14 @@ function pintarCaracteristicas() {
     const categoria = (productoActual.categoria || "producto").toLowerCase();
     const stock = Number(productoActual.stock || 0);
     const items = [
-        `Categoría ${categoria}`,
+        productoActual.marca ? `Marca ${productoActual.marca}` : `Categoría ${categoria}`,
+        productoActual.modelo ? `Modelo ${productoActual.modelo}` : "Producto revisado antes del envío",
+        productoActual.color ? `Color ${productoActual.color}` : null,
+        productoActual.material ? `Material ${productoActual.material}` : null,
+        productoActual.talla ? `Talla o medida ${productoActual.talla}` : null,
         stock > 0 ? `Disponible para compra inmediata` : "Consulta disponibilidad antes de comprar",
-        "Producto revisado antes del envío",
-        "Atención por WhatsApp o correo"
-    ];
+        productoActual.detallesAdicionales || "Atención por WhatsApp o correo"
+    ].filter(Boolean);
 
     lista.innerHTML = items.map((item) => `<li>${FastMarket.escapeHTML(item)}</li>`).join("");
 }
@@ -176,6 +183,18 @@ function cambiarCantidad(valor) {
 async function agregarCarrito(irCheckout) {
     if (!productoActual) return;
 
+    if (window.FastMarketCart) {
+        const agregado = await FastMarketCart.agregar(productoActual, cantidad);
+        if (agregado) {
+            setText("mensaje-detalle", "Producto agregado al carrito.");
+            if (irCheckout) {
+                FastMarketCart.guardarBackupCheckout();
+                window.location.href = "checkout.html";
+            }
+        }
+        return;
+    }
+
     let carrito = await obtenerCarritoActual();
     const existente = carrito.find((item) => Number(item.id) === Number(productoActual.id));
     const actual = existente ? existente.cantidad : 0;
@@ -198,6 +217,7 @@ async function agregarCarrito(irCheckout) {
         });
     }
 
+    sessionStorage.setItem("fastmarket_checkout_carrito", JSON.stringify(carrito));
     await FastMarket.sincronizarCarrito(carrito, null).catch(() => localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito)));
     setText("mensaje-detalle", "Producto agregado al carrito.");
 

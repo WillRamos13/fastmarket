@@ -41,6 +41,20 @@
                     <small>Productos y pedidos vinculados a tu usuario</small>
                 </div>
             </div>
+            <div id="perfil-vendedor-card" class="perfil-panel-card">
+                <div class="perfil-avatar-panel" id="perfil-vendedor-inicial">V</div>
+                <div class="perfil-panel-info">
+                    <span>Cuenta activa</span>
+                    <h2 id="perfil-vendedor-nombre">Vendedor</h2>
+                    <p id="perfil-vendedor-correo">correo@fastmarket.com</p>
+                </div>
+                <div class="perfil-panel-datos">
+                    <p><strong>Rol:</strong> <span id="perfil-vendedor-rol">VENDEDOR</span></p>
+                    <p><strong>Teléfono:</strong> <span id="perfil-vendedor-telefono">No registrado</span></p>
+                    <p><strong>Documento:</strong> <span id="perfil-vendedor-documento">No registrado</span></p>
+                </div>
+            </div>
+
             <div class="metric-grid">
                 <article><span>Productos activos</span><strong id="metric-productos">0</strong></article>
                 <article><span>Pedidos vinculados</span><strong id="metric-pedidos">0</strong></article>
@@ -80,6 +94,42 @@
                     </div>
                     <label>Stock</label>
                     <input id="vp-stock" type="number" placeholder="10">
+
+                    <div class="form-grid-2">
+                        <div>
+                            <label>Marca</label>
+                            <input id="vp-marca" type="text" placeholder="Ej: Samsung, Nike, Genérico">
+                        </div>
+                        <div>
+                            <label>Modelo</label>
+                            <input id="vp-modelo" type="text" placeholder="Ej: A15, Urban Pro">
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div>
+                            <label>Color</label>
+                            <input id="vp-color" type="text" placeholder="Ej: Negro, Azul, Variado">
+                        </div>
+                        <div>
+                            <label>Material</label>
+                            <input id="vp-material" type="text" placeholder="Ej: Algodón, plástico, acero">
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div>
+                            <label>Talla o medida</label>
+                            <input id="vp-talla" type="text" placeholder="Ej: M, 42, 30 cm">
+                        </div>
+                        <div>
+                            <label>Garantía</label>
+                            <input id="vp-garantia" type="text" placeholder="Ej: 6 meses, 1 año">
+                        </div>
+                    </div>
+
+                    <label>Condición</label>
+                    <input id="vp-condicion" type="text" placeholder="Ej: Nuevo, sellado, importado">
                     <label>Imágenes</label>
                     <input id="vp-imagen-file" type="file" accept="image/*" multiple>
                     <small class="texto-ayuda">Puedes seleccionar varias fotos al mismo tiempo o agregarlas una por una. La primera será la principal.</small>
@@ -88,6 +138,9 @@
                     <div id="vp-preview" class="image-preview preview-galeria oculto"><div id="vp-preview-lista" class="preview-lista"></div></div>
                     <label>Descripción</label>
                     <textarea id="vp-descripcion" placeholder="Descripción corta"></textarea>
+
+                    <label>Detalles adicionales</label>
+                    <textarea id="vp-detalles-adicionales" placeholder="Especificaciones, contenido de la caja, medidas, cuidados u otra información importante"></textarea>
                     <label class="check-line"><input id="vp-oferta" type="checkbox"> Producto en oferta</label>
                     <label class="check-line"><input id="vp-destacado" type="checkbox"> Producto destacado</label>
                     <div class="button-row">

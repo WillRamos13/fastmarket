@@ -40,6 +40,30 @@ public class Producto {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
+    @Column(length = 100)
+    private String marca;
+
+    @Column(length = 120)
+    private String modelo;
+
+    @Column(length = 80)
+    private String color;
+
+    @Column(length = 120)
+    private String material;
+
+    @Column(length = 80)
+    private String talla;
+
+    @Column(length = 120)
+    private String garantia;
+
+    @Column(length = 80)
+    private String condicion;
+
+    @Column(name = "detalles_adicionales", columnDefinition = "TEXT")
+    private String detallesAdicionales;
+
     @Column(nullable = false)
     private Boolean oferta = false;
 
@@ -92,6 +116,22 @@ public class Producto {
     public void setImagenes(String imagenes) { this.imagenes = imagenes; }
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public String getMarca() { return marca; }
+    public void setMarca(String marca) { this.marca = marca; }
+    public String getModelo() { return modelo; }
+    public void setModelo(String modelo) { this.modelo = modelo; }
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
+    public String getMaterial() { return material; }
+    public void setMaterial(String material) { this.material = material; }
+    public String getTalla() { return talla; }
+    public void setTalla(String talla) { this.talla = talla; }
+    public String getGarantia() { return garantia; }
+    public void setGarantia(String garantia) { this.garantia = garantia; }
+    public String getCondicion() { return condicion; }
+    public void setCondicion(String condicion) { this.condicion = condicion; }
+    public String getDetallesAdicionales() { return detallesAdicionales; }
+    public void setDetallesAdicionales(String detallesAdicionales) { this.detallesAdicionales = detallesAdicionales; }
     public Boolean getOferta() { return oferta; }
     public void setOferta(Boolean oferta) { this.oferta = oferta; }
     public Boolean getDestacado() { return destacado; }
