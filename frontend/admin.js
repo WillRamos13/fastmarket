@@ -260,14 +260,15 @@ async function guardarProducto(e) {
     e.preventDefault();
 
     const id = value("producto-id");
+    const imagenesProducto = obtenerImagenesFormulario("imagenes-producto-valor", value("imagen-producto-valor"));
     const payload = {
         nombre: value("nombre"),
         categoria: value("categoria"),
         precio: Number(value("precio")),
         precioAntes: value("precioAntes") ? Number(value("precioAntes")) : null,
         stock: Number(value("stock")),
-        imagenes: obtenerImagenesFormulario("imagenes-producto-valor", value("imagen-producto-valor")),
-        imagen: obtenerImagenesFormulario("imagenes-producto-valor", value("imagen-producto-valor"))[0] || "img/logo.png",
+        imagenes: imagenesProducto,
+        imagen: imagenesProducto[0] || "img/logo.png",
         descripcion: value("descripcion"),
         oferta: checked("oferta"),
         destacado: checked("destacado"),
@@ -383,14 +384,51 @@ function cargarImagenesProducto(e) {
         return;
     }
 
-    Promise.all(files.map((file) => new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-    }))).then((imagenes) => {
+    Promise.all(files.map(leerImagenReducida)).then((nuevasImagenes) => {
+        const actuales = obtenerImagenesFormulario("imagenes-producto-valor", value("imagen-producto-valor"))
+            .filter((img) => img !== "img/logo.png");
+        const imagenes = unirImagenes(actuales, nuevasImagenes).slice(0, 8);
         setValue("imagenes-producto-valor", JSON.stringify(imagenes));
         setValue("imagen-producto-valor", imagenes[0] || "img/logo.png");
         pintarPreviewImagenes("preview-producto", "preview-producto-lista", imagenes);
+        e.target.value = "";
+    }).catch(() => toast("No se pudieron procesar las imágenes."));
+}
+
+function unirImagenes(...grupos) {
+    const resultado = [];
+    grupos.flat().forEach((img) => {
+        const limpio = String(img || "").trim();
+        if (limpio && !resultado.includes(limpio)) resultado.push(limpio);
+    });
+    return resultado;
+}
+
+function leerImagenReducida(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => {
+            const img = new Image();
+            img.onerror = reject;
+            img.onload = () => {
+                const max = 1200;
+                let { width, height } = img;
+                if (width > max || height > max) {
+                    const escala = Math.min(max / width, max / height);
+                    width = Math.round(width * escala);
+                    height = Math.round(height * escala);
+                }
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL("image/jpeg", 0.82));
+            };
+            img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
     });
 }
 

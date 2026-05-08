@@ -647,3 +647,229 @@ select:focus {
 #mensaje-cupon.ok { color: #16a34a; }
 #mensaje-cupon.error { color: #ef4444; }
 .oculto { display: none !important; }
+
+body {
+    background: #f6f7fb;
+}
+
+#checkout-main {
+    padding-top: 80px;
+}
+
+#checkout-hero {
+    min-height: auto;
+    padding: 70px 5% 44px;
+    background: #111827;
+    color: #fff;
+}
+
+#checkout-hero div {
+    width: min(1160px, 100%);
+    margin: 0 auto;
+}
+
+#checkout-hero h1 {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    margin: 8px 0 12px;
+}
+
+#checkout-hero p {
+    max-width: 720px;
+}
+
+#checkout-contenedor {
+    width: min(1180px, 92%);
+    margin: 0 auto;
+    padding: 34px 0 80px;
+    grid-template-columns: minmax(0, 1fr) 390px;
+    gap: 24px;
+}
+
+#checkout-formulario,
+#resumen-compra,
+.bloque-form {
+    border-radius: 24px;
+    border: 1px solid rgba(17, 24, 39, .08);
+    background: #fff;
+    box-shadow: 0 14px 34px rgba(17, 24, 39, .07);
+}
+
+#checkout-formulario {
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.bloque-form {
+    padding: 24px;
+    margin-bottom: 18px;
+}
+
+.bloque-form h2,
+#resumen-compra h2 {
+    color: #111827;
+    font-size: 1.25rem;
+}
+
+.bloque-form label {
+    color: #374151;
+    font-weight: 800;
+}
+
+.bloque-form input,
+.bloque-form textarea,
+.bloque-form select {
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+}
+
+.bloque-form input:focus,
+.bloque-form textarea:focus,
+.bloque-form select:focus {
+    border-color: #fd6403;
+    box-shadow: 0 0 0 4px rgba(253, 100, 3, .12);
+}
+
+.metodos-pago {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.metodos-pago label {
+    margin: 0;
+    padding: 14px;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+#btn-confirmar {
+    width: 100%;
+    min-height: 52px;
+    border: 0;
+    border-radius: 16px;
+    background: #fd6403;
+    color: #fff;
+    font-weight: 900;
+    box-shadow: 0 14px 26px rgba(253, 100, 3, .24);
+}
+
+#resumen-compra {
+    position: sticky;
+    top: 104px;
+    padding: 24px;
+}
+
+#lista-checkout {
+    display: grid;
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.item-checkout {
+    display: grid;
+    grid-template-columns: 74px 1fr;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.item-checkout img {
+    width: 74px;
+    height: 74px;
+    border-radius: 14px;
+    object-fit: cover;
+    background: #f3f4f6;
+}
+
+.item-checkout h4 {
+    margin: 0 0 5px;
+    font-size: .95rem;
+    color: #111827;
+}
+
+.item-checkout p {
+    margin: 0 0 5px;
+    color: #6b7280;
+}
+
+.item-checkout strong {
+    color: #fd6403;
+}
+
+.cupon-checkout-box {
+    padding: 16px;
+    border-radius: 18px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    margin: 18px 0;
+}
+
+.cupon-checkout-input {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+}
+
+.cupon-checkout-input input {
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid #fed7aa;
+    padding: 0 12px;
+}
+
+.cupon-checkout-input button {
+    height: 44px;
+    border: 0;
+    border-radius: 14px;
+    background: #111827;
+    color: #fff;
+    padding: 0 14px;
+    font-weight: 900;
+}
+
+#totales {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 14px;
+}
+
+#totales div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.total-final {
+    margin-top: 10px;
+    padding-top: 14px !important;
+    border-top: 1px solid #e5e7eb;
+    font-size: 1.2rem;
+}
+
+#seguir-comprando {
+    display: grid;
+    place-items: center;
+    min-height: 46px;
+    margin-top: 16px;
+    border-radius: 14px;
+    background: #f3f4f6;
+    color: #111827;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+@media (max-width: 900px) {
+    #checkout-contenedor {
+        grid-template-columns: 1fr;
+    }
+
+    #resumen-compra {
+        position: static;
+    }
+}

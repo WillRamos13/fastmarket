@@ -459,39 +459,6 @@ body {
     z-index: 1;
 }
 
-.seccion-presentacion {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background:
-        radial-gradient(circle at top left, rgba(253, 100, 3, 0.20), transparent 35%),
-        linear-gradient(135deg, #ffffff, #fff7ed);
-}
-
-.presentacion-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 25px;
-}
-
-.presentacion-grid article {
-    background-color: white;
-    padding: 35px;
-    border-radius: 24px;
-    border-left: 5px solid #fd6403;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
-}
-
-.presentacion-grid h3 {
-    color: #111827;
-    font-size: 1.4rem;
-}
-
-.presentacion-grid p {
-    color: #6b7280;
-    line-height: 1.7;
-}
-
 .seccion-categorias {
     display: flex;
     flex-direction: column;
@@ -763,72 +730,6 @@ body {
 .paso p {
     color: #6b7280;
     line-height: 1.7;
-}
-
-.seccion-testimonios {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background:
-        radial-gradient(circle at top left, rgba(253, 100, 3, 0.22), transparent 32%),
-        linear-gradient(135deg, #0f172a, #1e293b);
-}
-
-.testimonios-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 25px;
-}
-
-.testimonio {
-    background-color: rgba(255, 255, 255, 0.09);
-    padding: 35px;
-    border-radius: 24px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
-}
-
-.testimonio p {
-    color: #e5e7eb;
-    line-height: 1.7;
-    font-style: italic;
-}
-
-.testimonio h4 {
-    color: #fd6403;
-    margin-top: 20px;
-}
-
-.seccion-preguntas {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background:
-        radial-gradient(circle at bottom left, rgba(253, 100, 3, 0.13), transparent 30%),
-        linear-gradient(135deg, #f9fafb, #e5e7eb);
-}
-
-.faq-contenedor {
-    max-width: 950px;
-    margin: 0 auto;
-}
-
-.faq-item {
-    background-color: white;
-    padding: 25px 30px;
-    border-radius: 20px;
-    margin-bottom: 18px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
-}
-
-.faq-item h3 {
-    color: #111827;
-    margin-bottom: 8px;
-}
-
-.faq-item p {
-    color: #6b7280;
-    line-height: 1.6;
 }
 
 .seccion-contacto {
@@ -1148,11 +1049,6 @@ body {
         top: 520px;
     }
 
-    .presentacion-grid,
-    .testimonios-grid {
-        grid-template-columns: 1fr;
-    }
-
     .seccion-ofertas,
     .seccion-contacto {
         flex-direction: column;
@@ -1231,9 +1127,7 @@ body {
 }
 
 #destacados,
-#ofertas,
-#testimonios,
-#preguntas {
+#ofertas {
     scroll-margin-top: 100px;
 }
 

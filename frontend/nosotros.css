@@ -260,5 +260,113 @@ body {
     #cabeza { flex-direction: column; padding: 10px; }
     #nav-menu ul { flex-wrap: wrap; gap: 8px; }
     #nosotros-main { padding-top: 40px; }
-    .mision-vision-grid { grid-template-columns: 1fr; }
+    .mision-vision-grid,
+    .testimonios-grid { grid-template-columns: 1fr; }
+
+    .seccion-nosotros { padding: 28px 20px; }
 }
+
+.seccion-nosotros {
+    margin-top: 28px;
+    padding: clamp(32px, 5vw, 58px);
+    border-radius: 28px;
+    overflow: hidden;
+}
+
+.titulo-section {
+    text-align: center;
+    max-width: 850px;
+    margin: 0 auto 42px auto;
+}
+
+.titulo-section h2 {
+    font-size: clamp(1.8rem, 4vw, 2.7rem);
+    color: #111827;
+    margin: 12px 0 15px;
+}
+
+.titulo-section p {
+    font-size: 1.05rem;
+    color: #6b7280;
+    line-height: 1.7;
+}
+
+.titulo-claro h2,
+.titulo-claro p {
+    color: white;
+}
+
+.etiqueta {
+    display: inline-block;
+    color: #fd6403;
+    font-weight: bold;
+    background-color: rgba(253, 100, 3, 0.12);
+    padding: 8px 18px;
+    border-radius: 25px;
+}
+
+.etiqueta-clara {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.seccion-testimonios {
+    background:
+        radial-gradient(circle at top left, rgba(253, 100, 3, 0.22), transparent 32%),
+        linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+.testimonios-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.testimonio {
+    background-color: rgba(255, 255, 255, 0.09);
+    padding: 32px;
+    border-radius: 24px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+}
+
+.testimonio p {
+    color: #e5e7eb;
+    line-height: 1.7;
+    font-style: italic;
+}
+
+.testimonio h4 {
+    color: #fd6403;
+    margin-top: 20px;
+}
+
+.seccion-preguntas {
+    background:
+        radial-gradient(circle at bottom left, rgba(253, 100, 3, 0.13), transparent 30%),
+        linear-gradient(135deg, #f9fafb, #e5e7eb);
+}
+
+.faq-contenedor {
+    max-width: 950px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+.faq-item h3 {
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.faq-item p {
+    color: #6b7280;
+    line-height: 1.6;
+}
+

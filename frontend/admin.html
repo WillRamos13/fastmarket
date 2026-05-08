@@ -45,56 +45,30 @@
     <main id="admin-main">
 
         <section id="panel-inicio" class="panel-admin activo">
-            <div class="panel-bienvenida">
-                <p class="subtitulo">Panel interno</p>
-                <h1>Gestión de tienda FastMarket</h1>
-                <p>
-                    Controla catálogo, pedidos, vendedores, cupones y contenido comercial desde un solo lugar.
-                </p>
-
-                <div class="atajos-admin">
-                    <button class="atajo" data-panel="panel-productos">
-                        <span class="icono-panel"></span>
-                        <h3>Productos</h3>
-                        <p>Agregar, editar o eliminar productos.</p>
-                    </button>
-
-                    <button class="atajo" data-panel="panel-ventas">
-                        <span class="icono-panel"></span>
-                        <h3>Pedidos y ventas</h3>
-                        <p>Revisar pedidos registrados.</p>
-                    </button>
-
-                    <button class="atajo" data-panel="panel-banners">
-                        <span class="icono-panel"></span>
-                        <h3>Banners</h3>
-                        <p>Cambiar imágenes del carrusel de ofertas.</p>
-                    </button>
-
-                    <button class="atajo" data-panel="panel-index">
-                        <span class="icono-panel"></span>
-                        <h3>Editar inicio</h3>
-                        <p>Editar destacados, promociones, opiniones y ayuda.</p>
-                    </button>
-
-                    <button class="atajo" data-panel="panel-cupones">
-                        <span class="icono-panel"></span>
-                        <h3>Marketing y cupones</h3>
-                        <p>Crear descuentos globales o por vendedor.</p>
-                    </button>
-
-                    <button class="atajo" data-panel="panel-indices">
-                        <span class="icono-panel"></span>
-                        <h3>Analítica</h3>
-                        <p>Ver cantidades y datos generales.</p>
-                    </button>
-
-                    <button class="atajo" data-panel="panel-usuarios">
-                        <span class="icono-panel"></span>
-                        <h3>Usuarios y permisos</h3>
-                        <p>Crear administradores, editar roles y estados.</p>
-                    </button>
+            <div class="panel-bienvenida panel-inicio-simple">
+                <div>
+                    <p class="subtitulo">Panel interno</p>
+                    <h1>Gestión de tienda FastMarket</h1>
+                    <p>Bienvenido. Usa el menú superior para entrar a cada área de trabajo.</p>
                 </div>
+                <div class="panel-badge-admin">
+                    <span>FM</span>
+                    <strong>Administración</strong>
+                    <small>Control general de la tienda</small>
+                </div>
+            </div>
+
+            <div class="resumen-inicio-admin">
+                <article>
+                    <span>Revisión rápida</span>
+                    <strong>Catálogo, pedidos y usuarios</strong>
+                    <p>Consulta primero los indicadores y luego entra al módulo que necesites actualizar.</p>
+                </article>
+                <article>
+                    <span>Orden de trabajo</span>
+                    <strong>Inicio ordenado</strong>
+                    <p>El inicio queda limpio; las herramientas completas se mantienen dentro del menú.</p>
+                </article>
             </div>
         </section>
 
@@ -189,7 +163,7 @@
 
                     <label for="imagen-producto">Imágenes del producto</label>
                     <input type="file" id="imagen-producto" accept="image/*" multiple>
-                    <small class="ayuda-campo">Puedes seleccionar varias fotos. La primera será la imagen principal.</small>
+                    <small class="ayuda-campo">Puedes seleccionar varias fotos al mismo tiempo o agregarlas una por una. La primera será la principal.</small>
 
                     <input type="hidden" id="imagen-producto-valor">
                     <input type="hidden" id="imagenes-producto-valor">

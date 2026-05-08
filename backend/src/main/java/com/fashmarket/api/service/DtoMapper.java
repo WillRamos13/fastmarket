@@ -12,8 +12,11 @@ import com.fashmarket.api.model.Usuario;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.ArrayList;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DtoMapper {
+    private static final ObjectMapper JSON = new ObjectMapper();
     private DtoMapper() {}
 
     public static AuthDtos.DireccionResponse toDireccionResponse(Direccion direccion) {
@@ -75,9 +78,19 @@ public class DtoMapper {
         List<String> resultado = new ArrayList<>();
 
         if (producto.getImagenes() != null && !producto.getImagenes().isBlank()) {
-            for (String item : producto.getImagenes().split("\n")) {
-                String limpio = item == null ? "" : item.trim();
-                if (!limpio.isBlank() && !resultado.contains(limpio)) resultado.add(limpio);
+            String raw = producto.getImagenes().trim();
+            if (raw.startsWith("[")) {
+                try {
+                    List<String> desdeJson = JSON.readValue(raw, new TypeReference<List<String>>() {});
+                    for (String item : desdeJson) {
+                        String limpio = item == null ? "" : item.trim();
+                        if (!limpio.isBlank() && !resultado.contains(limpio)) resultado.add(limpio);
+                    }
+                } catch (Exception ignored) {
+                    agregarImagenesSeparadas(resultado, raw);
+                }
+            } else {
+                agregarImagenesSeparadas(resultado, raw);
             }
         }
 
@@ -85,6 +98,13 @@ public class DtoMapper {
         if (resultado.isEmpty() && imagen != null && !imagen.isBlank()) resultado.add(imagen.trim());
         if (resultado.isEmpty()) resultado.add("img/logo.png");
         return resultado;
+    }
+
+    private static void agregarImagenesSeparadas(List<String> resultado, String raw) {
+        for (String item : raw.split("\n")) {
+            String limpio = item == null ? "" : item.trim();
+            if (!limpio.isBlank() && !resultado.contains(limpio)) resultado.add(limpio);
+        }
     }
 
     public static PedidoDtos.PedidoResponse toPedidoResponse(Pedido pedido) {
