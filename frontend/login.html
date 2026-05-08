@@ -3,176 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso | FastMarket</title>
+    <title>Iniciar sesión | FastMarket</title>
     <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="estilos-globales.css">
 </head>
-<body>
+<body class="auth-body">
     <main class="auth-page">
-        <section class="auth-shell">
-            <article class="auth-card">
-                <div class="auth-brand-mobile">
-                    <a href="index.html" class="brand-link">🛍️ <span>FastMarket</span></a>
+        <section class="auth-card auth-card-login">
+            <a href="index.html" class="auth-logo" aria-label="Ir al inicio">
+                <img src="img/logo.png" alt="FastMarket">
+            </a>
+
+            <div class="auth-heading">
+                <h1>Iniciar sesión</h1>
+                <p>Ingresa con tu correo y contraseña para acceder a tu cuenta.</p>
+            </div>
+
+            <form id="form-login" class="auth-form">
+                <div class="campo">
+                    <label for="login-correo">Correo electrónico</label>
+                    <input type="email" id="login-correo" placeholder="tu correo@gmail.com" autocomplete="email">
                 </div>
 
-                <div class="auth-tabs" role="tablist">
-                    <button type="button" id="tab-registro" class="tab-btn activo">Crear cuenta</button>
-                    <button type="button" id="tab-login" class="tab-btn">Iniciar sesión</button>
-                </div>
-
-                <div class="auth-heading">
-                    <span class="auth-tag">Compra segura</span>
-                    <h1 id="titulo-auth">Crea tu cuenta en FastMarket</h1>
-                    <p id="subtitulo-auth">Regístrate con verificación por correo para comprar, revisar pedidos y guardar tus datos.</p>
-                </div>
-
-                <form id="form-registro" class="auth-form">
-                    <div class="form-grid two-cols">
-                        <div class="campo">
-                            <label for="registro-nombre">Nombre</label>
-                            <input type="text" id="registro-nombre" placeholder="Ej. Mario" autocomplete="given-name">
-                        </div>
-
-                        <div class="campo">
-                            <label for="registro-apellidos">Apellidos</label>
-                            <input type="text" id="registro-apellidos" placeholder="Ej. Ramos" autocomplete="family-name">
-                        </div>
-                    </div>
-
-                    <div class="campo">
-                        <label for="registro-correo">Correo electrónico</label>
-                        <input type="email" id="registro-correo" placeholder="tu correo@gmail.com" autocomplete="email">
-                    </div>
-
-                    <div class="form-grid two-cols documento-telefono-grid">
-                        <div class="campo">
-                            <label for="registro-documento">Documento</label>
-                            <div class="input-group documento-box">
-                                <select id="registro-tipo-documento" aria-label="Tipo de documento">
-                                    <option value="DNI">DNI</option>
-                                    <option value="CE">CE</option>
-                                    <option value="PASAPORTE">Pasaporte</option>
-                                </select>
-                                <input type="text" id="registro-documento" placeholder="Número">
-                            </div>
-                        </div>
-
-                        <div class="campo">
-                            <label for="registro-celular">Celular</label>
-                            <div class="input-group telefono-box">
-                                <span>+51</span>
-                                <input type="tel" id="registro-celular" placeholder="999 999 999" autocomplete="tel">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="campo">
-                        <label for="registro-password">Contraseña</label>
-                        <div class="input-group password-box">
-                            <input type="password" id="registro-password" placeholder="Crea una contraseña segura" autocomplete="new-password">
-                            <button type="button" class="toggle-password" data-target="registro-password" aria-label="Mostrar contraseña">👁️</button>
-                        </div>
-                    </div>
-
-                    <div class="password-rules" aria-label="Reglas de contraseña">
-                        <span id="rule-length">Mín. 8 caracteres</span>
-                        <span id="rule-upper">1 mayúscula</span>
-                        <span id="rule-lower">1 minúscula</span>
-                        <span id="rule-number">1 número</span>
-                        <span id="rule-space">Sin espacios</span>
-                        <span id="rule-special">Sin símbolos no permitidos</span>
-                    </div>
-
-                    <div id="codigo-panel" class="codigo-panel oculto">
-                        <div class="codigo-info">
-                            <div class="codigo-icon">✉️</div>
-                            <div>
-                                <strong>Verifica tu correo</strong>
-                                <p>Te enviamos un código de 6 dígitos. Escríbelo para crear tu cuenta.</p>
-                            </div>
-                        </div>
-
-                        <div class="campo codigo-campo">
-                            <label for="codigo-verificacion">Código de verificación</label>
-                            <input type="text" id="codigo-verificacion" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">
-                        </div>
-
-                        <button type="button" id="reenviar-codigo" class="btn-link">Reenviar código</button>
-                    </div>
-
-                    <p id="mensaje-registro" class="mensaje-form"></p>
-
-                    <button type="submit" id="btn-registro" class="btn-auth" disabled>Enviar código al correo</button>
-                </form>
-
-                <form id="form-login" class="auth-form oculto">
-                    <div class="campo">
-                        <label for="login-correo">Correo electrónico</label>
-                        <input type="email" id="login-correo" placeholder="tu correo@gmail.com" autocomplete="email">
-                    </div>
-
-                    <div class="campo">
-                        <label for="login-password">Contraseña</label>
-                        <div class="input-group password-box">
-                            <input type="password" id="login-password" placeholder="Ingresa tu contraseña" autocomplete="current-password">
-                            <button type="button" class="toggle-password" data-target="login-password" aria-label="Mostrar contraseña">👁️</button>
-                        </div>
-                    </div>
-
-                    <div class="login-actions">
-                        <label class="mini-check">
-                            <input type="checkbox" id="recordar-sesion">
-                            <span>Recordarme</span>
-                        </label>
-                        <a href="recuperar-contrasena.html">¿Olvidaste tu contraseña?</a>
-                    </div>
-
-                    <p id="mensaje-login" class="mensaje-form"></p>
-
-                    <button type="submit" class="btn-auth">Iniciar sesión</button>
-                </form>
-            </article>
-
-            <aside class="auth-side">
-                <a href="index.html" class="brand-link desktop-brand">🛍️ <span>FastMarket</span></a>
-
-                <div class="side-content">
-                    <span class="side-pill">Bienvenido</span>
-                    <h2>Compra más rápido, revisa tus pedidos y accede a promociones.</h2>
-                    <p>Tu cuenta te permite guardar tus datos, consultar estados de compra y recibir una mejor atención.</p>
-
-                    <div class="benefit-list">
-                        <div class="benefit-card">
-                            <span>🧾</span>
-                            <div>
-                                <strong>Historial de pedidos</strong>
-                                <small>Consulta tus compras y estados.</small>
-                            </div>
-                        </div>
-
-                        <div class="benefit-card">
-                            <span>🔐</span>
-                            <div>
-                                <strong>Verificación segura</strong>
-                                <small>Confirmamos tu correo con código.</small>
-                            </div>
-                        </div>
-
-                        <div class="benefit-card">
-                            <span>🎁</span>
-                            <div>
-                                <strong>Ofertas y novedades</strong>
-                                <small>Encuentra productos destacados.</small>
-                            </div>
-                        </div>
+                <div class="campo">
+                    <label for="login-password">Contraseña</label>
+                    <div class="input-group password-box">
+                        <input type="password" id="login-password" placeholder="Ingresa tu contraseña" autocomplete="current-password">
+                        <button type="button" class="toggle-password" data-target="login-password" aria-label="Mostrar contraseña">Mostrar</button>
                     </div>
                 </div>
 
-                <div class="side-footer">
-                    <span>FastMarket</span>
-                    <span>Ica, Perú</span>
+                <div class="login-actions">
+                    <label class="mini-check">
+                        <input type="checkbox" id="recordar-sesion">
+                        <span>Recordarme</span>
+                    </label>
+                    <a href="recuperar-contrasena.html">Olvidé mi contraseña</a>
                 </div>
-            </aside>
+
+                <p id="mensaje-login" class="mensaje-form"></p>
+
+                <button type="submit" class="btn-auth">Entrar</button>
+            </form>
+
+            <div class="auth-links">
+                <span>¿No tienes cuenta?</span>
+                <a href="registro.html">Crear cuenta</a>
+            </div>
+
+            <a href="index.html" class="volver-inicio">Volver al inicio</a>
         </section>
     </main>
 
