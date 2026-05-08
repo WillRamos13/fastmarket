@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record ProductoRequest(
         @NotBlank String nombre,
@@ -14,6 +15,7 @@ public record ProductoRequest(
         BigDecimal precioAntes,
         @NotNull @PositiveOrZero Integer stock,
         String imagen,
+        List<String> imagenes,
         String descripcion,
         Boolean oferta,
         Boolean destacado,

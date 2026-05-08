@@ -124,7 +124,8 @@ async function guardarProducto(e) {
         precio: Number(value("vp-precio")),
         precioAntes: value("vp-precio-antes") ? Number(value("vp-precio-antes")) : null,
         stock: Number(value("vp-stock")),
-        imagen: value("vp-imagen") || "img/logo.png",
+        imagenes: obtenerImagenesFormulario("vp-imagenes", value("vp-imagen")),
+        imagen: obtenerImagenesFormulario("vp-imagenes", value("vp-imagen"))[0] || "img/logo.png",
         descripcion: value("vp-descripcion"),
         oferta: checked("vp-oferta"),
         destacado: checked("vp-destacado")
@@ -158,14 +159,14 @@ function editarProducto(id) {
     setValue("vp-precio", p.precio);
     setValue("vp-precio-antes", p.precioAntes || "");
     setValue("vp-stock", p.stock);
-    setValue("vp-imagen", p.imagen || "");
+    const imagenes = obtenerImagenesProducto(p);
+    setValue("vp-imagen", imagenes[0] || p.imagen || "");
+    setValue("vp-imagenes", JSON.stringify(imagenes));
     setValue("vp-descripcion", p.descripcion || "");
     setChecked("vp-oferta", !!p.oferta);
     setChecked("vp-destacado", !!p.destacado);
     setText("vp-form-title", "Editar producto");
-    const img = document.getElementById("vp-preview-img");
-    if (img) img.src = p.imagen || "img/logo.png";
-    document.getElementById("vp-preview")?.classList.remove("oculto");
+    pintarPreviewImagenes("vp-preview", "vp-preview-lista", imagenes);
     mostrarPanel("panel-productos");
 }
 
@@ -184,22 +185,71 @@ function limpiarProducto() {
     document.getElementById("form-vendedor-producto")?.reset();
     setValue("vp-id", "");
     setValue("vp-imagen", "");
+    setValue("vp-imagenes", "");
     setText("vp-form-title", "Agregar producto");
     document.getElementById("vp-preview")?.classList.add("oculto");
+    const lista = document.getElementById("vp-preview-lista");
+    if (lista) lista.innerHTML = "";
 }
 
 function cargarImagenProducto(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) return toast("Selecciona una imagen válida.");
-    const reader = new FileReader();
-    reader.onload = () => {
-        setValue("vp-imagen", reader.result);
-        const img = document.getElementById("vp-preview-img");
-        if (img) img.src = reader.result;
-        document.getElementById("vp-preview")?.classList.remove("oculto");
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    if (files.some((file) => !file.type.startsWith("image/"))) return toast("Selecciona solo imágenes válidas.");
+
+    Promise.all(files.map((file) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    }))).then((imagenes) => {
+        setValue("vp-imagen", imagenes[0] || "img/logo.png");
+        setValue("vp-imagenes", JSON.stringify(imagenes));
+        pintarPreviewImagenes("vp-preview", "vp-preview-lista", imagenes);
+    });
+}
+
+function obtenerImagenesFormulario(hiddenId, imagenPrincipal = "") {
+    const raw = value(hiddenId);
+    let imagenes = [];
+    try {
+        const parsed = JSON.parse(raw || "[]");
+        if (Array.isArray(parsed)) imagenes = parsed;
+    } catch {
+        imagenes = raw ? raw.split("\n") : [];
+    }
+    if (!imagenes.length && imagenPrincipal) imagenes = [imagenPrincipal];
+    imagenes = imagenes.map((img) => String(img || "").trim()).filter(Boolean);
+    return imagenes.length ? [...new Set(imagenes)] : ["img/logo.png"];
+}
+
+function obtenerImagenesProducto(producto) {
+    let imagenes = [];
+    if (Array.isArray(producto?.imagenes)) imagenes = producto.imagenes;
+    if (typeof producto?.imagenes === "string" && producto.imagenes.trim()) {
+        try {
+            const parsed = JSON.parse(producto.imagenes);
+            if (Array.isArray(parsed)) imagenes = parsed;
+        } catch {
+            imagenes = producto.imagenes.split("\n");
+        }
+    }
+    if (!imagenes.length && producto?.imagen) imagenes = [producto.imagen];
+    imagenes = imagenes.map((img) => String(img || "").trim()).filter(Boolean);
+    return imagenes.length ? [...new Set(imagenes)] : ["img/logo.png"];
+}
+
+function pintarPreviewImagenes(previewId, listaId, imagenes) {
+    const preview = document.getElementById(previewId);
+    const lista = document.getElementById(listaId);
+    if (!preview || !lista) return;
+    const finales = (imagenes || []).map((img) => String(img || "").trim()).filter(Boolean);
+    lista.innerHTML = finales.map((src, index) => `
+        <figure class="preview-item">
+            <img src="${FastMarket.escapeHTML(src)}" alt="Imagen ${index + 1}" onerror="this.src='img/logo.png'">
+            ${index === 0 ? "<figcaption>Principal</figcaption>" : ""}
+        </figure>
+    `).join("");
+    preview.classList.toggle("oculto", finales.length === 0);
 }
 
 function actualizarPaginacionProductos() {

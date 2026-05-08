@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Vendedor | FastMarket</title>
-    <link rel="stylesheet" href="qa-upgrade.css">
+    <link rel="stylesheet" href="estilos-globales.css">
     <link rel="stylesheet" href="vendedor.css">
 </head>
 <body>
@@ -78,10 +78,12 @@
                     </div>
                     <label>Stock</label>
                     <input id="vp-stock" type="number" placeholder="10">
-                    <label>Imagen</label>
-                    <input id="vp-imagen-file" type="file" accept="image/*">
+                    <label>Imágenes</label>
+                    <input id="vp-imagen-file" type="file" accept="image/*" multiple>
+                    <small class="texto-ayuda">Puedes seleccionar varias fotos. La primera será la principal.</small>
                     <input id="vp-imagen" type="hidden">
-                    <div id="vp-preview" class="image-preview oculto"><img id="vp-preview-img" src="img/logo.png" alt="Vista previa"></div>
+                    <input id="vp-imagenes" type="hidden">
+                    <div id="vp-preview" class="image-preview preview-galeria oculto"><div id="vp-preview-lista" class="preview-lista"></div></div>
                     <label>Descripción</label>
                     <textarea id="vp-descripcion" placeholder="Descripción corta"></textarea>
                     <label class="check-line"><input id="vp-oferta" type="checkbox"> Producto en oferta</label>
@@ -185,6 +187,56 @@
             </div>
         </section>
     </main>
+
+                <footer id="pie-de-pagina">
+            <div id="contactos-redes">
+
+                <div id="contactos-redes1">
+                    <h3 id="redes">Síguenos en</h3>
+
+                    <nav class="redes nav-redes">
+                        <ul>
+                            <li class="redes">
+                                <a href="https://www.instagram.com/" target="_blank">
+                                    <img class="logo-redes" src="img/instagram.png" alt="Instagram"> Instagram
+                                </a>
+                            </li>
+
+                            <li class="redes">
+                                <a href="https://www.facebook.com/?locale=es_LA" target="_blank">
+                                    <img class="logo-redes" src="img/facebook.png" alt="Facebook"> Facebook
+                                </a>
+                            </li>
+
+                            <li class="redes">
+                                <a href="https://web.whatsapp.com/" target="_blank">
+                                    <img class="logo-redes" src="img/whatsapp.png" alt="WhatsApp"> WhatsApp
+                                </a>
+                            </li>
+
+                            <li class="redes">
+                                <a href="https://www.tiktok.com/es-419/" target="_blank">
+                                    <img class="logo-redes" src="img/tiktok.png" alt="TikTok"> Tik Tok
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div id="contactos-redes2">
+                    <h3 class="footer-titulo">Contacto</h3>
+
+                    <nav class="redes nav-redes contacto-footer">
+                        <ul>
+                            <li class="redes"><a href="https://www2.claro.com.pe/institucional/centro-de-prensa/ampliacion-sms/">📞 999999999</a></li>
+                            <li class="redes"><a href="https://mail.google.com/mail/u/0/#inbox">✉️ soporte@fastmarket.com</a></li>
+                            <li class="redes"><a href="https://maps.app.goo.gl/H98FeKnEgCrhqcXd9">📍 Ica, Perú</a></li>
+                        </ul>
+                    </nav>
+                </div>
+
+            </div>
+        </footer>
 
     <div id="toast"></div>
     <script src="api.js"></script>

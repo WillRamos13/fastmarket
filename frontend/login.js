@@ -19,8 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const registroDocumento = document.getElementById("registro-documento");
     const registroCelular = document.getElementById("registro-celular");
     const registroPassword = document.getElementById("registro-password");
-    const aceptaTerminos = document.getElementById("acepta-terminos");
-    const aceptaPoliticas = document.getElementById("acepta-politicas");
 
     const mensajeRegistro = document.getElementById("mensaje-registro");
     const mensajeLogin = document.getElementById("mensaje-login");
@@ -155,9 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
             datos.apellidos.length >= 2 &&
             datos.documento.length >= 8 &&
             datos.celular.replace(/\D/g, "").length >= 9 &&
-            passwordOk &&
-            aceptaTerminos.checked &&
-            aceptaPoliticas.checked;
+            passwordOk;
 
         if (!codigoEnviado) {
             btnRegistro.disabled = !formularioOk;
@@ -248,8 +244,6 @@ document.addEventListener("DOMContentLoaded", () => {
         registroDocumento,
         registroCelular,
         registroPassword,
-        aceptaTerminos,
-        aceptaPoliticas,
         codigoVerificacion
     ].forEach((elemento) => {
         if (!elemento) return;

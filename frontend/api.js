@@ -18,7 +18,6 @@ const FastMarket = (() => {
             return "http://localhost:8080/api";
         }
 
-        // Cambia esta URL si tu servicio backend de Render tiene otro nombre.
         return "https://fastmarket-573w.onrender.com/api";
     })();
 

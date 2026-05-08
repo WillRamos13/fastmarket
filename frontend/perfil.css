@@ -25,7 +25,6 @@ body {
     color: var(--negro);
 }
 
-/* HEADER */
 
 #header {
     width: 100%;
@@ -100,7 +99,6 @@ body {
     border-bottom: 2px solid var(--naranja);
 }
 
-/* BUSCADOR */
 
 #busqueda {
     position: relative;
@@ -132,7 +130,6 @@ body {
     padding: 0.5rem 1rem;
 }
 
-/* MENÚ CLIENTE */
 
 #cliente-area {
     position: relative;
@@ -215,7 +212,6 @@ body {
     font-weight: bold;
 }
 
-/* HERO */
 
 #perfil-main {
     padding-top: 80px;
@@ -253,7 +249,6 @@ body {
     line-height: 1.7;
 }
 
-/* RESUMEN */
 
 #perfil-resumen {
     padding: 35px 5%;
@@ -285,7 +280,6 @@ body {
     color: var(--gris);
 }
 
-/* LAYOUT */
 
 #zona-perfil {
     padding: 60px 5% 90px 5%;
@@ -339,7 +333,6 @@ body {
     font-weight: bold;
 }
 
-/* CARDS */
 
 #perfil-contenido {
     display: flex;
@@ -425,7 +418,6 @@ body {
     margin-bottom: 0;
 }
 
-/* DIRECCIONES */
 
 #lista-direcciones {
     margin-top: 22px;
@@ -457,7 +449,6 @@ body {
     padding: 8px 12px;
 }
 
-/* PEDIDOS */
 
 .pedido-acceso {
     display: flex;
@@ -483,7 +474,6 @@ body {
     white-space: nowrap;
 }
 
-/* CHAT */
 
 #chat-soporte {
     position: fixed;
@@ -614,7 +604,6 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* FOOTER */
 
 #pie-de-pagina {
     background-color: black;
@@ -640,7 +629,6 @@ body {
     color: var(--naranja);
 }
 
-/* RESPONSIVE */
 
 @media (max-width: 1100px) {
     #nav-menu ul li a {

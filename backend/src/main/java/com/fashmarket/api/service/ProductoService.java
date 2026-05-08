@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class ProductoService {
@@ -94,7 +95,9 @@ public class ProductoService {
         producto.setPrecio(request.precio());
         producto.setPrecioAntes(request.precioAntes());
         producto.setStock(request.stock());
-        producto.setImagen(request.imagen() == null || request.imagen().isBlank() ? "img/logo.png" : request.imagen());
+        List<String> imagenes = limpiarImagenes(request);
+        producto.setImagen(imagenes.isEmpty() ? "img/logo.png" : imagenes.get(0));
+        producto.setImagenes(String.join("\n", imagenes));
         producto.setDescripcion(request.descripcion() == null ? "" : request.descripcion().trim());
         producto.setOferta(Boolean.TRUE.equals(request.oferta()));
         producto.setDestacado(Boolean.TRUE.equals(request.destacado()));
@@ -112,6 +115,26 @@ public class ProductoService {
         } else if (producto.getVendedor() == null) {
             producto.setVendedor(null);
         }
+    }
+
+
+    private List<String> limpiarImagenes(ProductoRequest request) {
+        List<String> resultado = new ArrayList<>();
+
+        if (request.imagenes() != null) {
+            for (String item : request.imagenes()) {
+                if (item == null) continue;
+                String limpio = item.trim();
+                if (!limpio.isBlank() && !resultado.contains(limpio)) resultado.add(limpio);
+            }
+        }
+
+        if (resultado.isEmpty() && request.imagen() != null && !request.imagen().isBlank()) {
+            resultado.add(request.imagen().trim());
+        }
+
+        if (resultado.isEmpty()) resultado.add("img/logo.png");
+        return resultado;
     }
 
     private void validarPropietarioOVendedor(AuthTokenService.TokenData actor, Producto producto) {

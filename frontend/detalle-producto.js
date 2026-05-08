@@ -55,10 +55,28 @@ async function cargarProducto() {
     }
 }
 
+
+function obtenerImagenesProducto(producto) {
+    let imagenes = [];
+    if (Array.isArray(producto?.imagenes)) imagenes = producto.imagenes;
+    if (typeof producto?.imagenes === "string" && producto.imagenes.trim()) {
+        try {
+            const parsed = JSON.parse(producto.imagenes);
+            if (Array.isArray(parsed)) imagenes = parsed;
+        } catch {
+            imagenes = producto.imagenes.split("\n");
+        }
+    }
+    if (!imagenes.length && producto?.imagen) imagenes = [producto.imagen];
+    imagenes = imagenes.map((img) => String(img || "").trim()).filter(Boolean);
+    return imagenes.length ? [...new Set(imagenes)] : ["img/logo.png"];
+}
+
 function pintarProducto() {
     if (!productoActual) return;
 
-    const imagen = productoActual.imagen || "img/logo.png";
+    const imagenes = obtenerImagenesProducto(productoActual);
+    const imagen = imagenes[0] || "img/logo.png";
     const img = document.getElementById("producto-img");
     if (img) {
         img.src = imagen;
@@ -104,8 +122,7 @@ function pintarMiniaturas() {
     const imagenPrincipal = document.getElementById("producto-img");
     if (!contenedor || !imagenPrincipal || !productoActual) return;
 
-    const imagen = productoActual.imagen || "img/logo.png";
-    const imagenes = [imagen, imagen, imagen, imagen];
+    const imagenes = obtenerImagenesProducto(productoActual);
 
     contenedor.innerHTML = imagenes.map((src, index) => `
         <button class="miniatura-producto ${index === 0 ? "activa" : ""}" type="button" aria-label="Imagen ${index + 1}">
@@ -175,7 +192,7 @@ async function agregarCarrito(irCheckout) {
             id: productoActual.id,
             nombre: productoActual.nombre,
             precio: Number(productoActual.precio),
-            imagen: productoActual.imagen,
+            imagen: obtenerImagenesProducto(productoActual)[0] || productoActual.imagen || "img/logo.png",
             stock: Number(productoActual.stock),
             cantidad
         });
@@ -199,7 +216,7 @@ function pintarRelacionados() {
 
     contenedor.innerHTML = final.map((p) => `
         <article class="card-relacionado">
-            <img src="${FastMarket.escapeHTML(p.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(p.nombre)}" onerror="this.src='img/logo.png'">
+            <img src="${FastMarket.escapeHTML(obtenerImagenesProducto(p)[0] || "img/logo.png")}" alt="${FastMarket.escapeHTML(p.nombre)}" onerror="this.src='img/logo.png'">
             <div>
                 <h3>${FastMarket.escapeHTML(p.nombre)}</h3>
                 <p>${FastMarket.money(p.precio)}</p>

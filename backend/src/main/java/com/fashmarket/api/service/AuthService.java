@@ -104,7 +104,6 @@ public class AuthService {
         String correo = request.correo().trim().toLowerCase();
 
         if (!usuarioRepository.existsByCorreoIgnoreCase(correo)) {
-            // Respuesta neutra: evita confirmar si un correo existe o no.
             return;
         }
 

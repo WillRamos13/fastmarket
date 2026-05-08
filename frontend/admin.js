@@ -140,12 +140,11 @@ function marcarMenuActivo(id) {
     });
 }
 
-/* PRODUCTOS */
 
 function activarProductos() {
     document.getElementById("form-producto")?.addEventListener("submit", guardarProducto);
     document.getElementById("btn-limpiar")?.addEventListener("click", limpiarProducto);
-    document.getElementById("imagen-producto")?.addEventListener("change", (e) => cargarImagen(e, "imagen-producto-valor", "preview-producto", "preview-producto-img"));
+    document.getElementById("imagen-producto")?.addEventListener("change", cargarImagenesProducto);
     document.getElementById("buscar-admin")?.addEventListener("input", pintarProductos);
     document.getElementById("filtro-categoria")?.addEventListener("change", pintarProductos);
     document.getElementById("filtro-vendedor-productos")?.addEventListener("change", async (e) => {
@@ -267,7 +266,8 @@ async function guardarProducto(e) {
         precio: Number(value("precio")),
         precioAntes: value("precioAntes") ? Number(value("precioAntes")) : null,
         stock: Number(value("stock")),
-        imagen: value("imagen-producto-valor") || "img/logo.png",
+        imagenes: obtenerImagenesFormulario("imagenes-producto-valor", value("imagen-producto-valor")),
+        imagen: obtenerImagenesFormulario("imagenes-producto-valor", value("imagen-producto-valor"))[0] || "img/logo.png",
         descripcion: value("descripcion"),
         oferta: checked("oferta"),
         destacado: checked("destacado"),
@@ -304,17 +304,16 @@ function editarProducto(id) {
     setValue("precio", p.precio);
     setValue("precioAntes", p.precioAntes || "");
     setValue("stock", p.stock);
-    setValue("imagen-producto-valor", p.imagen || "");
+    const imagenes = obtenerImagenesProducto(p);
+    setValue("imagen-producto-valor", imagenes[0] || p.imagen || "");
+    setValue("imagenes-producto-valor", JSON.stringify(imagenes));
     setValue("descripcion", p.descripcion || "");
     setChecked("oferta", !!p.oferta);
     setChecked("destacado", !!p.destacado);
     setValue("producto-vendedor", p.vendedorId || "");
     setText("titulo-form", "Editar producto");
 
-    const preview = document.getElementById("preview-producto");
-    const img = document.getElementById("preview-producto-img");
-    if (img) img.src = p.imagen || "img/logo.png";
-    preview?.classList.remove("oculto");
+    pintarPreviewImagenes("preview-producto", "preview-producto-lista", imagenes);
 
     mostrarPanel("panel-productos");
 }
@@ -335,11 +334,80 @@ function limpiarProducto() {
     document.getElementById("form-producto")?.reset();
     setValue("producto-id", "");
     setValue("imagen-producto-valor", "");
+    setValue("imagenes-producto-valor", "");
     setText("titulo-form", "Agregar producto");
     document.getElementById("preview-producto")?.classList.add("oculto");
+    const lista = document.getElementById("preview-producto-lista");
+    if (lista) lista.innerHTML = "";
 }
 
-/* BANNERS */
+
+
+function obtenerImagenesFormulario(hiddenId, imagenPrincipal = "") {
+    const raw = value(hiddenId);
+    let imagenes = [];
+
+    try {
+        const parsed = JSON.parse(raw || "[]");
+        if (Array.isArray(parsed)) imagenes = parsed;
+    } catch {
+        imagenes = raw ? raw.split("\n") : [];
+    }
+
+    if (!imagenes.length && imagenPrincipal) imagenes = [imagenPrincipal];
+    imagenes = imagenes.map((img) => String(img || "").trim()).filter(Boolean);
+    return imagenes.length ? [...new Set(imagenes)] : ["img/logo.png"];
+}
+
+function obtenerImagenesProducto(producto) {
+    let imagenes = [];
+    if (Array.isArray(producto?.imagenes)) imagenes = producto.imagenes;
+    if (typeof producto?.imagenes === "string" && producto.imagenes.trim()) {
+        try {
+            const parsed = JSON.parse(producto.imagenes);
+            if (Array.isArray(parsed)) imagenes = parsed;
+        } catch {
+            imagenes = producto.imagenes.split("\n");
+        }
+    }
+    if (!imagenes.length && producto?.imagen) imagenes = [producto.imagen];
+    imagenes = imagenes.map((img) => String(img || "").trim()).filter(Boolean);
+    return imagenes.length ? [...new Set(imagenes)] : ["img/logo.png"];
+}
+
+function cargarImagenesProducto(e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    if (files.some((file) => !file.type.startsWith("image/"))) {
+        toast("Selecciona solo imágenes válidas.");
+        return;
+    }
+
+    Promise.all(files.map((file) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    }))).then((imagenes) => {
+        setValue("imagenes-producto-valor", JSON.stringify(imagenes));
+        setValue("imagen-producto-valor", imagenes[0] || "img/logo.png");
+        pintarPreviewImagenes("preview-producto", "preview-producto-lista", imagenes);
+    });
+}
+
+function pintarPreviewImagenes(previewId, listaId, imagenes) {
+    const preview = document.getElementById(previewId);
+    const lista = document.getElementById(listaId);
+    if (!preview || !lista) return;
+
+    const finales = (imagenes || []).map((img) => String(img || "").trim()).filter(Boolean);
+    lista.innerHTML = finales.map((src, index) => `
+        <figure class="preview-item">
+            <img src="${FastMarket.escapeHTML(src)}" alt="Imagen ${index + 1}" onerror="this.src='img/logo.png'">
+            ${index === 0 ? "<figcaption>Principal</figcaption>" : ""}
+        </figure>
+    `).join("");
+    preview.classList.toggle("oculto", finales.length === 0);
+}
 
 function activarBanners() {
     document.getElementById("form-banner")?.addEventListener("submit", guardarBanner);
@@ -458,7 +526,6 @@ function limpiarBanner() {
     document.getElementById("preview-banner")?.classList.add("oculto");
 }
 
-/* PEDIDOS */
 
 function activarPedidos() {
     document.getElementById("filtro-vendedor-pedidos")?.addEventListener("change", async (e) => {
@@ -574,7 +641,6 @@ function pintarListaHistorial(items, tipo) {
     }).join("");
     return `<ul>${lis}</ul>`;
 }
-/* USUARIOS / ÍNDICES */
 
 function activarUsuarios() {
     document.getElementById("form-usuario-admin")?.addEventListener("submit", guardarUsuarioAdmin);
@@ -776,7 +842,6 @@ function configurarPermisosPanel() {
     }
 }
 
-/* CUPONES */
 
 function activarCupones() {
     document.getElementById("form-cupon")?.addEventListener("submit", guardarCupon);
@@ -974,7 +1039,6 @@ async function cargarIndices() {
     }
 }
 
-/* CONTENIDO INDEX */
 
 function activarIndex() {
     document.getElementById("form-index")?.addEventListener("submit", guardarIndex);
@@ -1097,7 +1161,6 @@ function limpiarIndex() {
     setText("titulo-form-index", "Agregar contenido");
 }
 
-/* POWER BI */
 
 function activarPowerBI() {
     document.getElementById("btn-guardar-powerbi")?.addEventListener("click", guardarPowerBI);
@@ -1164,7 +1227,6 @@ function extraerUrlPowerBI(texto) {
     return match ? match[1] : texto.trim();
 }
 
-/* UTILIDADES */
 
 function cargarImagen(e, inputId, previewId, imgId) {
     const archivo = e.target.files[0];

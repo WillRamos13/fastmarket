@@ -131,7 +131,6 @@ public class PedidoService {
             CuponService.CalculoCupon calculo = cuponService.calcularDescuento(request.cuponCodigo(), itemsCupon, usuarioId);
             descuento = calculo.descuento();
             pedido.setCuponCodigo(calculo.cupon() != null ? calculo.cupon().getCodigo() : request.cuponCodigo().trim().toUpperCase());
-            // El uso se registra después de guardar el pedido para enlazar historial y pedido.
         }
 
         pedido.setSubtotal(subtotalPedido);
@@ -175,7 +174,6 @@ public class PedidoService {
     private BigDecimal calcularCostoEnvio(BigDecimal subtotalPedido) {
         BigDecimal costoConfigurado = systemConfigService.obtenerDecimal(SystemConfigService.COSTO_ENVIO, new BigDecimal("8.00"));
         if (costoConfigurado.compareTo(BigDecimal.ZERO) < 0) return BigDecimal.ZERO;
-        // Regla básica: envío gratis desde S/ 250.00. Puede cambiarse luego a configuración avanzada.
         if (subtotalPedido != null && subtotalPedido.compareTo(new BigDecimal("250.00")) >= 0) return BigDecimal.ZERO;
         return costoConfigurado;
     }

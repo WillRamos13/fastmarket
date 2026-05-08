@@ -25,7 +25,6 @@ body {
     color: var(--negro);
 }
 
-/* HEADER */
 
 #header {
     width: 100%;
@@ -100,7 +99,6 @@ body {
     border-bottom: 2px solid var(--naranja);
 }
 
-/* BUSCADOR */
 
 #busqueda {
     position: relative;
@@ -131,7 +129,6 @@ body {
     padding: 0.5rem 1rem;
 }
 
-/* CLIENTE */
 
 #cliente-area {
     position: relative;
@@ -215,7 +212,6 @@ body {
     font-weight: bold;
 }
 
-/* HERO */
 
 #checkout-main {
     padding-top: 80px;
@@ -253,7 +249,6 @@ body {
     line-height: 1.7;
 }
 
-/* CONTENIDO */
 
 #checkout-contenedor {
     padding: 60px 5% 90px 5%;
@@ -372,7 +367,6 @@ select:focus {
     font-weight: bold;
 }
 
-/* RESUMEN */
 
 #resumen-compra {
     padding: 24px;
@@ -514,7 +508,6 @@ select:focus {
     color: white;
 }
 
-/* FOOTER */
 
 #pie-de-pagina {
     background-color: black;
@@ -540,7 +533,6 @@ select:focus {
     color: var(--naranja);
 }
 
-/* RESPONSIVE */
 
 @media (max-width: 1050px) {
     #checkout-contenedor {
@@ -614,7 +606,6 @@ select:focus {
     }
 }
 
-/* ===== CUPÓN CHECKOUT ===== */
 .cupon-checkout-box {
     margin: 18px 0;
     padding: 14px;

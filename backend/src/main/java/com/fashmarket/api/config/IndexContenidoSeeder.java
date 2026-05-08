@@ -12,8 +12,6 @@ public class IndexContenidoSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Se insertan solo los contenidos que faltan. Así funciona tanto en una BD vacía
-        // como en una BD que ya tenía datos antiguos del index.
         guardarSiNoExiste("destacado", "intro", "Productos recomendados para ti", "Estos productos representan la idea de FashMarket: artículos útiles, llamativos y con buena relación entre precio y calidad.", null, null, true, 1);
         guardarSiNoExiste("destacado", "producto-1", "Audífonos inalámbricos", "Ideales para clases, música, llamadas y entretenimiento.", "🎧", "S/ 79.90", true, 2);
         guardarSiNoExiste("destacado", "producto-2", "Bolso urbano", "Diseño moderno para salir, estudiar o trabajar.", "👜", "S/ 59.90", true, 3);

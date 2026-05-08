@@ -209,10 +209,6 @@ td small { color: var(--muted); }
     .vendor-nav { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* =========================================================
-   QA-17: PANEL VENDEDOR PROFESIONAL
-   Estilo integrado directamente en vendedor.css
-   ========================================================= */
 :root {
     --fm-primary: #ff6a00;
     --fm-primary-dark: #e85d00;
@@ -615,10 +611,160 @@ tbody tr:hover td { background: #fbfdff !important; }
     .vendor-card { padding: 22px !important; }
 }
 
-/* QA-19: ayuda visual para vigencia de cupones */
 .texto-ayuda {
     display: block;
     margin-top: 6px;
     font-size: 0.78rem;
     color: #64748b;
+}
+
+.preview-galeria {
+    padding: 10px !important;
+    background: #f8fafc !important;
+    border: 1px dashed var(--fm-border, #e5e7eb) !important;
+}
+
+.preview-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 10px;
+}
+
+.preview-item {
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid var(--fm-border, #e5e7eb);
+}
+
+.preview-item img {
+    width: 100%;
+    height: 88px;
+    object-fit: cover;
+    display: block;
+}
+
+.preview-item figcaption {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    padding: 4px 7px;
+    border-radius: 999px;
+    background: rgba(17, 24, 39, .82);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 800;
+}
+
+@media (min-width: 901px) {
+    .vendor-sidebar {
+        position: fixed !important;
+        inset: 0 0 auto 0 !important;
+        width: 100% !important;
+        height: 74px !important;
+        min-height: 74px !important;
+        padding: 0 5% !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 18px !important;
+        overflow: visible !important;
+        background: rgba(17, 17, 17, .94) !important;
+        box-shadow: 0 10px 28px rgba(0,0,0,.18) !important;
+        border-right: 0 !important;
+        z-index: 50 !important;
+    }
+
+    .vendor-logo {
+        min-height: auto !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        color: #fff !important;
+    }
+
+    .vendor-logo img {
+        width: 150px !important;
+        height: auto !important;
+        border-radius: 0 !important;
+        object-fit: contain !important;
+    }
+
+    .vendor-logo span {
+        display: none !important;
+    }
+
+    .vendor-user {
+        margin-left: auto !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .vendor-user small { display: none !important; }
+    .vendor-user strong { color: #fff !important; font-size: 1rem !important; }
+
+    .vendor-nav {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+
+    .vendor-nav button,
+    .vendor-logout {
+        min-height: auto !important;
+        border-radius: 12px !important;
+        padding: 10px 12px !important;
+        color: #fff !important;
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        font-size: .9rem !important;
+        white-space: nowrap !important;
+    }
+
+    .vendor-nav button::before,
+    .vendor-logout::before {
+        display: none !important;
+    }
+
+    .vendor-nav button:hover,
+    .vendor-nav button.activo {
+        background: #fd6403 !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .vendor-logout {
+        margin-top: 0 !important;
+        background: #fd6403 !important;
+        color: #fff !important;
+    }
+
+    .vendor-main {
+        margin-left: 0 !important;
+        padding: 108px 5% 42px !important;
+        max-width: 1280px !important;
+        margin-right: auto !important;
+    }
+
+    #pie-de-pagina {
+        margin-left: 0 !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .vendor-sidebar {
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    .vendor-main {
+        margin-left: 0 !important;
+    }
 }

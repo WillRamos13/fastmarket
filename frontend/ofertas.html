@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle de producto | FastMarket</title>
+    <title>Ofertas | FastMarket</title>
     <link rel="stylesheet" href="estilos-globales.css">
-    <link rel="stylesheet" href="detalle-producto.css">
+    <link rel="stylesheet" href="ofertas.css">
 </head>
-
 <body>
-
     <header id="header">
         <div id="cabeza">
-            <a href="index.html" class="logo-link">
+            <a href="index.html">
                 <img class="barra" src="img/logo.png" id="logo" alt="Logo FastMarket">
             </a>
 
@@ -21,12 +19,12 @@
                     <li class="barra"><a href="index.html">Inicio</a></li>
                     <li class="barra"><a href="productos.html">Productos</a></li>
                     <li class="barra"><a href="nosotros.html">Nosotros</a></li>
-                    <li class="barra"><a href="ofertas.html">Ofertas</a></li>
+                    <li class="barra"><a href="ofertas.html" class="activo">Ofertas</a></li>
                     <li class="barra"><a href="#pie-de-pagina">Contacto</a></li>
 
                     <li class="barra" id="busqueda">
                         <img src="img/lupa.png" alt="Buscar" class="icono-menu">
-                        <input type="text" placeholder="Buscar..." id="buscador">
+                        <input type="text" placeholder="Buscar oferta..." id="buscador-ofertas">
                     </li>
 
                     <li class="barra" id="carrito">
@@ -37,17 +35,13 @@
 
                     <li class="barra" id="cliente-area">
                         <a href="login.html" id="login-btn">Login</a>
-
                         <div id="cliente-menu" class="oculto">
-                            <button id="btn-cliente">
-                                👤 <span id="nombre-cliente">Cliente</span> ▾
-                            </button>
-
+                            <button id="btn-cliente"><span id="nombre-cliente">Cliente</span> ▾</button>
                             <div id="opciones-cliente">
                                 <a href="perfil.html">Mi perfil</a>
                                 <a href="pedidos.html">Mis pedidos</a>
-                                <a href="perfil.html#direcciones">Direcciones</a>
-                                <a href="perfil.html#seguridad">Seguridad</a>
+                                <button data-cliente-panel="direcciones">Direcciones</button>
+                                <button data-cliente-panel="seguridad">Seguridad</button>
                                 <button id="cerrar-sesion-cliente">Cerrar sesión</button>
                             </div>
                         </div>
@@ -57,94 +51,25 @@
         </div>
     </header>
 
-    <main id="detalle-main">
-
-        <div class="ruta-producto">
-            <a href="index.html">Inicio</a>
-            <span>&gt;</span>
-            <a href="productos.html">Productos</a>
-            <span>&gt;</span>
-            <strong id="ruta-nombre">Producto</strong>
-        </div>
-
-        <section id="detalle-producto">
-
-            <div id="galeria-producto">
-                <div id="miniaturas-producto"></div>
-
-                <div id="imagen-producto">
-                    <img id="producto-img" src="img/logo.png" alt="Producto">
-                    <span id="etiqueta-oferta" class="oculto">Oferta</span>
-                </div>
-            </div>
-
-            <div id="info-producto">
-                <h1 id="producto-nombre">Producto</h1>
-
-                <div class="valoracion-producto">
-                    <span class="estrellas">★★★★★</span>
-                    <span id="producto-resenas">(128 reseñas)</span>
-                </div>
-
-                <div id="precio-producto">
-                    <strong id="producto-precio">S/ 0.00</strong>
-                    <span id="producto-precio-antes"></span>
-                </div>
-
-                <p id="producto-descripcion">Descripción del producto.</p>
-
-                <ul id="caracteristicas-producto">
-                    <li>Conexión rápida y estable</li>
-                    <li>Diseño cómodo para uso diario</li>
-                    <li>Producto revisado antes del envío</li>
-                    <li>Atención disponible para consultas</li>
-                </ul>
-
-                <p id="producto-stock" class="stock-disponible">En stock</p>
-
-                <div class="compra-producto">
-                    <div id="cantidad-box">
-                        <button id="restar" type="button">−</button>
-                        <span id="cantidad">1</span>
-                        <button id="sumar" type="button">+</button>
-                    </div>
-
-                    <button id="agregar-carrito" type="button">🛒 Agregar al carrito</button>
-                    <button id="comprar-ahora" type="button">Comprar ahora</button>
-                </div>
-
-                <p id="mensaje-detalle"></p>
-            </div>
-
-            <aside id="info-adicional">
-                <h2>Información adicional</h2>
-
-                <dl>
-                    <div>
-                        <dt>Marca:</dt>
-                        <dd id="info-marca">FastMarket</dd>
-                    </div>
-                    <div>
-                        <dt>Modelo:</dt>
-                        <dd id="info-modelo">FM-001</dd>
-                    </div>
-                    <div>
-                        <dt>Color:</dt>
-                        <dd id="info-color">Según disponibilidad</dd>
-                    </div>
-                    <div>
-                        <dt>Garantía:</dt>
-                        <dd id="info-garantia">12 meses</dd>
-                    </div>
-                    <div>
-                        <dt>Categoría:</dt>
-                        <dd id="info-categoria">Categoría</dd>
-                    </div>
-                </dl>
-            </aside>
-
+    <main id="ofertas-main">
+        <section class="ofertas-hero">
+            <p>Promociones activas</p>
+            <h1>Productos en oferta</h1>
+            <span>Estos productos aparecen aquí porque fueron marcados como oferta desde el panel de administrador o vendedor.</span>
         </section>
 
+        <section class="ofertas-tools">
+            <input type="text" id="buscar-oferta" placeholder="Buscar por nombre o categoría...">
+            <select id="ordenar-oferta">
+                <option value="normal">Ordenar</option>
+                <option value="precio-menor">Menor precio</option>
+                <option value="precio-mayor">Mayor precio</option>
+                <option value="descuento">Mayor descuento</option>
+            </select>
+        </section>
+
+        <section id="ofertas-grid" class="ofertas-grid"></section>
+        <p id="ofertas-vacio" class="ofertas-vacio oculto">No hay productos en oferta por el momento.</p>
     </main>
 
                 <footer id="pie-de-pagina">
@@ -198,8 +123,7 @@
         </footer>
 
     <div id="toast"></div>
-
     <script src="api.js"></script>
-    <script src="detalle-producto.js"></script>
+    <script src="ofertas.js"></script>
 </body>
 </html>

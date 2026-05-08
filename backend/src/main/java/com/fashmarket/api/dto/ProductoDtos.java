@@ -2,6 +2,7 @@ package com.fashmarket.api.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ProductoDtos {
     public record ProductoResponse(
@@ -12,6 +13,7 @@ public class ProductoDtos {
             BigDecimal precioAntes,
             Integer stock,
             String imagen,
+            List<String> imagenes,
             String descripcion,
             Boolean oferta,
             Boolean destacado,

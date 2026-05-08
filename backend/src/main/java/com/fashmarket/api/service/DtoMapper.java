@@ -11,6 +11,7 @@ import com.fashmarket.api.model.Usuario;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.ArrayList;
 
 public class DtoMapper {
     private DtoMapper() {}
@@ -48,6 +49,9 @@ public class DtoMapper {
 
 
     public static ProductoDtos.ProductoResponse toProductoResponse(Producto producto) {
+        List<String> imagenes = imagenesProducto(producto);
+        String imagenPrincipal = !imagenes.isEmpty() ? imagenes.get(0) : producto.getImagen();
+
         return new ProductoDtos.ProductoResponse(
                 producto.getId(),
                 producto.getNombre(),
@@ -55,7 +59,8 @@ public class DtoMapper {
                 producto.getPrecio(),
                 producto.getPrecioAntes(),
                 producto.getStock(),
-                producto.getImagen(),
+                imagenPrincipal,
+                imagenes,
                 producto.getDescripcion(),
                 Boolean.TRUE.equals(producto.getOferta()),
                 Boolean.TRUE.equals(producto.getDestacado()),
@@ -64,6 +69,22 @@ public class DtoMapper {
                 producto.getVendedor() != null ? producto.getVendedor().getNombre() : null,
                 producto.getCreadoEn()
         );
+    }
+
+    private static List<String> imagenesProducto(Producto producto) {
+        List<String> resultado = new ArrayList<>();
+
+        if (producto.getImagenes() != null && !producto.getImagenes().isBlank()) {
+            for (String item : producto.getImagenes().split("\n")) {
+                String limpio = item == null ? "" : item.trim();
+                if (!limpio.isBlank() && !resultado.contains(limpio)) resultado.add(limpio);
+            }
+        }
+
+        String imagen = producto.getImagen();
+        if (resultado.isEmpty() && imagen != null && !imagen.isBlank()) resultado.add(imagen.trim());
+        if (resultado.isEmpty()) resultado.add("img/logo.png");
+        return resultado;
     }
 
     public static PedidoDtos.PedidoResponse toPedidoResponse(Pedido pedido) {

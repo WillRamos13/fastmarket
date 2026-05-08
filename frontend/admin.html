@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Administrador | FastMarket</title>
-    <link rel="stylesheet" href="qa-upgrade.css">
+    <link rel="stylesheet" href="estilos-globales.css">
     <link rel="stylesheet" href="admin.css">
 </head>
 
@@ -187,13 +187,15 @@
                         </select>
                     </div>
 
-                    <label for="imagen-producto">Imagen del producto</label>
-                    <input type="file" id="imagen-producto" accept="image/*">
+                    <label for="imagen-producto">Imágenes del producto</label>
+                    <input type="file" id="imagen-producto" accept="image/*" multiple>
+                    <small class="ayuda-campo">Puedes seleccionar varias fotos. La primera será la imagen principal.</small>
 
                     <input type="hidden" id="imagen-producto-valor">
+                    <input type="hidden" id="imagenes-producto-valor">
 
-                    <div id="preview-producto" class="preview-producto oculto">
-                        <img id="preview-producto-img" src="img/logo.png" alt="Vista previa del producto">
+                    <div id="preview-producto" class="preview-producto preview-galeria oculto">
+                        <div id="preview-producto-lista" class="preview-lista"></div>
                     </div>
 
                     <label for="descripcion">Descripción</label>
@@ -686,7 +688,7 @@
 
     </main>
 
-    <footer id="pie-de-pagina">
+                <footer id="pie-de-pagina">
             <div id="contactos-redes">
 
                 <div id="contactos-redes1">

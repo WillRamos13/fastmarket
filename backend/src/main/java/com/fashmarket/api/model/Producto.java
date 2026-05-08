@@ -34,6 +34,9 @@ public class Producto {
     @Column(columnDefinition = "TEXT")
     private String imagen;
 
+    @Column(name = "imagenes", columnDefinition = "TEXT")
+    private String imagenes;
+
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
@@ -62,6 +65,7 @@ public class Producto {
         this.precioAntes = precioAntes;
         this.stock = stock;
         this.imagen = imagen;
+        this.imagenes = imagen;
         this.descripcion = descripcion;
         this.oferta = oferta;
         this.destacado = destacado;
@@ -84,6 +88,8 @@ public class Producto {
     public void setStock(Integer stock) { this.stock = stock; }
     public String getImagen() { return imagen; }
     public void setImagen(String imagen) { this.imagen = imagen; }
+    public String getImagenes() { return imagenes; }
+    public void setImagenes(String imagenes) { this.imagenes = imagenes; }
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
     public Boolean getOferta() { return oferta; }

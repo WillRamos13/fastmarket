@@ -39,7 +39,6 @@ body::before {
     z-index: -1;
 }
 
-/* SIDEBAR ADMIN: MISMO ESTILO QUE EL PANEL VENDEDOR */
 #header {
     position: fixed;
     inset: 0 auto 0 0;
@@ -182,7 +181,6 @@ body::before {
     color: white !important;
 }
 
-/* CONTENIDO */
 #admin-main {
     margin-left: 280px;
     min-height: 100vh;
@@ -193,7 +191,6 @@ body::before {
 .panel-admin.activo { display: block; }
 .oculto { display: none !important; }
 
-/* RESUMEN EJECUTIVO */
 #panel-inicio .panel-bienvenida {
     background: linear-gradient(135deg, #111827, #1f2937 58%, #fb923c);
     border-radius: 30px;
@@ -301,7 +298,6 @@ body::before {
     font-size: .95rem;
 }
 
-/* TITULOS */
 .titulo-section {
     margin-bottom: 24px;
 }
@@ -319,7 +315,6 @@ body::before {
     line-height: 1.65;
 }
 
-/* CARDS Y LAYOUTS */
 #estadisticas,
 .vendedor-metricas {
     display: grid;
@@ -553,7 +548,6 @@ button:hover,
     font-size: .86rem;
 }
 
-/* TABLAS */
 .tabla-scroll,
 .pedidos-contenedor,
 .usuarios-contenedor,
@@ -620,7 +614,6 @@ tbody tr:hover { background: #f8fafc; }
     transform: none;
 }
 
-/* ESTADOS */
 .estado-activo,
 .estado-oferta,
 .estado-normal,
@@ -651,7 +644,6 @@ tbody tr:hover { background: #f8fafc; }
 .estado-stock-agotado { background: #fee2e2; color: #991b1b; }
 .estado-stock-bajo { background: #fef3c7; color: #92400e; }
 
-/* PREVIEWS E IMÁGENES */
 .preview-producto,
 .preview-banner {
     margin-top: 12px;
@@ -669,7 +661,6 @@ tbody tr:hover { background: #f8fafc; }
     display: block;
 }
 
-/* BANNERS */
 .lista-banners {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -710,7 +701,6 @@ tbody tr:hover { background: #f8fafc; }
     margin-top: 12px;
 }
 
-/* VENDEDORES */
 .vendedores-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -747,7 +737,6 @@ tbody tr:hover { background: #f8fafc; }
     font-size: 1.45rem;
 }
 
-/* POWER BI */
 .powerbi-contenedor {
     display: grid;
     grid-template-columns: 360px 1fr;
@@ -776,7 +765,6 @@ tbody tr:hover { background: #f8fafc; }
     border-radius: 20px;
 }
 
-/* DETALLES */
 .detalle-panel {
     margin-top: 18px;
     background: #f8fafc;
@@ -790,7 +778,6 @@ tbody tr:hover { background: #f8fafc; }
 
 .detalle-panel li { margin-bottom: 8px; }
 
-/* FOOTER ADMIN: MISMO FORMATO GLOBAL DEL INDEX */
 #pie-de-pagina {
     display: block;
     margin-left: 280px;
@@ -857,7 +844,6 @@ tbody tr:hover { background: #f8fafc; }
     display: inline-block;
 }
 
-/* TOAST */
 #toast {
     position: fixed;
     right: 20px;
@@ -879,7 +865,6 @@ tbody tr:hover { background: #f8fafc; }
     transform: translateY(0);
 }
 
-/* RESPONSIVE */
 @media (max-width: 1180px) {
     .atajos-admin,
     #estadisticas { grid-template-columns: repeat(2, 1fr); }
@@ -964,10 +949,6 @@ tbody tr:hover { background: #f8fafc; }
     }
 }
 
-/* =========================================================
-   QA-17: PANEL ADMINISTRATIVO PROFESIONAL
-   Estilo integrado directamente en admin.css
-   ========================================================= */
 :root {
     --fm-primary: #ff6a00;
     --fm-primary-dark: #e85d00;
@@ -1005,7 +986,6 @@ body::before {
         linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%) !important;
 }
 
-/* Sidebar ejecutivo */
 #header {
     width: 296px !important;
     background:
@@ -1116,7 +1096,6 @@ body::before {
 
 #cerrar-sesion::before { background: #fca5a5 !important; }
 
-/* Área de trabajo */
 #admin-main {
     margin-left: 296px !important;
     padding: 36px clamp(26px, 3.2vw, 52px) !important;
@@ -1153,7 +1132,6 @@ body::before {
     max-width: 860px !important;
 }
 
-/* Hero del resumen */
 #panel-inicio .panel-bienvenida {
     background:
         radial-gradient(circle at 88% 8%, rgba(255, 106, 0, .45), transparent 28%),
@@ -1521,10 +1499,153 @@ td small { color: var(--fm-muted) !important; }
     .powerbi-placeholder { padding: 18px !important; }
 }
 
-/* QA-19: ayuda visual para vigencia de cupones */
 .texto-ayuda {
     display: block;
     margin-top: 6px;
     font-size: 0.78rem;
     color: #64748b;
+}
+
+.preview-galeria {
+    padding: 10px;
+    background: #f8fafc;
+    border: 1px dashed var(--line);
+    border-radius: 18px;
+}
+
+.preview-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 10px;
+}
+
+.preview-item {
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+}
+
+.preview-item img {
+    width: 100%;
+    height: 88px;
+    object-fit: cover;
+    display: block;
+}
+
+.preview-item figcaption {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    padding: 4px 7px;
+    border-radius: 999px;
+    background: rgba(17, 24, 39, .82);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 800;
+}
+
+@media (min-width: 901px) {
+    #header {
+        inset: 0 0 auto 0;
+        width: 100%;
+        height: 74px;
+        padding: 0 5%;
+        background: rgba(17, 17, 17, .94);
+        box-shadow: 0 10px 28px rgba(0,0,0,.18);
+        overflow: visible;
+    }
+
+    #cabeza-admin {
+        min-height: 74px;
+        max-width: 1180px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 22px;
+    }
+
+    #logo-admin {
+        min-height: auto;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    #logo-admin img {
+        width: 150px;
+    }
+
+    #bienvenida-admin {
+        margin-left: auto;
+        width: auto;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #fff;
+        font-size: .95rem;
+    }
+
+    #bienvenida-admin::before {
+        display: none;
+    }
+
+    #nombre-admin {
+        color: #fff;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    #menu-admin {
+        flex: 0 0 auto;
+        position: relative;
+    }
+
+    #btn-menu-admin {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 16px;
+        background: #fd6403;
+        color: #fff;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    #opciones-admin {
+        position: absolute;
+        top: calc(100% + 14px);
+        right: 0;
+        width: 280px;
+        max-height: calc(100vh - 95px);
+        overflow-y: auto;
+        display: none !important;
+        padding: 10px;
+        background: #111827;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 18px;
+        box-shadow: 0 22px 55px rgba(0,0,0,.28);
+    }
+
+    #opciones-admin.activo {
+        display: grid !important;
+    }
+
+    #admin-main {
+        margin-left: 0;
+        padding: 108px 5% 42px;
+        max-width: 1280px;
+        margin-right: auto;
+    }
+
+    #pie-de-pagina {
+        margin-left: 0;
+    }
 }
