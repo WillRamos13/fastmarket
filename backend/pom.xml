@@ -10,7 +10,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.fashmarket</groupId>
+    <groupId>com.fastmarket</groupId>
     <artifactId>fastmarket-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>fastmarket-backend</name>

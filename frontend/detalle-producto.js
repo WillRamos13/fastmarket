@@ -31,7 +31,7 @@ async function obtenerCarritoActual() {
         const data = await FastMarket.obtenerCarrito();
         return (data.items || []).map(normalizarItemCarrito);
     } catch {
-        return JSON.parse(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fashmarket_carrito") || "[]").map(normalizarItemCarrito);
+        return JSON.parse(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fastmarket_carrito") || "[]").map(normalizarItemCarrito);
     }
 }
 

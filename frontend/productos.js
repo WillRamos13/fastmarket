@@ -6,6 +6,7 @@ let cuponAplicado = null;
 let categoriaActual = "todos";
 let busquedaActual = "";
 let ordenActual = "normal";
+let modoOfertas = false;
 let slideActual = 0;
 let intervaloSlider = null;
 
@@ -16,7 +17,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     FastMarket.activarChatBasico();
 
     const params = new URLSearchParams(window.location.search);
+    modoOfertas = params.get("ofertas") === "1";
     const q = params.get("q");
+    actualizarVistaOfertas();
+
     if (q) {
         const buscarProducto = document.getElementById("buscar-producto");
         if (buscarProducto) buscarProducto.value = q;
@@ -35,6 +39,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     await cargarProductos();
 });
 
+function actualizarVistaOfertas() {
+    if (!modoOfertas) return;
+    const titulo = document.querySelector(".titulo-productos h2");
+    const descripcion = document.querySelector(".titulo-productos p");
+    if (titulo) titulo.textContent = "Ofertas";
+    if (descripcion) descripcion.textContent = "Productos con promoción disponibles en FastMarket.";
+}
 
 function normalizarItemCarrito(item) {
     return {
@@ -64,8 +75,8 @@ function combinarCarritos(remoto, local) {
 
 async function cargarCarritoPersistente() {
     const usuario = FastMarket.getCliente();
-    const local = JSON.parse(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fashmarket_carrito") || "[]");
-    const cuponLocal = JSON.parse(localStorage.getItem("fastmarket_cupon") || localStorage.getItem("fashmarket_cupon") || "null");
+    const local = JSON.parse(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fastmarket_carrito") || "[]");
+    const cuponLocal = JSON.parse(localStorage.getItem("fastmarket_cupon") || localStorage.getItem("fastmarket_cupon") || "null");
 
     try {
         const data = await FastMarket.obtenerCarrito();
@@ -247,7 +258,8 @@ function mostrarProductos() {
     let lista = productos.filter((p) => {
         const categoriaOk = categoriaActual === "todos" || p.categoria === categoriaActual;
         const texto = `${p.nombre} ${p.descripcion} ${p.categoria}`.toLowerCase();
-        return categoriaOk && texto.includes(busquedaActual);
+        const ofertaOk = !modoOfertas || Boolean(p.oferta) || Number(p.precioAntes || 0) > Number(p.precio || 0);
+        return categoriaOk && ofertaOk && texto.includes(busquedaActual);
     });
 
     if (ordenActual === "precio-menor") lista.sort((a, b) => Number(a.precio) - Number(b.precio));

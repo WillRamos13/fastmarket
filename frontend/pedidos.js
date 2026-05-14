@@ -41,7 +41,7 @@ function mostrarSinSesion() {
             <div class="pedido-card">
                 <h3>Debes iniciar sesión</h3>
                 <p>Inicia sesión para revisar tus pedidos reales.</p>
-                <a href="login.html">Ir al login</a>
+                <a href="login.html">Ir a iniciar sesión</a>
             </div>`;
     }
     mostrarVacio();

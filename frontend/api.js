@@ -36,16 +36,16 @@ const FastMarket = (() => {
     }
 
     function getSesion() {
-        return leerJSONStorage(sessionStorage, STORAGE.sesion, "fashmarket_sesion", null);
+        return leerJSONStorage(sessionStorage, STORAGE.sesion, "fastmarket_sesion", null);
     }
 
     function getCliente() {
         const sesion = getSesion();
-        return sesion?.usuario || leerJSONStorage(sessionStorage, STORAGE.cliente, "fashmarket_cliente", null) || null;
+        return sesion?.usuario || leerJSONStorage(sessionStorage, STORAGE.cliente, "fastmarket_cliente", null) || null;
     }
 
     function getToken() {
-        return getSesion()?.token || sessionStorage.getItem(STORAGE.token) || sessionStorage.getItem("fashmarket_token") || "";
+        return getSesion()?.token || sessionStorage.getItem(STORAGE.token) || sessionStorage.getItem("fastmarket_token") || "";
     }
 
     function guardarSesion(authResponse) {
@@ -58,7 +58,7 @@ const FastMarket = (() => {
             sessionStorage.setItem(STORAGE.admin, JSON.stringify(usuario));
         } else {
             sessionStorage.removeItem(STORAGE.admin); localStorage.removeItem(STORAGE.admin);
-            sessionStorage.removeItem("fashmarket_admin"); localStorage.removeItem("fashmarket_admin");
+            sessionStorage.removeItem("fastmarket_admin"); localStorage.removeItem("fastmarket_admin");
         }
 
         if (token) sessionStorage.setItem(STORAGE.token, token);
@@ -73,7 +73,7 @@ const FastMarket = (() => {
     }
 
     function cerrarSesion() {
-        [STORAGE.sesion, STORAGE.cliente, STORAGE.admin, STORAGE.token, "fashmarket_sesion", "fashmarket_cliente", "fashmarket_admin", "fashmarket_token"].forEach((clave) => {
+        [STORAGE.sesion, STORAGE.cliente, STORAGE.admin, STORAGE.token, "fastmarket_sesion", "fastmarket_cliente", "fastmarket_admin", "fastmarket_token"].forEach((clave) => {
             sessionStorage.removeItem(clave);
             localStorage.removeItem(clave);
         });
@@ -193,11 +193,11 @@ const FastMarket = (() => {
     }
 
     function obtenerCarritoLocal() {
-        try { return leerJSONStorage(localStorage, STORAGE.carrito, "fashmarket_carrito", []) || []; } catch { return []; }
+        try { return leerJSONStorage(localStorage, STORAGE.carrito, "fastmarket_carrito", []) || []; } catch { return []; }
     }
 
     function obtenerCuponLocal() {
-        try { return leerJSONStorage(localStorage, STORAGE.cupon, "fashmarket_cupon", null); } catch { return null; }
+        try { return leerJSONStorage(localStorage, STORAGE.cupon, "fastmarket_cupon", null); } catch { return null; }
     }
 
 
@@ -224,13 +224,13 @@ const FastMarket = (() => {
         const usuario = getCliente();
         if (!usuario) {
             localStorage.setItem(STORAGE.carrito, JSON.stringify(items || []));
-            localStorage.removeItem("fashmarket_carrito");
+            localStorage.removeItem("fastmarket_carrito");
             if (cuponCodigo) {
                 localStorage.setItem(STORAGE.cupon, JSON.stringify({ codigo: cuponCodigo }));
             } else {
                 localStorage.removeItem(STORAGE.cupon);
             }
-            localStorage.removeItem("fashmarket_cupon");
+            localStorage.removeItem("fastmarket_cupon");
             return { items: items || [], invitado: true };
         }
         const actualizado = await request(`/carritos/usuario/${usuario.id}`, {
@@ -240,8 +240,8 @@ const FastMarket = (() => {
         });
         localStorage.removeItem(STORAGE.carrito);
         localStorage.removeItem(STORAGE.cupon);
-        localStorage.removeItem("fashmarket_carrito");
-        localStorage.removeItem("fashmarket_cupon");
+        localStorage.removeItem("fastmarket_carrito");
+        localStorage.removeItem("fastmarket_cupon");
         return actualizado;
     }
 
@@ -249,8 +249,8 @@ const FastMarket = (() => {
         const usuario = getCliente();
         localStorage.removeItem(STORAGE.carrito);
         localStorage.removeItem(STORAGE.cupon);
-        localStorage.removeItem("fashmarket_carrito");
-        localStorage.removeItem("fashmarket_cupon");
+        localStorage.removeItem("fastmarket_carrito");
+        localStorage.removeItem("fastmarket_cupon");
         if (usuario) {
             try { await request(`/carritos/usuario/${usuario.id}`, { method: "DELETE", auth: true }); } catch {}
         }

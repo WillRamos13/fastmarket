@@ -9,11 +9,11 @@ const FastMarketCart = (() => {
     }
 
     function obtenerLocal() {
-        return parseJSON(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fashmarket_carrito"), []) || [];
+        return parseJSON(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fastmarket_carrito"), []) || [];
     }
 
     function obtenerCuponLocal() {
-        return parseJSON(localStorage.getItem("fastmarket_cupon") || localStorage.getItem("fashmarket_cupon"), null);
+        return parseJSON(localStorage.getItem("fastmarket_cupon") || localStorage.getItem("fastmarket_cupon"), null);
     }
 
     function normalizarItem(item) {
@@ -155,7 +155,7 @@ const FastMarketCart = (() => {
 
     async function guardar() {
         localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito));
-        localStorage.removeItem("fashmarket_carrito");
+        localStorage.removeItem("fastmarket_carrito");
         if (cuponAplicado?.codigo) localStorage.setItem("fastmarket_cupon", JSON.stringify({ codigo: cuponAplicado.codigo }));
         else localStorage.removeItem("fastmarket_cupon");
         guardarBackupCheckout();

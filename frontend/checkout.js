@@ -73,9 +73,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const leerJSON = (valor, defecto) => {
             try { return valor ? JSON.parse(valor) : defecto; } catch { return defecto; }
         };
-        const local = leerJSON(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fashmarket_carrito"), []);
+        const local = leerJSON(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fastmarket_carrito"), []);
         const backup = leerJSON(sessionStorage.getItem("fastmarket_checkout_carrito") || sessionStorage.getItem("fastmarket_carrito_backup"), []);
-        const cuponLocal = leerJSON(localStorage.getItem("fastmarket_cupon") || localStorage.getItem("fashmarket_cupon") || sessionStorage.getItem("fastmarket_checkout_cupon"), null);
+        const cuponLocal = leerJSON(localStorage.getItem("fastmarket_cupon") || localStorage.getItem("fastmarket_cupon") || sessionStorage.getItem("fastmarket_checkout_cupon"), null);
 
         let data = { items: [], cuponCodigo: null, descuento: 0 };
         try {
