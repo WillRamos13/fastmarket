@@ -59,7 +59,7 @@
 
 .fm-cart-head {
     padding: 22px 24px 18px;
-    background: #fd6403;
+    background: #111827;
     color: #fff;
     display: flex;
     align-items: center;
@@ -74,7 +74,7 @@
 
 .fm-cart-head p {
     margin: 4px 0 0;
-    color: #ffffff;
+    color: #d1d5db;
     font-size: .9rem;
 }
 
@@ -169,6 +169,10 @@
     background: #fff;
 }
 
+.fm-cart-coupon {
+    margin-bottom: 14px;
+}
+
 .fm-cart-coupon label {
     display: block;
     margin-bottom: 7px;
@@ -211,6 +215,7 @@
 
 .fm-cart-totals {
     display: grid;
+    gap: 8px;
     margin-bottom: 16px;
 }
 

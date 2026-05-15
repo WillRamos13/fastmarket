@@ -224,14 +224,16 @@ const FastMarket = (() => {
         const usuario = getCliente();
         if (!usuario) {
             localStorage.setItem(STORAGE.carrito, JSON.stringify(items || []));
-            localStorage.removeItem("fastmarket_carrito");
+            sessionStorage.setItem("fastmarket_checkout_carrito", JSON.stringify(items || []));
             if (cuponCodigo) {
-                localStorage.setItem(STORAGE.cupon, JSON.stringify({ codigo: cuponCodigo }));
+                const cupon = JSON.stringify({ codigo: cuponCodigo });
+                localStorage.setItem(STORAGE.cupon, cupon);
+                sessionStorage.setItem("fastmarket_checkout_cupon", cupon);
             } else {
                 localStorage.removeItem(STORAGE.cupon);
+                sessionStorage.removeItem("fastmarket_checkout_cupon");
             }
-            localStorage.removeItem("fastmarket_cupon");
-            return { items: items || [], invitado: true };
+            return { items: items || [], cuponCodigo, invitado: true };
         }
         const actualizado = await request(`/carritos/usuario/${usuario.id}`, {
             method: "PUT",
@@ -240,8 +242,6 @@ const FastMarket = (() => {
         });
         localStorage.removeItem(STORAGE.carrito);
         localStorage.removeItem(STORAGE.cupon);
-        localStorage.removeItem("fastmarket_carrito");
-        localStorage.removeItem("fastmarket_cupon");
         return actualizado;
     }
 
@@ -249,8 +249,9 @@ const FastMarket = (() => {
         const usuario = getCliente();
         localStorage.removeItem(STORAGE.carrito);
         localStorage.removeItem(STORAGE.cupon);
-        localStorage.removeItem("fastmarket_carrito");
-        localStorage.removeItem("fastmarket_cupon");
+        sessionStorage.removeItem("fastmarket_checkout_carrito");
+        sessionStorage.removeItem("fastmarket_checkout_cupon");
+        sessionStorage.removeItem("fastmarket_carrito_backup");
         if (usuario) {
             try { await request(`/carritos/usuario/${usuario.id}`, { method: "DELETE", auth: true }); } catch {}
         }

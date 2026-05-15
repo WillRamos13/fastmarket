@@ -1,8 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     FastMarket.activarBuscador("buscador", "busqueda");
     FastMarket.activarMenuCliente();
-    if (window.FastMarketCart) FastMarketCart.cargar();
-
     const form = document.getElementById("form-checkout");
     const mensajeLogin = document.getElementById("mensaje-login");
     const mensajeCheckout = document.getElementById("mensaje-checkout");
@@ -45,9 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function normalizarItemCarrito(item) {
         return {
             id: Number(item.productoId || item.id),
-            nombre: item.nombre || "Producto",
+            nombre: item.nombre || item.productoNombre || "Producto",
             imagen: item.imagen || "img/logo.png",
-            precio: Number(item.precio || 0),
+            precio: Number(item.precio ?? item.precioUnitario ?? 0),
             stock: Number(item.stockDisponible ?? item.stock ?? 0),
             cantidad: Number(item.cantidad || 1)
         };
@@ -73,9 +71,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const leerJSON = (valor, defecto) => {
             try { return valor ? JSON.parse(valor) : defecto; } catch { return defecto; }
         };
-        const local = leerJSON(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fastmarket_carrito"), []);
+        const local = leerJSON(localStorage.getItem("fastmarket_carrito"), []);
         const backup = leerJSON(sessionStorage.getItem("fastmarket_checkout_carrito") || sessionStorage.getItem("fastmarket_carrito_backup"), []);
-        const cuponLocal = leerJSON(localStorage.getItem("fastmarket_cupon") || localStorage.getItem("fastmarket_cupon") || sessionStorage.getItem("fastmarket_checkout_cupon"), null);
+        const cuponLocal = leerJSON(localStorage.getItem("fastmarket_cupon") || sessionStorage.getItem("fastmarket_checkout_cupon"), null);
 
         let data = { items: [], cuponCodigo: null, descuento: 0 };
         try {
@@ -84,24 +82,33 @@ document.addEventListener("DOMContentLoaded", () => {
             data = { items: [], cuponCodigo: null, descuento: 0 };
         }
         const remoto = (data.items || []).map(normalizarItemCarrito);
-        const respaldo = (local.length ? local : backup).map(normalizarItemCarrito);
+        const respaldoLocal = (local.length ? local : backup).map(normalizarItemCarrito);
 
         if (usuario) {
-            const combinado = combinarCarritos(remoto, respaldo);
-            if (combinado.length) {
+            if (local.length) {
+                const combinado = combinarCarritos(remoto, local);
                 const sincronizado = await FastMarket.sincronizarCarrito(combinado, cuponLocal?.codigo || data.cuponCodigo || null);
                 carrito = (sincronizado.items || []).map(normalizarItemCarrito);
                 cuponAplicado = sincronizado.cuponCodigo ? { codigo: sincronizado.cuponCodigo, descuento: Number(sincronizado.descuento || 0) } : cuponLocal;
-            } else {
+            } else if (remoto.length) {
                 carrito = remoto;
                 cuponAplicado = data.cuponCodigo ? { codigo: data.cuponCodigo, descuento: Number(data.descuento || 0) } : cuponLocal;
+            } else {
+                carrito = backup.map(normalizarItemCarrito);
+                cuponAplicado = cuponLocal;
             }
         } else {
-            carrito = respaldo;
+            carrito = respaldoLocal;
             cuponAplicado = cuponLocal;
         }
 
+        localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito));
         sessionStorage.setItem("fastmarket_checkout_carrito", JSON.stringify(carrito));
+        if (cuponAplicado?.codigo) {
+            const cupon = JSON.stringify({ codigo: cuponAplicado.codigo, descuento: Number(cuponAplicado.descuento || 0) });
+            localStorage.setItem("fastmarket_cupon", cupon);
+            sessionStorage.setItem("fastmarket_checkout_cupon", cupon);
+        }
 
         if (inputCupon && cuponAplicado?.codigo) inputCupon.value = cuponAplicado.codigo;
         mostrarResumen();
@@ -238,6 +245,11 @@ document.addEventListener("DOMContentLoaded", () => {
             mensajeCheckout.textContent = "Confirmando pedido...";
             const pedido = await FastMarket.request(`/pedidos/usuario/${usuario.id}`, { method: "POST", body: payload, auth: true });
             await FastMarket.limpiarCarritoUsuario();
+            carrito = [];
+            localStorage.removeItem("fastmarket_carrito");
+            localStorage.removeItem("fastmarket_cupon");
+            sessionStorage.removeItem("fastmarket_checkout_carrito");
+            sessionStorage.removeItem("fastmarket_checkout_cupon");
             mensajeCheckout.textContent = `Pedido ${pedido.codigo} creado correctamente.`;
             window.location.href = `pedidos.html?pedido=${encodeURIComponent(pedido.codigo)}`;
         } catch (error) {

@@ -18,8 +18,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 function normalizarItemCarrito(item) {
     return {
         id: Number(item.productoId || item.id),
-        nombre: item.nombre || "Producto",
-        precio: Number(item.precio || 0),
+        nombre: item.nombre || item.productoNombre || "Producto",
+        precio: Number(item.precio ?? item.precioUnitario ?? 0),
         imagen: item.imagen || "img/logo.png",
         stock: Number(item.stockDisponible ?? item.stock ?? 0),
         cantidad: Number(item.cantidad || 1)
@@ -31,7 +31,7 @@ async function obtenerCarritoActual() {
         const data = await FastMarket.obtenerCarrito();
         return (data.items || []).map(normalizarItemCarrito);
     } catch {
-        return JSON.parse(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fastmarket_carrito") || "[]").map(normalizarItemCarrito);
+        return JSON.parse(localStorage.getItem("fastmarket_carrito") || sessionStorage.getItem("fastmarket_checkout_carrito") || "[]").map(normalizarItemCarrito);
     }
 }
 
@@ -217,6 +217,7 @@ async function agregarCarrito(irCheckout) {
         });
     }
 
+    localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito));
     sessionStorage.setItem("fastmarket_checkout_carrito", JSON.stringify(carrito));
     await FastMarket.sincronizarCarrito(carrito, null).catch(() => localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito)));
     setText("mensaje-detalle", "Producto agregado al carrito.");

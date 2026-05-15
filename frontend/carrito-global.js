@@ -9,11 +9,15 @@ const FastMarketCart = (() => {
     }
 
     function obtenerLocal() {
-        return parseJSON(localStorage.getItem("fastmarket_carrito") || localStorage.getItem("fastmarket_carrito"), []) || [];
+        return parseJSON(localStorage.getItem("fastmarket_carrito"), []) || [];
+    }
+
+    function obtenerBackupCheckout() {
+        return parseJSON(sessionStorage.getItem("fastmarket_checkout_carrito"), []) || [];
     }
 
     function obtenerCuponLocal() {
-        return parseJSON(localStorage.getItem("fastmarket_cupon") || localStorage.getItem("fastmarket_cupon"), null);
+        return parseJSON(localStorage.getItem("fastmarket_cupon") || sessionStorage.getItem("fastmarket_checkout_cupon"), null);
     }
 
     function normalizarItem(item) {
@@ -128,9 +132,11 @@ const FastMarketCart = (() => {
     }
 
     async function cargar() {
-        const local = obtenerLocal().map(normalizarItem);
-        const cuponLocal = obtenerCuponLocal();
         const usuario = FastMarket.getCliente();
+        const localGuardado = obtenerLocal();
+        const backupCheckout = obtenerBackupCheckout();
+        const local = (localGuardado.length ? localGuardado : (!usuario ? backupCheckout : [])).map(normalizarItem);
+        const cuponLocal = obtenerCuponLocal();
         try {
             const data = await FastMarket.obtenerCarrito();
             const remoto = (data.items || []).map(normalizarItem);
@@ -155,12 +161,15 @@ const FastMarketCart = (() => {
 
     async function guardar() {
         localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito));
-        localStorage.removeItem("fastmarket_carrito");
         if (cuponAplicado?.codigo) localStorage.setItem("fastmarket_cupon", JSON.stringify({ codigo: cuponAplicado.codigo }));
         else localStorage.removeItem("fastmarket_cupon");
         guardarBackupCheckout();
 
         if (guardando) await guardando.catch(() => {});
+        if (!window.FastMarket?.getCliente?.()) {
+            pintar();
+            return;
+        }
         guardando = FastMarket.sincronizarCarrito(carrito, carrito.length ? cuponAplicado?.codigo || null : null)
             .then((data) => {
                 if (FastMarket.getCliente()) {
