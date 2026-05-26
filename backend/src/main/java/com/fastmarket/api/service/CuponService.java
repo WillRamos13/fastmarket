@@ -128,9 +128,14 @@ public class CuponService {
 
     @Transactional
     public void registrarUso(Cupon cupon) {
-        if (cupon == null) return;
-        cupon.setUsosActuales(entero(cupon.getUsosActuales()) + 1);
-        cuponRepository.save(cupon);
+        if (cupon == null || cupon.getId() == null) return;
+        Cupon actualizado = cuponRepository.findById(cupon.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Cupón no encontrado"));
+        validarCuponActivo(actualizado);
+        int filasActualizadas = cuponRepository.incrementarUsoSiDisponible(actualizado.getId());
+        if (filasActualizadas == 0) {
+            throw new IllegalArgumentException("El cupón alcanzó su límite de usos");
+        }
     }
 
     @Transactional

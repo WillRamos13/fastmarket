@@ -25,7 +25,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<Map<String, String>> manejarStockConcurrente(ObjectOptimisticLockingFailureException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("error", "El stock cambió mientras realizabas la compra. Actualiza tu carrito e inténtalo nuevamente."));
+                .body(Map.of("error", "El stock o el cupón cambió mientras realizabas la compra. Actualiza tu carrito e inténtalo nuevamente."));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

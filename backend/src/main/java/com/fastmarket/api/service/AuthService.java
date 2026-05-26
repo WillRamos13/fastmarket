@@ -51,6 +51,7 @@ public class AuthService {
         }
 
         codigoVerificacionService.validarCodigoRegistro(correo, request.codigoVerificacion());
+        validarPasswordSegura(request.password());
 
         Usuario usuario = new Usuario();
         usuario.setNombre(request.nombre().trim());
@@ -117,9 +118,22 @@ public class AuthService {
 
         Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(correo)
                 .orElseThrow(() -> new IllegalArgumentException("No se pudo actualizar la contraseña"));
+        validarPasswordSegura(request.passwordNueva());
         usuario.setPassword(passwordService.encriptar(request.passwordNueva()));
         usuarioRepository.save(usuario);
         loginAttemptService.registrarExito(correo);
+    }
+
+    private void validarPasswordSegura(String password) {
+        if (password == null || password.length() < 8) {
+            throw new IllegalArgumentException("La contraseña debe tener mínimo 8 caracteres");
+        }
+        if (password.chars().anyMatch(Character::isWhitespace)
+                || !password.matches(".*[a-z].*")
+                || !password.matches(".*[A-Z].*")
+                || !password.matches(".*\\d.*")) {
+            throw new IllegalArgumentException("La contraseña debe tener mayúscula, minúscula, número y no debe contener espacios");
+        }
     }
 
     private String limpiar(String valor) {

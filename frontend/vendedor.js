@@ -2,7 +2,7 @@ let vendedor = null;
 let productos = [];
 let pedidos = [];
 let cupones = [];
-let productPage = { page: 0, size: 20, totalPages: 1 };
+let productPage = { page: 0, size: 20, totalPages: 1, totalElements: 0 };
 
 const estadosPedido = ["PENDIENTE", "CONFIRMADO", "PREPARANDO", "CAMINO", "ENTREGADO", "CANCELADO"];
 
@@ -99,6 +99,7 @@ async function cargarProductos() {
         const page = await FastMarket.request(`/productos/page?page=${productPage.page}&size=${productPage.size}`, { auth: true });
         productos = Array.isArray(page?.content) ? page.content.filter((p) => p.activo !== false) : [];
         productPage.totalPages = Math.max(1, Number(page?.totalPages || 1));
+        productPage.totalElements = Number(page?.totalElements ?? productos.length);
         productPage.page = Math.min(Number(page?.number || 0), productPage.totalPages - 1);
         actualizarPaginacionProductos();
         pintarProductos();
@@ -331,11 +332,6 @@ function actualizarPaginacionProductos() {
 }
 
 function activarPedidos() {
-    document.getElementById("vp-pedidos")?.addEventListener("change", async (e) => {
-        const select = e.target.closest("[data-estado-pedido]");
-        if (!select) return;
-        await actualizarEstadoPedido(Number(select.dataset.estadoPedido), select.value);
-    });
     document.getElementById("vp-pedidos")?.addEventListener("click", async (e) => {
         const historial = e.target.closest("[data-historial-pedido]");
         if (historial) await verHistorialPedido(Number(historial.dataset.historialPedido));
@@ -371,15 +367,6 @@ function pintarPedidos() {
     });
 }
 
-async function actualizarEstadoPedido(id, estado) {
-    try {
-        await FastMarket.request(`/pedidos/${id}/estado?estado=${estado}`, { method: "PUT", auth: true });
-        toast("Estado actualizado.");
-        await cargarPedidos();
-    } catch (error) {
-        toast(error.message);
-    }
-}
 
 async function verHistorialPedido(id) {
     const panel = document.getElementById("vp-historial-pedido");
@@ -534,7 +521,7 @@ function toDatetimeLocal(valor) {
 }
 
 function pintarMetricas() {
-    setText("metric-productos", productos.length);
+    setText("metric-productos", productPage.totalElements || productos.length);
     setText("metric-pedidos", pedidos.length);
     setText("metric-ventas", FastMarket.money(pedidos.reduce((sum, p) => sum + Number(p.total || 0), 0)));
     setText("metric-cupones", cupones.length);

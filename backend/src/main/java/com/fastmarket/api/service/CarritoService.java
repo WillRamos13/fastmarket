@@ -13,7 +13,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CarritoService {
@@ -46,12 +48,11 @@ public class CarritoService {
         });
 
         carrito.getItems().clear();
-        List<CarritoDtos.CarritoItemRequest> items = request == null || request.items() == null ? List.of() : request.items();
-        for (CarritoDtos.CarritoItemRequest itemRequest : items) {
-            if (itemRequest.productoId() == null || itemRequest.cantidad() == null || itemRequest.cantidad() <= 0) continue;
-            Producto producto = productoRepository.findById(itemRequest.productoId()).orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
+        Map<Long, Integer> cantidadesPorProducto = agruparItems(request == null ? null : request.items());
+        for (Map.Entry<Long, Integer> entry : cantidadesPorProducto.entrySet()) {
+            Producto producto = productoRepository.findById(entry.getKey()).orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
             if (!Boolean.TRUE.equals(producto.getActivo())) continue;
-            int cantidad = Math.min(itemRequest.cantidad(), Math.max(0, producto.getStock()));
+            int cantidad = Math.min(entry.getValue(), Math.max(0, producto.getStock()));
             if (cantidad <= 0) continue;
             CarritoItem item = new CarritoItem();
             item.setCarrito(carrito);
@@ -74,6 +75,16 @@ public class CarritoService {
             carrito.setActualizadoEn(LocalDateTime.now());
             carritoRepository.save(carrito);
         });
+    }
+
+    private Map<Long, Integer> agruparItems(List<CarritoDtos.CarritoItemRequest> items) {
+        Map<Long, Integer> cantidades = new LinkedHashMap<>();
+        if (items == null) return cantidades;
+        for (CarritoDtos.CarritoItemRequest item : items) {
+            if (item == null || item.productoId() == null || item.cantidad() == null || item.cantidad() <= 0) continue;
+            cantidades.merge(item.productoId(), item.cantidad(), Integer::sum);
+        }
+        return cantidades;
     }
 
     private CarritoDtos.CarritoResponse toResponse(Carrito carrito) {

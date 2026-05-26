@@ -193,13 +193,13 @@ async function cargarProductos() {
     try {
         if (filtroVendedorProductos !== "todos") {
             const lista = await FastMarket.request(filtroVendedorProductos === "general" ? "/productos?incluirInactivos=true" : `/productos?vendedorId=${Number(filtroVendedorProductos)}`, { auth: true });
-            productos = Array.isArray(lista) ? lista.filter((p) => p.activo !== false) : [];
+            productos = Array.isArray(lista) ? lista : [];
             if (filtroVendedorProductos === "general") productos = productos.filter((p) => !p.vendedorId);
             adminPages.productos.totalPages = 1;
             adminPages.productos.page = 0;
         } else {
-            const page = await FastMarket.request(`/productos/page?page=${adminPages.productos.page}&size=${adminPages.productos.size}`, { auth: true });
-            productos = Array.isArray(page?.content) ? page.content.filter((p) => p.activo !== false) : [];
+            const page = await FastMarket.request(`/productos/page?page=${adminPages.productos.page}&size=${adminPages.productos.size}&incluirInactivos=true`, { auth: true });
+            productos = Array.isArray(page?.content) ? page.content : [];
             adminPages.productos.totalPages = Math.max(1, Number(page?.totalPages || 1));
             adminPages.productos.page = Math.min(Number(page?.number || 0), adminPages.productos.totalPages - 1);
         }
@@ -255,12 +255,12 @@ function pintarProductos() {
             <td><strong>${FastMarket.money(p.precio)}</strong>${p.precioAntes ? `<br><small>Antes: ${FastMarket.money(p.precioAntes)}</small>` : ""}</td>
             <td>${stockBadge(p.stock)}</td>
             <td>
-                <span class="${p.oferta ? "estado-oferta" : "estado-normal"}">${p.oferta ? "Oferta" : "Normal"}</span>
+                <span class="${p.activo === false ? "estado-cancelado" : (p.oferta ? "estado-oferta" : "estado-normal")}">${p.activo === false ? "Inactivo" : (p.oferta ? "Oferta" : "Normal")}</span>
                 ${p.destacado ? `<br><small>Destacado</small>` : ""}
             </td>
             <td>${FastMarket.escapeHTML(p.vendedorNombre || "Tienda")}</td>
             <td>
-                <button class="btn-editar" data-editar-producto="${p.id}">Editar</button>
+                <button class="btn-editar" data-editar-producto="${p.id}">${p.activo === false ? "Reactivar" : "Editar"}</button>
                 <button class="btn-eliminar" data-eliminar-producto="${p.id}">Eliminar</button>
             </td>`;
         tbody.appendChild(tr);

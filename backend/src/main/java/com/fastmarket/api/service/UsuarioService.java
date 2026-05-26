@@ -41,9 +41,7 @@ public class UsuarioService {
         if (request.correo() == null || request.correo().isBlank()) {
             throw new IllegalArgumentException("El correo es obligatorio");
         }
-        if (request.password() == null || request.password().length() < 6) {
-            throw new IllegalArgumentException("La contraseña debe tener mínimo 6 caracteres");
-        }
+        validarPasswordSegura(request.password());
 
         String correo = request.correo().trim().toLowerCase();
         if (usuarioRepository.existsByCorreoIgnoreCase(correo)) {
@@ -83,9 +81,7 @@ public class UsuarioService {
         usuario.setEstado(nuevoEstado);
 
         if (request.passwordNueva() != null && !request.passwordNueva().isBlank()) {
-            if (request.passwordNueva().length() < 6) {
-                throw new IllegalArgumentException("La nueva contraseña debe tener mínimo 6 caracteres");
-            }
+            validarPasswordSegura(request.passwordNueva());
             usuario.setPassword(passwordService.encriptar(request.passwordNueva()));
         }
 
@@ -139,12 +135,22 @@ public class UsuarioService {
             throw new IllegalArgumentException("La contraseña actual no es correcta");
         }
 
-        if (request.passwordNueva() == null || request.passwordNueva().length() < 6) {
-            throw new IllegalArgumentException("La nueva contraseña debe tener mínimo 6 caracteres");
-        }
+        validarPasswordSegura(request.passwordNueva());
 
         usuario.setPassword(passwordService.encriptar(request.passwordNueva()));
         return DtoMapper.toUsuarioResponse(usuarioRepository.save(usuario));
+    }
+
+    private void validarPasswordSegura(String password) {
+        if (password == null || password.length() < 8) {
+            throw new IllegalArgumentException("La contraseña debe tener mínimo 8 caracteres");
+        }
+        if (password.chars().anyMatch(Character::isWhitespace)
+                || !password.matches(".*[a-z].*")
+                || !password.matches(".*[A-Z].*")
+                || !password.matches(".*\\d.*")) {
+            throw new IllegalArgumentException("La contraseña debe tener mayúscula, minúscula, número y no debe contener espacios");
+        }
     }
 
     private Usuario obtenerEntidad(Long id) {

@@ -27,12 +27,17 @@ public class ProductoService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    public Page<ProductoDtos.ProductoResponse> listarPaginado(AuthTokenService.TokenData actor, int page, int size) {
+    public Page<ProductoDtos.ProductoResponse> listarPaginado(AuthTokenService.TokenData actor, int page, int size, Boolean incluirInactivos) {
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), 100), Sort.by(Sort.Direction.DESC, "id"));
+        boolean mostrarInactivos = Boolean.TRUE.equals(incluirInactivos);
         if (actor.rol() == Rol.VENDEDOR) {
-            return productoRepository.findByVendedorIdAndActivoTrue(actor.usuarioId(), pageable).map(DtoMapper::toProductoResponse);
+            return (mostrarInactivos
+                    ? productoRepository.findByVendedorId(actor.usuarioId(), pageable)
+                    : productoRepository.findByVendedorIdAndActivoTrue(actor.usuarioId(), pageable))
+                    .map(DtoMapper::toProductoResponse);
         }
-        return productoRepository.findByActivoTrue(pageable).map(DtoMapper::toProductoResponse);
+        return (mostrarInactivos ? productoRepository.findAll(pageable) : productoRepository.findByActivoTrue(pageable))
+                .map(DtoMapper::toProductoResponse);
     }
 
     public List<ProductoDtos.ProductoResponse> listar(Boolean oferta, Boolean destacado, Boolean incluirInactivos) {

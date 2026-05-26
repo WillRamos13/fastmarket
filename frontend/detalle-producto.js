@@ -189,6 +189,7 @@ async function agregarCarrito(irCheckout) {
             setText("mensaje-detalle", "Producto agregado al carrito.");
             if (irCheckout) {
                 FastMarketCart.guardarBackupCheckout();
+                FastMarket.prepararCheckoutCarrito?.(FastMarketCart.obtenerItems?.() || [], null);
                 window.location.href = "checkout.html";
             }
         }
@@ -217,12 +218,19 @@ async function agregarCarrito(irCheckout) {
         });
     }
 
+    FastMarket.prepararCheckoutCarrito?.(carrito, null);
     localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito));
     sessionStorage.setItem("fastmarket_checkout_carrito", JSON.stringify(carrito));
-    await FastMarket.sincronizarCarrito(carrito, null).catch(() => localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito)));
+    await FastMarket.sincronizarCarrito(carrito, null).catch(() => {
+        localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito));
+        FastMarket.prepararCheckoutCarrito?.(carrito, null);
+    });
     setText("mensaje-detalle", "Producto agregado al carrito.");
 
-    if (irCheckout) window.location.href = "checkout.html";
+    if (irCheckout) {
+        FastMarket.prepararCheckoutCarrito?.(carrito, null);
+        window.location.href = "checkout.html";
+    }
 }
 
 function pintarRelacionados() {

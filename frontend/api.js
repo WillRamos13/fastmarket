@@ -27,7 +27,10 @@ const FastMarket = (() => {
         admin: "fastmarket_admin",
         token: "fastmarket_token",
         carrito: "fastmarket_carrito",
-        cupon: "fastmarket_cupon"
+        cupon: "fastmarket_cupon",
+        checkoutCarrito: "fastmarket_checkout_carrito",
+        checkoutCupon: "fastmarket_checkout_cupon",
+        carritoMirrorUsuario: "fastmarket_carrito_usuario_id"
     };
 
     function leerJSONStorage(storage, nuevaClave, claveAnterior, defecto = null) {
@@ -77,6 +80,7 @@ const FastMarket = (() => {
             sessionStorage.removeItem(clave);
             localStorage.removeItem(clave);
         });
+        localStorage.removeItem(STORAGE.carritoMirrorUsuario);
     }
 
     function headers(auth = false) {
@@ -192,12 +196,84 @@ const FastMarket = (() => {
         });
     }
 
+    function leerJSONSeguro(valor, defecto = null) {
+        try { return valor ? JSON.parse(valor) : defecto; } catch { return defecto; }
+    }
+
+    function normalizarItemCarrito(item) {
+        return {
+            id: Number(item?.productoId || item?.id),
+            productoId: Number(item?.productoId || item?.id),
+            nombre: item?.nombre || item?.productoNombre || "Producto",
+            imagen: item?.imagen || "img/logo.png",
+            precio: Number(item?.precio ?? item?.precioUnitario ?? 0),
+            stock: Number(item?.stockDisponible ?? item?.stock ?? 999999),
+            cantidad: Number(item?.cantidad || 1)
+        };
+    }
+
+    function normalizarCarrito(items) {
+        const mapa = new Map();
+        (items || []).forEach((item) => {
+            const normalizado = normalizarItemCarrito(item);
+            if (!normalizado.id || normalizado.cantidad <= 0) return;
+            const existente = mapa.get(normalizado.id);
+            if (existente) {
+                existente.cantidad += normalizado.cantidad;
+                existente.stock = Math.max(Number(existente.stock || 0), Number(normalizado.stock || 0));
+                if ((!existente.nombre || existente.nombre === "Producto") && normalizado.nombre) existente.nombre = normalizado.nombre;
+                if ((!existente.imagen || existente.imagen === "img/logo.png") && normalizado.imagen) existente.imagen = normalizado.imagen;
+                if (!existente.precio && normalizado.precio) existente.precio = normalizado.precio;
+            } else {
+                mapa.set(normalizado.id, normalizado);
+            }
+        });
+        return Array.from(mapa.values());
+    }
+
     function obtenerCarritoLocal() {
-        try { return leerJSONStorage(localStorage, STORAGE.carrito, "fastmarket_carrito", []) || []; } catch { return []; }
+        const local = leerJSONSeguro(localStorage.getItem(STORAGE.carrito), []);
+        const checkout = leerJSONSeguro(sessionStorage.getItem(STORAGE.checkoutCarrito), []);
+        const backup = leerJSONSeguro(sessionStorage.getItem("fastmarket_carrito_backup"), []);
+        const mejor = Array.isArray(local) && local.length ? local : (Array.isArray(checkout) && checkout.length ? checkout : backup);
+        return normalizarCarrito(mejor || []);
     }
 
     function obtenerCuponLocal() {
-        try { return leerJSONStorage(localStorage, STORAGE.cupon, "fastmarket_cupon", null); } catch { return null; }
+        return leerJSONSeguro(localStorage.getItem(STORAGE.cupon), null) || leerJSONSeguro(sessionStorage.getItem(STORAGE.checkoutCupon), null);
+    }
+
+    function guardarSnapshotCarrito(items = [], cupon = null, usuarioId = null) {
+        const normalizados = normalizarCarrito(items);
+        const cuponData = typeof cupon === "object" && cupon !== null ? cupon : (cupon ? { codigo: cupon } : null);
+        const codigo = normalizados.length && cuponData?.codigo ? String(cuponData.codigo).trim().toUpperCase() : null;
+        localStorage.setItem(STORAGE.carrito, JSON.stringify(normalizados));
+        sessionStorage.setItem(STORAGE.checkoutCarrito, JSON.stringify(normalizados));
+        sessionStorage.setItem("fastmarket_carrito_backup", JSON.stringify(normalizados));
+        if (usuarioId) localStorage.setItem(STORAGE.carritoMirrorUsuario, String(usuarioId));
+        if (codigo) {
+            const cuponNormalizado = JSON.stringify({
+                codigo,
+                descripcion: cuponData.descripcion || "",
+                descuento: Number(cuponData.descuento || 0),
+                subtotalAplicable: Number(cuponData.subtotalAplicable || 0)
+            });
+            localStorage.setItem(STORAGE.cupon, cuponNormalizado);
+            sessionStorage.setItem(STORAGE.checkoutCupon, cuponNormalizado);
+        } else {
+            localStorage.removeItem(STORAGE.cupon);
+            sessionStorage.removeItem(STORAGE.checkoutCupon);
+        }
+        return normalizados;
+    }
+
+    function prepararCheckoutCarrito(items = [], cupon = null) {
+        const usuario = getCliente();
+        return guardarSnapshotCarrito(items, cupon, usuario?.id || null);
+    }
+
+    function carritoLocalPerteneceAlUsuario(usuarioId) {
+        return Boolean(usuarioId) && localStorage.getItem(STORAGE.carritoMirrorUsuario) === String(usuarioId);
     }
 
 
@@ -207,41 +283,42 @@ const FastMarket = (() => {
 
     async function obtenerCarrito() {
         const usuario = getCliente();
-        if (!usuario) return { items: obtenerCarritoLocal(), cuponCodigo: obtenerCuponLocal()?.codigo || null, invitado: true };
+        if (!usuario) {
+            const cuponLocal = obtenerCuponLocal();
+            return { items: obtenerCarritoLocal(), cuponCodigo: cuponLocal?.codigo || null, descuento: Number(cuponLocal?.descuento || 0), invitado: true };
+        }
         try {
             return await request(`/carritos/usuario/${usuario.id}`, { auth: true });
         } catch {
-            return { items: obtenerCarritoLocal(), cuponCodigo: obtenerCuponLocal()?.codigo || null, invitado: true };
+            const cuponLocal = obtenerCuponLocal();
+            return { items: obtenerCarritoLocal(), cuponCodigo: cuponLocal?.codigo || null, descuento: Number(cuponLocal?.descuento || 0), invitado: true };
         }
     }
 
     async function sincronizarCarrito(items, cuponCodigo = null) {
-        const normalizados = (items || []).map((item) => ({
+        const cuponData = typeof cuponCodigo === "object" && cuponCodigo !== null ? cuponCodigo : (cuponCodigo ? { codigo: cuponCodigo } : null);
+        const codigoFinal = cuponData?.codigo ? String(cuponData.codigo).trim().toUpperCase() : null;
+        const snapshot = guardarSnapshotCarrito(items || [], cuponData, getCliente()?.id || null);
+        const normalizados = snapshot.map((item) => ({
             productoId: Number(item.productoId || item.id),
             cantidad: Number(item.cantidad || 1)
         })).filter((item) => item.productoId && item.cantidad > 0);
 
         const usuario = getCliente();
         if (!usuario) {
-            localStorage.setItem(STORAGE.carrito, JSON.stringify(items || []));
-            sessionStorage.setItem("fastmarket_checkout_carrito", JSON.stringify(items || []));
-            if (cuponCodigo) {
-                const cupon = JSON.stringify({ codigo: cuponCodigo });
-                localStorage.setItem(STORAGE.cupon, cupon);
-                sessionStorage.setItem("fastmarket_checkout_cupon", cupon);
-            } else {
-                localStorage.removeItem(STORAGE.cupon);
-                sessionStorage.removeItem("fastmarket_checkout_cupon");
-            }
-            return { items: items || [], cuponCodigo, invitado: true };
+            return { items: snapshot, cuponCodigo: codigoFinal, descuento: Number(cuponData?.descuento || 0), invitado: true };
         }
+
         const actualizado = await request(`/carritos/usuario/${usuario.id}`, {
             method: "PUT",
             auth: true,
-            body: { cuponCodigo, items: normalizados }
+            body: { cuponCodigo: codigoFinal, items: normalizados }
         });
-        localStorage.removeItem(STORAGE.carrito);
-        localStorage.removeItem(STORAGE.cupon);
+        guardarSnapshotCarrito(actualizado.items || snapshot, {
+            codigo: actualizado.cuponCodigo || codigoFinal,
+            descuento: Number(actualizado.descuento || cuponData?.descuento || 0),
+            descripcion: cuponData?.descripcion || ""
+        }, usuario.id);
         return actualizado;
     }
 
@@ -249,9 +326,10 @@ const FastMarket = (() => {
         const usuario = getCliente();
         localStorage.removeItem(STORAGE.carrito);
         localStorage.removeItem(STORAGE.cupon);
-        sessionStorage.removeItem("fastmarket_checkout_carrito");
-        sessionStorage.removeItem("fastmarket_checkout_cupon");
+        sessionStorage.removeItem(STORAGE.checkoutCarrito);
+        sessionStorage.removeItem(STORAGE.checkoutCupon);
         sessionStorage.removeItem("fastmarket_carrito_backup");
+        localStorage.removeItem(STORAGE.carritoMirrorUsuario);
         if (usuario) {
             try { await request(`/carritos/usuario/${usuario.id}`, { method: "DELETE", auth: true }); } catch {}
         }
@@ -523,6 +601,11 @@ const FastMarket = (() => {
         confirmAction,
         obtenerConfigPublica,
         obtenerCarrito,
+        obtenerCarritoLocal,
+        obtenerCuponLocal,
+        guardarSnapshotCarrito,
+        prepararCheckoutCarrito,
+        carritoLocalPerteneceAlUsuario,
         sincronizarCarrito,
         limpiarCarritoUsuario,
         marcarCargando,

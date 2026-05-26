@@ -41,9 +41,14 @@ public class ProductoController {
     }
 
     @GetMapping("/page")
-    public Page<ProductoDtos.ProductoResponse> listarPaginado(@RequestHeader(value = "Authorization", required = false) String authorization, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+    public Page<ProductoDtos.ProductoResponse> listarPaginado(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Boolean incluirInactivos
+    ) {
         AuthTokenService.TokenData actor = authTokenService.requerirAdminOVendedor(authorization);
-        return productoService.listarPaginado(actor, page, size);
+        return productoService.listarPaginado(actor, page, size, incluirInactivos);
     }
 
     @GetMapping("/{id}")

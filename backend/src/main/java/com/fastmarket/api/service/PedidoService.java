@@ -16,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PedidoService {
@@ -92,14 +94,22 @@ public class PedidoService {
         pedido.setEstado(EstadoPedido.PENDIENTE);
 
         BigDecimal subtotalPedido = BigDecimal.ZERO;
+        Map<Long, Integer> cantidadesPorProducto = agruparItemsPedido(request.items());
+        if (cantidadesPorProducto.isEmpty()) {
+            throw new IllegalArgumentException("El carrito está vacío");
+        }
 
-        for (PedidoDtos.ItemRequest itemRequest : request.items()) {
-            Producto producto = productoRepository.findById(itemRequest.productoId())
+        List<CuponDtos.AplicarCuponItemRequest> itemsCupon = cantidadesPorProducto.entrySet().stream()
+                .map(entry -> new CuponDtos.AplicarCuponItemRequest(entry.getKey(), entry.getValue()))
+                .toList();
+
+        for (Map.Entry<Long, Integer> entry : cantidadesPorProducto.entrySet()) {
+            Producto producto = productoRepository.findById(entry.getKey())
                     .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
 
             if (!Boolean.TRUE.equals(producto.getActivo())) throw new IllegalArgumentException("El producto " + producto.getNombre() + " ya no está disponible");
 
-            int cantidad = itemRequest.cantidad();
+            int cantidad = entry.getValue();
             if (cantidad <= 0) throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
             if (producto.getStock() < cantidad) throw new IllegalArgumentException("Stock insuficiente para " + producto.getNombre() + ". Stock actual: " + producto.getStock());
 
@@ -124,13 +134,11 @@ public class PedidoService {
         BigDecimal costoEnvio = calcularCostoEnvio(subtotalPedido);
 
         BigDecimal descuento = BigDecimal.ZERO;
+        CuponService.CalculoCupon calculoCupon = null;
         if (request.cuponCodigo() != null && !request.cuponCodigo().isBlank()) {
-            List<CuponDtos.AplicarCuponItemRequest> itemsCupon = request.items().stream()
-                    .map(i -> new CuponDtos.AplicarCuponItemRequest(i.productoId(), i.cantidad()))
-                    .toList();
-            CuponService.CalculoCupon calculo = cuponService.calcularDescuento(request.cuponCodigo(), itemsCupon, usuarioId);
-            descuento = calculo.descuento();
-            pedido.setCuponCodigo(calculo.cupon() != null ? calculo.cupon().getCodigo() : request.cuponCodigo().trim().toUpperCase());
+            calculoCupon = cuponService.calcularDescuento(request.cuponCodigo(), itemsCupon, usuarioId);
+            descuento = calculoCupon.descuento();
+            pedido.setCuponCodigo(calculoCupon.cupon() != null ? calculoCupon.cupon().getCodigo() : request.cuponCodigo().trim().toUpperCase());
         }
 
         pedido.setSubtotal(subtotalPedido);
@@ -142,12 +150,8 @@ public class PedidoService {
 
         Pedido guardado = pedidoRepository.save(pedido);
         registrarHistorial(guardado, null, EstadoPedido.PENDIENTE, usuario, "Pedido creado");
-        if (descuento.compareTo(BigDecimal.ZERO) > 0 && guardado.getCuponCodigo() != null) {
-            List<CuponDtos.AplicarCuponItemRequest> itemsCupon = request.items().stream()
-                    .map(i -> new CuponDtos.AplicarCuponItemRequest(i.productoId(), i.cantidad()))
-                    .toList();
-            CuponService.CalculoCupon calculo = cuponService.calcularDescuento(guardado.getCuponCodigo(), itemsCupon, usuarioId);
-            cuponService.registrarUso(calculo.cupon(), usuario, guardado, descuento);
+        if (descuento.compareTo(BigDecimal.ZERO) > 0 && guardado.getCuponCodigo() != null && calculoCupon != null) {
+            cuponService.registrarUso(calculoCupon.cupon(), usuario, guardado, descuento);
         }
         carritoService.limpiar(usuarioId);
         return DtoMapper.toPedidoResponse(guardado);
@@ -168,6 +172,16 @@ public class PedidoService {
         Usuario actorUsuario = usuarioRepository.findById(actor.usuarioId()).orElse(null);
         registrarHistorial(guardado, anterior, estado, actorUsuario, "Cambio de estado");
         return DtoMapper.toPedidoResponse(guardado);
+    }
+
+    private Map<Long, Integer> agruparItemsPedido(List<PedidoDtos.ItemRequest> items) {
+        Map<Long, Integer> cantidades = new LinkedHashMap<>();
+        if (items == null) return cantidades;
+        for (PedidoDtos.ItemRequest item : items) {
+            if (item == null || item.productoId() == null || item.cantidad() == null || item.cantidad() <= 0) continue;
+            cantidades.merge(item.productoId(), item.cantidad(), Integer::sum);
+        }
+        return cantidades;
     }
 
 

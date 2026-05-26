@@ -56,7 +56,31 @@ document.addEventListener("DOMContentLoaded", () => {
             mostrarMensaje(mensajeLogin, "Inicio de sesión correcto. Redirigiendo...", "ok");
 
             setTimeout(() => {
-                window.location.href = usuario.rol === "ADMIN" ? "admin.html" : (usuario.rol === "VENDEDOR" ? "vendedor.html" : "productos.html");
+                const params = new URLSearchParams(window.location.search);
+                const redirect = params.get("redirect");
+                const carritoPendiente = (() => {
+                    try {
+                        return JSON.parse(sessionStorage.getItem("fastmarket_checkout_carrito") || localStorage.getItem("fastmarket_carrito") || "[]").length > 0;
+                    } catch {
+                        return false;
+                    }
+                })();
+
+                if (usuario.rol === "ADMIN") {
+                    window.location.href = "admin.html";
+                    return;
+                }
+                if (usuario.rol === "VENDEDOR") {
+                    window.location.href = "vendedor.html";
+                    return;
+                }
+
+                if (redirect && !redirect.startsWith("http") && !redirect.includes("//")) {
+                    window.location.href = redirect;
+                    return;
+                }
+
+                window.location.href = carritoPendiente ? "checkout.html" : "productos.html";
             }, 600);
         } catch (error) {
             mostrarMensaje(mensajeLogin, error.message || "Correo o contraseña incorrectos.");

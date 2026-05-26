@@ -75,31 +75,36 @@ function combinarCarritos(remoto, local) {
 
 async function cargarCarritoPersistente() {
     const usuario = FastMarket.getCliente();
-    const local = JSON.parse(localStorage.getItem("fastmarket_carrito") || "[]");
-    const cuponLocal = JSON.parse(localStorage.getItem("fastmarket_cupon") || sessionStorage.getItem("fastmarket_checkout_cupon") || "null");
+    const local = (FastMarket.obtenerCarritoLocal?.() || JSON.parse(localStorage.getItem("fastmarket_carrito") || "[]")).map(normalizarItemCarrito);
+    const cuponLocal = FastMarket.obtenerCuponLocal?.() || JSON.parse(localStorage.getItem("fastmarket_cupon") || sessionStorage.getItem("fastmarket_checkout_cupon") || "null");
+    const localEsMirror = usuario && FastMarket.carritoLocalPerteneceAlUsuario?.(usuario.id);
 
     try {
         const data = await FastMarket.obtenerCarrito();
         const remoto = (data.items || []).map(normalizarItemCarrito);
 
-        if (usuario && local.length) {
+        if (usuario && !localEsMirror && local.length) {
             carrito = combinarCarritos(remoto, local);
             const codigo = cuponLocal?.codigo || data.cuponCodigo || null;
-            localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito));
-        sessionStorage.setItem("fastmarket_checkout_carrito", JSON.stringify(carrito));
-        const sincronizado = await FastMarket.sincronizarCarrito(carrito, codigo);
+            FastMarket.prepararCheckoutCarrito?.(carrito, cuponLocal || null);
+            const sincronizado = await FastMarket.sincronizarCarrito(carrito, codigo);
             carrito = (sincronizado.items || []).map(normalizarItemCarrito);
-            cuponAplicado = sincronizado.cuponCodigo ? { codigo: sincronizado.cuponCodigo, descuento: Number(sincronizado.descuento || 0) } : null;
+            cuponAplicado = sincronizado.cuponCodigo ? { codigo: sincronizado.cuponCodigo, descuento: Number(sincronizado.descuento || 0), descripcion: cuponLocal?.descripcion || "" } : cuponLocal;
+        } else if (usuario) {
+            carrito = remoto.length ? remoto : local;
+            cuponAplicado = data.cuponCodigo ? { codigo: data.cuponCodigo, descuento: Number(data.descuento || 0), descripcion: cuponLocal?.descripcion || "" } : cuponLocal;
         } else {
-            carrito = remoto;
-            cuponAplicado = data.cuponCodigo ? { codigo: data.cuponCodigo, descuento: Number(data.descuento || 0) } : cuponLocal;
+            carrito = local;
+            cuponAplicado = cuponLocal;
         }
 
+        FastMarket.prepararCheckoutCarrito?.(carrito, cuponAplicado || null);
         const inputCupon = document.getElementById("cupon-carrito");
         if (inputCupon && cuponAplicado?.codigo) inputCupon.value = cuponAplicado.codigo;
     } catch {
         carrito = local.map(normalizarItemCarrito);
         cuponAplicado = cuponLocal;
+        FastMarket.prepararCheckoutCarrito?.(carrito, cuponAplicado || null);
     }
 }
 
@@ -159,6 +164,7 @@ function activarEventos() {
                 FastMarket.notify("Tu carrito está vacío.", "warning");
                 return;
             }
+            FastMarket.prepararCheckoutCarrito?.(carrito, cuponAplicado || null);
             localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito));
             sessionStorage.setItem("fastmarket_checkout_carrito", JSON.stringify(carrito));
             window.location.href = "checkout.html";
@@ -380,12 +386,14 @@ async function guardarCarrito() {
     const codigo = carrito.length ? cuponAplicado?.codigo || null : null;
     if (carrito.length === 0) cuponAplicado = null;
     try {
+        FastMarket.prepararCheckoutCarrito?.(carrito, cuponAplicado || null);
         localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito));
         sessionStorage.setItem("fastmarket_checkout_carrito", JSON.stringify(carrito));
         const sincronizado = await FastMarket.sincronizarCarrito(carrito, codigo);
         if (FastMarket.getCliente()) {
             carrito = (sincronizado.items || []).map(normalizarItemCarrito);
             cuponAplicado = sincronizado.cuponCodigo ? { codigo: sincronizado.cuponCodigo, descuento: Number(sincronizado.descuento || 0) } : null;
+            FastMarket.prepararCheckoutCarrito?.(carrito, cuponAplicado || null);
         }
     } catch {
         localStorage.setItem("fastmarket_carrito", JSON.stringify(carrito));
@@ -481,7 +489,7 @@ async function aplicarCuponCarrito() {
             }
         });
         cuponAplicado = respuesta;
-        await FastMarket.sincronizarCarrito(carrito, cuponAplicado.codigo);
+        await FastMarket.sincronizarCarrito(carrito, cuponAplicado);
         pintar(`${respuesta.mensaje} Descuento: ${FastMarket.money(respuesta.descuento)}`, "ok");
         mostrarCarrito();
     } catch (error) {

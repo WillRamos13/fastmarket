@@ -1,7 +1,9 @@
 package com.fastmarket.api.service;
 
+import com.fastmarket.api.model.EstadoUsuario;
 import com.fastmarket.api.model.Rol;
 import com.fastmarket.api.model.Usuario;
+import com.fastmarket.api.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +17,16 @@ import java.util.Base64;
 public class AuthTokenService {
     private final String secret;
     private final long tokenHours;
+    private final UsuarioRepository usuarioRepository;
 
     public AuthTokenService(
             @Value("${app.auth.secret}") String secret,
-            @Value("${app.auth.token-hours:12}") long tokenHours
+            @Value("${app.auth.token-hours:12}") long tokenHours,
+            UsuarioRepository usuarioRepository
     ) {
         this.secret = secret;
         this.tokenHours = tokenHours;
+        this.usuarioRepository = usuarioRepository;
     }
 
     public String generarToken(Usuario usuario) {
@@ -44,18 +49,35 @@ public class AuthTokenService {
             throw new SecurityException("Token inválido");
         }
 
-        String payload = new String(Base64.getUrlDecoder().decode(partes[0]), StandardCharsets.UTF_8);
-        String[] datos = payload.split("\\|");
-        if (datos.length != 4) {
+        String payload;
+        String[] datos;
+        long usuarioId;
+        long expira;
+
+        try {
+            payload = new String(Base64.getUrlDecoder().decode(partes[0]), StandardCharsets.UTF_8);
+            datos = payload.split("\\|");
+            if (datos.length != 4) {
+                throw new SecurityException("Token inválido");
+            }
+            usuarioId = Long.parseLong(datos[0]);
+            expira = Long.parseLong(datos[3]);
+            Rol.valueOf(datos[2]); // valida el formato del rol guardado en tokens antiguos
+        } catch (IllegalArgumentException ex) {
             throw new SecurityException("Token inválido");
         }
 
-        long expira = Long.parseLong(datos[3]);
         if (System.currentTimeMillis() > expira) {
             throw new SecurityException("Sesión vencida");
         }
 
-        return new TokenData(Long.parseLong(datos[0]), datos[1], Rol.valueOf(datos[2]), expira);
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new SecurityException("Token inválido"));
+        if (usuario.getEstado() != EstadoUsuario.ACTIVO) {
+            throw new SecurityException("Usuario inactivo");
+        }
+
+        return new TokenData(usuario.getId(), usuario.getCorreo(), usuario.getRol(), expira);
     }
 
     public TokenData requerirAdmin(String authorizationHeader) {
