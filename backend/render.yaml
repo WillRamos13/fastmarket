@@ -17,9 +17,11 @@ services:
         value: false
       - key: APP_AUTH_SECRET
         sync: false
-      - key: MAIL_USERNAME
+      - key: GOOGLE_CLIENT_ID
         sync: false
-      - key: MAIL_PASSWORD
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REFRESH_TOKEN
         sync: false
       - key: MAIL_FROM
         sync: false

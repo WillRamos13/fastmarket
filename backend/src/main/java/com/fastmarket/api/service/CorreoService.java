@@ -1,32 +1,54 @@
 package com.fastmarket.api.service;
 
-import jakarta.mail.internet.MimeMessage;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Service
 public class CorreoService {
 
-    private final JavaMailSender mailSender;
+    private static final String GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+    private static final String GMAIL_SEND_URL = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send";
 
-    @Value("${spring.mail.username:}")
-    private String mailUsername;
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
 
-    @Value("${spring.mail.password:}")
-    private String mailPassword;
+    @Value("${google.gmail.client-id:}")
+    private String googleClientId;
+
+    @Value("${google.gmail.client-secret:}")
+    private String googleClientSecret;
+
+    @Value("${google.gmail.refresh-token:}")
+    private String googleRefreshToken;
 
     @Value("${app.mail.from:FastMarket <fastmarket2026utp@gmail.com>}")
     private String remitente;
 
-    public CorreoService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    public CorreoService(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(20))
+                .build();
     }
 
     public boolean disponible() {
-        return mailUsername != null && !mailUsername.isBlank()
-                && mailPassword != null && !mailPassword.isBlank();
+        return tieneTexto(googleClientId)
+                && tieneTexto(googleClientSecret)
+                && tieneTexto(googleRefreshToken)
+                && tieneTexto(remitente);
     }
 
     public boolean enviarCodigoRegistro(String correo, String nombre, String codigo, int minutosValidez) {
@@ -54,7 +76,7 @@ public class CorreoService {
                         <p style="font-size:12px; color:#888888;">FastMarket</p>
                     </div>
                 </div>
-                """.formatted(nombreCliente, codigo, minutosValidez);
+                """.formatted(escaparHtml(nombreCliente), escaparHtml(codigo), minutosValidez);
 
         String texto = """
                 Hola %s,
@@ -92,7 +114,7 @@ public class CorreoService {
                         <p style="color:#666666;">Si no solicitaste este cambio, ignora este mensaje.</p>
                     </div>
                 </div>
-                """.formatted(codigo, minutosValidez);
+                """.formatted(escaparHtml(codigo), minutosValidez);
 
         String texto = """
                 Tu código para recuperar tu contraseña en FastMarket es:
@@ -109,20 +131,133 @@ public class CorreoService {
 
     private boolean enviarCorreo(String destino, String asunto, String texto, String html, String mensajeDev) {
         try {
-            MimeMessage mensaje = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
+            String accessToken = obtenerAccessToken();
+            String rawEmail = construirCorreoRaw(destino, asunto, texto, html);
 
-            helper.setFrom(remitente);
-            helper.setTo(destino);
-            helper.setSubject(asunto);
-            helper.setText(texto, html);
+            Map<String, String> payload = Map.of("raw", rawEmail);
+            String json = objectMapper.writeValueAsString(payload);
 
-            mailSender.send(mensaje);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(GMAIL_SEND_URL))
+                    .timeout(Duration.ofSeconds(30))
+                    .header("Authorization", "Bearer " + accessToken)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new IllegalStateException("Gmail API respondió " + response.statusCode() + ": " + response.body());
+            }
+
             return true;
         } catch (Exception e) {
             System.out.println("[FastMarket MAIL] No se pudo enviar correo a " + destino + ": " + e.getMessage());
             System.out.println(mensajeDev);
             return false;
         }
+    }
+
+    private String obtenerAccessToken() throws Exception {
+        Map<String, String> parametros = new LinkedHashMap<>();
+        parametros.put("client_id", googleClientId);
+        parametros.put("client_secret", googleClientSecret);
+        parametros.put("refresh_token", googleRefreshToken);
+        parametros.put("grant_type", "refresh_token");
+
+        String body = formUrlEncoded(parametros);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(GOOGLE_TOKEN_URL))
+                .timeout(Duration.ofSeconds(30))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IllegalStateException("Google OAuth respondió " + response.statusCode() + ": " + response.body());
+        }
+
+        Map<String, Object> respuesta = objectMapper.readValue(response.body(), new TypeReference<>() {});
+        Object accessToken = respuesta.get("access_token");
+        if (accessToken == null || accessToken.toString().isBlank()) {
+            throw new IllegalStateException("Google OAuth no devolvió access_token");
+        }
+
+        return accessToken.toString();
+    }
+
+    private String construirCorreoRaw(String destino, String asunto, String texto, String html) {
+        String boundary = "fastmarket_boundary_" + System.currentTimeMillis();
+        String salto = "\r\n";
+
+        String correo = "From: " + limpiarHeader(remitente) + salto
+                + "To: " + limpiarHeader(destino) + salto
+                + "Subject: " + codificarHeader(asunto) + salto
+                + "MIME-Version: 1.0" + salto
+                + "Content-Type: multipart/alternative; boundary=\"" + boundary + "\"" + salto
+                + salto
+                + "--" + boundary + salto
+                + "Content-Type: text/plain; charset=UTF-8" + salto
+                + "Content-Transfer-Encoding: base64" + salto
+                + salto
+                + codificarBase64Mime(texto) + salto
+                + salto
+                + "--" + boundary + salto
+                + "Content-Type: text/html; charset=UTF-8" + salto
+                + "Content-Transfer-Encoding: base64" + salto
+                + salto
+                + codificarBase64Mime(html) + salto
+                + salto
+                + "--" + boundary + "--" + salto;
+
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(correo.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String formUrlEncoded(Map<String, String> parametros) {
+        StringBuilder builder = new StringBuilder();
+        parametros.forEach((clave, valor) -> {
+            if (!builder.isEmpty()) {
+                builder.append('&');
+            }
+            builder.append(urlEncode(clave)).append('=').append(urlEncode(valor));
+        });
+        return builder.toString();
+    }
+
+    private String urlEncode(String valor) {
+        return URLEncoder.encode(valor == null ? "" : valor, StandardCharsets.UTF_8);
+    }
+
+    private String codificarHeader(String valor) {
+        return "=?UTF-8?B?" + Base64.getEncoder().encodeToString(valor.getBytes(StandardCharsets.UTF_8)) + "?=";
+    }
+
+    private String codificarBase64Mime(String valor) {
+        return Base64.getMimeEncoder(76, "\r\n".getBytes(StandardCharsets.UTF_8))
+                .encodeToString(valor.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String limpiarHeader(String valor) {
+        return valor == null ? "" : valor.replace("\r", "").replace("\n", "").trim();
+    }
+
+    private boolean tieneTexto(String valor) {
+        return valor != null && !valor.isBlank();
+    }
+
+    private String escaparHtml(String valor) {
+        if (valor == null) {
+            return "";
+        }
+        return valor
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }
