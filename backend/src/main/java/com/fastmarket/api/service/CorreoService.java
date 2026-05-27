@@ -110,7 +110,7 @@ public class CorreoService {
     private boolean enviarCorreo(String destino, String asunto, String texto, String html, String mensajeDev) {
         try {
             MimeMessage mensaje = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mensaje, false, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
 
             helper.setFrom(remitente);
             helper.setTo(destino);
