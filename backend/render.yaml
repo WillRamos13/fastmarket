@@ -17,6 +17,12 @@ services:
         value: false
       - key: APP_AUTH_SECRET
         sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
         value: update
       - key: SPRING_JPA_SHOW_SQL
