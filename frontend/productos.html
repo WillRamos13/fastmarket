@@ -73,34 +73,32 @@
             </div>
         </section>
 
-        <section class="escaparate-productos" id="bloque-promociones">
-            <div class="seccion-top">
+        <section class="escaparate-productos escaparate-compacto" id="bloque-promociones">
+            <div class="seccion-top seccion-top-simple">
                 <div>
-                    <span class="seccion-etiqueta">Promociones</span>
-                    <h2>Descuentos y campañas</h2>
-                    <p>Encuentra campañas, descuentos y novedades en FastMarket.</p>
-                </div>
-                <div class="controles-carrusel">
-                    <button type="button" data-scroll-target="promociones-carrusel" data-scroll="-1">‹</button>
-                    <button type="button" data-scroll-target="promociones-carrusel" data-scroll="1">›</button>
+                    <h2>No te lo puedes perder</h2>
                 </div>
             </div>
-            <div class="carrusel-lineal promociones-carrusel" id="promociones-carrusel"></div>
+
+            <div class="carrusel-shell">
+                <button class="carrusel-flecha carrusel-flecha-izquierda" type="button" data-scroll-target="promociones-carrusel" data-scroll="-1" aria-label="Ver promociones anteriores">‹</button>
+                <div class="carrusel-lineal promociones-carrusel" id="promociones-carrusel"></div>
+                <button class="carrusel-flecha carrusel-flecha-derecha" type="button" data-scroll-target="promociones-carrusel" data-scroll="1" aria-label="Ver más promociones">›</button>
+            </div>
         </section>
 
-        <section class="escaparate-productos" id="bloque-categorias-destacadas">
-            <div class="seccion-top">
+        <section class="escaparate-productos escaparate-compacto" id="bloque-categorias-destacadas">
+            <div class="seccion-top seccion-top-simple">
                 <div>
-                    <span class="seccion-etiqueta">Categorías</span>
-                    <h2>Compra por categoría</h2>
-                    <p>Explora nuestras categorías y encuentra productos según lo que necesitas.</p>
-                </div>
-                <div class="controles-carrusel">
-                    <button type="button" data-scroll-target="categorias-carrusel" data-scroll="-1">‹</button>
-                    <button type="button" data-scroll-target="categorias-carrusel" data-scroll="1">›</button>
+                    <h2>Categorías</h2>
                 </div>
             </div>
-            <div class="carrusel-lineal categorias-carrusel" id="categorias-carrusel"></div>
+
+            <div class="carrusel-shell">
+                <button class="carrusel-flecha carrusel-flecha-izquierda" type="button" data-scroll-target="categorias-carrusel" data-scroll="-1" aria-label="Ver categorías anteriores">‹</button>
+                <div class="carrusel-lineal categorias-carrusel" id="categorias-carrusel"></div>
+                <button class="carrusel-flecha carrusel-flecha-derecha" type="button" data-scroll-target="categorias-carrusel" data-scroll="1" aria-label="Ver más categorías">›</button>
+            </div>
         </section>
 
         <section class="escaparate-productos" id="bloque-destacados">

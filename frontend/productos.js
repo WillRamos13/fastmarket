@@ -360,9 +360,33 @@ function pintarPromociones() {
     const contenedor = document.getElementById("promociones-carrusel");
     if (!contenedor) return;
 
-    const productosOferta = productos.filter(esProductoOferta).slice(0, 8);
     contenedor.innerHTML = "";
 
+    const promocionesAdmin = bannersActivos
+        .filter((banner) => banner && banner.imagen && (banner.id || banner.titulo || banner.descripcion))
+        .slice(0, 12);
+
+    if (promocionesAdmin.length) {
+        promocionesAdmin.forEach((banner) => {
+            const card = document.createElement("a");
+            card.className = "promo-card promo-card-admin";
+            card.href = "productos.html?ofertas=1";
+            const titulo = banner.titulo || "Promoción FastMarket";
+            const descripcion = banner.descripcion || "Ver ofertas";
+            card.innerHTML = `
+                <img src="${FastMarket.escapeHTML(banner.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(titulo)}" onerror="this.src='img/logo.png'">
+                <div class="promo-overlay"></div>
+                <div class="promo-info">
+                    <span>${FastMarket.escapeHTML(descripcion)}</span>
+                    <h3>${FastMarket.escapeHTML(titulo)}</h3>
+                    <p>Ver promoción</p>
+                </div>`;
+            contenedor.appendChild(card);
+        });
+        return;
+    }
+
+    const productosOferta = productos.filter(esProductoOferta).slice(0, 12);
     if (productosOferta.length) {
         productosOferta.forEach((producto) => {
             const card = document.createElement("article");
