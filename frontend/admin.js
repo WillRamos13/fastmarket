@@ -11,6 +11,21 @@ const adminPages = { productos: { page: 0, size: 20, totalPages: 1 }, pedidos: {
 let filtroVendedorProductos = "todos";
 let filtroVendedorPedidos = "todos";
 
+function validarPasswordSegura(password) {
+    return Boolean(
+        password &&
+        password.length >= 8 &&
+        !/\s/.test(password) &&
+        /[a-z]/.test(password) &&
+        /[A-Z]/.test(password) &&
+        /\d/.test(password)
+    );
+}
+
+function mensajePasswordSegura() {
+    return "La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y no debe contener espacios.";
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     const admin = FastMarket.getCliente();
     if (!admin) {
@@ -780,7 +795,13 @@ async function guardarUsuarioAdmin(e) {
     }
 
     if (id) {
-        if (password) payload.passwordNueva = password;
+        if (password) {
+            if (!validarPasswordSegura(password)) {
+                toast(mensajePasswordSegura());
+                return;
+            }
+            payload.passwordNueva = password;
+        }
     } else {
         payload.correo = value("usuario-correo").toLowerCase();
         payload.password = password;
@@ -788,8 +809,8 @@ async function guardarUsuarioAdmin(e) {
             toast("Ingresa un correo válido.");
             return;
         }
-        if (!payload.password || payload.password.length < 6) {
-            toast("La contraseña debe tener mínimo 6 caracteres.");
+        if (!validarPasswordSegura(payload.password)) {
+            toast(mensajePasswordSegura());
             return;
         }
     }

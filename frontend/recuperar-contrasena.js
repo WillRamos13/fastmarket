@@ -52,8 +52,8 @@ formRecuperar.addEventListener("submit", async (e) => {
         return;
     }
 
-    if (nuevaValor.length < 6) {
-        mostrarMensaje("La contraseña debe tener mínimo 6 caracteres.", "error");
+    if (!validarPasswordSegura(nuevaValor)) {
+        mostrarMensaje(mensajePasswordSegura(), "error");
         return;
     }
 
@@ -85,6 +85,21 @@ formRecuperar.addEventListener("submit", async (e) => {
         FastMarket.marcarCargando(formRecuperar.querySelector('button[type="submit"]'), false);
     }
 });
+
+function validarPasswordSegura(password) {
+    return Boolean(
+        password &&
+        password.length >= 8 &&
+        !/\s/.test(password) &&
+        /[a-z]/.test(password) &&
+        /[A-Z]/.test(password) &&
+        /\d/.test(password)
+    );
+}
+
+function mensajePasswordSegura() {
+    return "La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y no debe contener espacios.";
+}
 
 function validarCorreo(valor) {
     return valor.includes("@") && valor.includes(".");

@@ -16,6 +16,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 let usuarioActual = null;
 let pedidosUsuario = [];
 
+function validarPasswordSegura(password) {
+    return Boolean(
+        password &&
+        password.length >= 8 &&
+        !/\s/.test(password) &&
+        /[a-z]/.test(password) &&
+        /[A-Z]/.test(password) &&
+        /\d/.test(password)
+    );
+}
+
+function mensajePasswordSegura() {
+    return "La nueva contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y no debe contener espacios.";
+}
+
 async function refrescarUsuario(id) {
     try {
         usuarioActual = await FastMarket.request(`/usuarios/${id}`, { auth: true });
@@ -161,8 +176,8 @@ async function cambiarPassword(e) {
         return;
     }
 
-    if (nueva.value.length < 6) {
-        mostrarMensaje("mensaje-password", "La nueva contraseña debe tener mínimo 6 caracteres.");
+    if (!validarPasswordSegura(nueva.value)) {
+        mostrarMensaje("mensaje-password", mensajePasswordSegura());
         return;
     }
 
