@@ -24,21 +24,21 @@ const categoriasBase = [
 let categoriasOficiales = [...categoriasBase];
 
 const imagenesCategoriaBase = {
-    moda: "img/casaca.png",
-    tecnologia: "img/audifonos.png",
-    hogar: "img/lampara.png",
-    accesorios: "img/smartwatch.png",
-    estudio: "img/mochila.png",
-    belleza: "img/fondo1.png",
-    deportes: "img/intro.png",
+    moda: "img/intro.png",
+    tecnologia: "img/atencion.png",
+    hogar: "img/envios.png",
+    accesorios: "img/seguridad.png",
+    estudio: "img/fondo1.png",
+    belleza: "img/intro.png",
+    deportes: "img/fondo1.png",
     juguetes: "img/logo.png"
 };
 
 const tarjetasPromocionBase = [
-    { titulo: "Ofertas relámpago", descripcion: "Muestra aquí tus mejores descuentos por tiempo limitado.", imagen: "img/fondo1.png", url: "productos.html?ofertas=1" },
-    { titulo: "Tecnología con descuento", descripcion: "Audífonos, gadgets y accesorios seleccionados.", imagen: "img/audifonos.png", url: "productos.html?categoria=tecnologia" },
-    { titulo: "Renueva tu estilo", descripcion: "Promociones especiales en moda y accesorios.", imagen: "img/casaca.png", url: "productos.html?categoria=moda" },
-    { titulo: "Útiles y estudio", descripcion: "Productos para clases, oficina y universidad.", imagen: "img/mochila.png", url: "productos.html?categoria=estudio" }
+    { titulo: "Descuentos destacados", descripcion: "25% OFF", imagen: "img/fondo1.png", url: "productos.html?ofertas=1" },
+    { titulo: "Tecnología y accesorios", descripcion: "Ofertas disponibles", imagen: "img/intro.png", url: "productos.html?categoria=tecnologia" },
+    { titulo: "Renueva tu estilo", descripcion: "Promos seleccionadas", imagen: "img/fondo1.png", url: "productos.html?categoria=moda" },
+    { titulo: "Especial para estudiantes", descripcion: "Compra fácil y rápido", imagen: "img/envios.png", url: "productos.html?categoria=estudio" }
 ];
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -399,9 +399,9 @@ function pintarPromociones() {
             <img src="${FastMarket.escapeHTML(promo.imagen)}" alt="${FastMarket.escapeHTML(promo.titulo)}" onerror="this.src='img/logo.png'">
             <div class="promo-overlay"></div>
             <div class="promo-info">
-                <span>FastMarket</span>
+                <span>${FastMarket.escapeHTML(promo.descripcion)}</span>
                 <h3>${FastMarket.escapeHTML(promo.titulo)}</h3>
-                <p>${FastMarket.escapeHTML(promo.descripcion)}</p>
+                <p>Ver promoción</p>
             </div>`;
         contenedor.appendChild(card);
     });
