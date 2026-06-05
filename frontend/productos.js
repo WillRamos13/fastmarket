@@ -10,6 +10,37 @@ let modoOfertas = false;
 let slideActual = 0;
 let intervaloSlider = null;
 
+const categoriasBase = [
+    { codigo: "moda", nombre: "Moda" },
+    { codigo: "tecnologia", nombre: "Tecnología" },
+    { codigo: "hogar", nombre: "Hogar" },
+    { codigo: "accesorios", nombre: "Accesorios" },
+    { codigo: "estudio", nombre: "Estudio" },
+    { codigo: "belleza", nombre: "Belleza" },
+    { codigo: "deportes", nombre: "Deportes" },
+    { codigo: "juguetes", nombre: "Juguetes" }
+];
+
+let categoriasOficiales = [...categoriasBase];
+
+const imagenesCategoriaBase = {
+    moda: "img/casaca.png",
+    tecnologia: "img/audifonos.png",
+    hogar: "img/lampara.png",
+    accesorios: "img/smartwatch.png",
+    estudio: "img/mochila.png",
+    belleza: "img/fondo1.png",
+    deportes: "img/intro.png",
+    juguetes: "img/logo.png"
+};
+
+const tarjetasPromocionBase = [
+    { titulo: "Ofertas relámpago", descripcion: "Muestra aquí tus mejores descuentos por tiempo limitado.", imagen: "img/fondo1.png", url: "productos.html?ofertas=1" },
+    { titulo: "Tecnología con descuento", descripcion: "Audífonos, gadgets y accesorios seleccionados.", imagen: "img/audifonos.png", url: "productos.html?categoria=tecnologia" },
+    { titulo: "Renueva tu estilo", descripcion: "Promociones especiales en moda y accesorios.", imagen: "img/casaca.png", url: "productos.html?categoria=moda" },
+    { titulo: "Útiles y estudio", descripcion: "Productos para clases, oficina y universidad.", imagen: "img/mochila.png", url: "productos.html?categoria=estudio" }
+];
+
 document.addEventListener("DOMContentLoaded", async () => {
     FastMarket.activarBuscador("buscador-header", "busqueda");
     FastMarket.activarMenuCliente();
@@ -19,6 +50,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
     modoOfertas = params.get("ofertas") === "1";
     const q = params.get("q");
+    const categoriaUrl = params.get("categoria");
+
+    if (categoriaUrl) categoriaActual = normalizarCategoria(categoriaUrl);
     actualizarVistaOfertas();
 
     if (q) {
@@ -27,7 +61,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         busquedaActual = q.toLowerCase();
     }
 
+    await cargarCategorias();
+    pintarFiltrosCategorias();
     activarEventos();
+
     if (window.FastMarketCart) {
         await FastMarketCart.cargar();
     } else {
@@ -35,6 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         actualizarContadorCarrito();
         mostrarCarrito();
     }
+
     await cargarBanners();
     await cargarProductos();
 });
@@ -45,6 +83,110 @@ function actualizarVistaOfertas() {
     const descripcion = document.querySelector(".titulo-productos p");
     if (titulo) titulo.textContent = "Ofertas";
     if (descripcion) descripcion.textContent = "Productos con promoción disponibles en FastMarket.";
+}
+
+async function cargarCategorias() {
+    try {
+        const data = await FastMarket.request("/productos/categorias");
+        if (Array.isArray(data) && data.length) {
+            categoriasOficiales = data
+                .map((categoria) => ({
+                    codigo: normalizarCategoria(categoria.codigo || categoria.nombre),
+                    nombre: categoria.nombre || categoria.codigo
+                }))
+                .filter((categoria) => categoria.codigo && categoria.nombre);
+        }
+    } catch {
+        categoriasOficiales = [...categoriasBase];
+    }
+}
+
+function pintarFiltrosCategorias() {
+    const contenedor = document.getElementById("categorias-filtros");
+    if (!contenedor) return;
+
+    const botones = [
+        `<button class="categoria-btn ${categoriaActual === "todos" ? "activo" : ""}" data-categoria="todos">Todos</button>`,
+        ...categoriasOficiales.map((categoria) => `
+            <button class="categoria-btn ${categoriaActual === categoria.codigo ? "activo" : ""}" data-categoria="${FastMarket.escapeHTML(categoria.codigo)}">
+                ${FastMarket.escapeHTML(categoria.nombre)}
+            </button>`)
+    ];
+
+    contenedor.innerHTML = botones.join("");
+}
+
+function normalizarCategoria(valor) {
+    return String(valor || "todos")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "") || "todos";
+}
+
+function codigoCategoria(valor) {
+    const clave = normalizarCategoria(valor);
+    const encontrada = categoriasOficiales.find((categoria) => categoria.codigo === clave || normalizarCategoria(categoria.nombre) === clave);
+    return encontrada?.codigo || clave;
+}
+
+function nombreCategoria(valor) {
+    const codigo = codigoCategoria(valor);
+    const categoria = categoriasOficiales.find((item) => item.codigo === codigo);
+    return categoria?.nombre || String(valor || "General");
+}
+
+function imagenPrincipalProducto(producto) {
+    if (producto?.imagen) return producto.imagen;
+    if (Array.isArray(producto?.imagenes) && producto.imagenes.length) return producto.imagenes[0];
+    return "img/logo.png";
+}
+
+function productosPorCategoria(codigo) {
+    return productos.filter((producto) => codigoCategoria(producto.categoria) === codigo);
+}
+
+function esProductoOferta(producto) {
+    return Boolean(producto.oferta) || Number(producto.precioAntes || 0) > Number(producto.precio || 0);
+}
+
+function etiquetaDescuento(producto) {
+    const precio = Number(producto.precio || 0);
+    const antes = Number(producto.precioAntes || 0);
+    if (antes > precio && precio > 0) {
+        return `-${Math.round((1 - precio / antes) * 100)}%`;
+    }
+    return "Oferta";
+}
+
+function actualizarBotonesCategoria() {
+    document.querySelectorAll(".categoria-btn").forEach((btn) => {
+        btn.classList.toggle("activo", (btn.dataset.categoria || "todos") === categoriaActual);
+    });
+}
+
+function aplicarCategoria(categoria, moverAlListado = false) {
+    categoriaActual = normalizarCategoria(categoria);
+    actualizarBotonesCategoria();
+    mostrarProductos();
+
+    const url = new URL(window.location.href);
+    if (categoriaActual === "todos") url.searchParams.delete("categoria");
+    else url.searchParams.set("categoria", categoriaActual);
+    window.history.replaceState({}, "", url);
+
+    if (moverAlListado) {
+        document.getElementById("productos-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+}
+
+function moverCarrusel(id, direccion) {
+    const contenedor = document.getElementById(id);
+    if (!contenedor) return;
+    const distancia = Math.max(260, Math.round(contenedor.clientWidth * 0.85));
+    contenedor.scrollBy({ left: distancia * Number(direccion || 1), behavior: "smooth" });
 }
 
 function normalizarItemCarrito(item) {
@@ -138,13 +280,24 @@ function activarEventos() {
     }
 
     botonesCategoria.forEach((btn) => {
-        btn.addEventListener("click", () => {
-            botonesCategoria.forEach((b) => b.classList.remove("activo"));
-            btn.classList.add("activo");
-            categoriaActual = btn.dataset.categoria || "todos";
-            mostrarProductos();
-        });
+        btn.addEventListener("click", () => aplicarCategoria(btn.dataset.categoria || "todos", false));
     });
+
+    const cuerpoProductos = document.getElementById("cuerpo-productos");
+    if (cuerpoProductos) {
+        cuerpoProductos.addEventListener("click", (e) => {
+            const btnScroll = e.target.closest("[data-scroll-target]");
+            if (btnScroll) {
+                moverCarrusel(btnScroll.dataset.scrollTarget, btnScroll.dataset.scroll || 1);
+                return;
+            }
+
+            const btnCategoria = e.target.closest("[data-filtrar-categoria]");
+            if (btnCategoria) {
+                aplicarCategoria(btnCategoria.dataset.filtrarCategoria || "todos", true);
+            }
+        });
+    }
 
     if (btnAnterior) btnAnterior.addEventListener("click", () => moverSlide(-1));
     if (btnSiguiente) btnSiguiente.addEventListener("click", () => moverSlide(1));
@@ -186,12 +339,204 @@ async function cargarProductos() {
     const contenedor = document.getElementById("productos-contenedor");
     try {
         productos = await FastMarket.request("/productos");
+        renderizarEscaparates();
         mostrarProductos();
     } catch (error) {
         if (contenedor) {
             contenedor.innerHTML = `<div class="mensaje-error">No se pudieron cargar productos: ${FastMarket.escapeHTML(error.message)}</div>`;
         }
+        renderizarEscaparates();
     }
+}
+
+function renderizarEscaparates() {
+    pintarPromociones();
+    pintarCategoriasDestacadas();
+    pintarProductosDestacados();
+    pintarFilasPorCategoria();
+}
+
+function pintarPromociones() {
+    const contenedor = document.getElementById("promociones-carrusel");
+    if (!contenedor) return;
+
+    const productosOferta = productos.filter(esProductoOferta).slice(0, 8);
+    contenedor.innerHTML = "";
+
+    if (productosOferta.length) {
+        productosOferta.forEach((producto) => {
+            const card = document.createElement("article");
+            card.className = "promo-card promo-card-producto";
+            card.tabIndex = 0;
+            card.setAttribute("role", "link");
+            card.innerHTML = `
+                <img src="${FastMarket.escapeHTML(imagenPrincipalProducto(producto))}" alt="${FastMarket.escapeHTML(producto.nombre)}" onerror="this.src='img/logo.png'">
+                <div class="promo-overlay"></div>
+                <div class="promo-info">
+                    <span>${FastMarket.escapeHTML(etiquetaDescuento(producto))}</span>
+                    <h3>${FastMarket.escapeHTML(producto.nombre)}</h3>
+                    <p>${FastMarket.money(producto.precio)} ${producto.precioAntes ? `<small>${FastMarket.money(producto.precioAntes)}</small>` : ""}</p>
+                </div>`;
+            card.addEventListener("click", () => {
+                window.location.href = `detalle-producto.html?id=${producto.id}`;
+            });
+            card.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    window.location.href = `detalle-producto.html?id=${producto.id}`;
+                }
+            });
+            contenedor.appendChild(card);
+        });
+        return;
+    }
+
+    tarjetasPromocionBase.forEach((promo) => {
+        const card = document.createElement("a");
+        card.className = "promo-card";
+        card.href = promo.url;
+        card.innerHTML = `
+            <img src="${FastMarket.escapeHTML(promo.imagen)}" alt="${FastMarket.escapeHTML(promo.titulo)}" onerror="this.src='img/logo.png'">
+            <div class="promo-overlay"></div>
+            <div class="promo-info">
+                <span>FastMarket</span>
+                <h3>${FastMarket.escapeHTML(promo.titulo)}</h3>
+                <p>${FastMarket.escapeHTML(promo.descripcion)}</p>
+            </div>`;
+        contenedor.appendChild(card);
+    });
+}
+
+function pintarCategoriasDestacadas() {
+    const contenedor = document.getElementById("categorias-carrusel");
+    if (!contenedor) return;
+
+    contenedor.innerHTML = "";
+    categoriasOficiales.forEach((categoria) => {
+        const productosCategoria = productosPorCategoria(categoria.codigo);
+        const productoBase = productosCategoria.find((producto) => imagenPrincipalProducto(producto));
+        const imagen = productoBase ? imagenPrincipalProducto(productoBase) : (imagenesCategoriaBase[categoria.codigo] || "img/logo.png");
+
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "categoria-tarjeta";
+        card.dataset.filtrarCategoria = categoria.codigo;
+        card.innerHTML = `
+            <img src="${FastMarket.escapeHTML(imagen)}" alt="${FastMarket.escapeHTML(categoria.nombre)}" onerror="this.src='img/logo.png'">
+            <span>${FastMarket.escapeHTML(categoria.nombre)}</span>
+            <small>${productosCategoria.length} producto${productosCategoria.length === 1 ? "" : "s"}</small>`;
+        contenedor.appendChild(card);
+    });
+}
+
+function pintarProductosDestacados() {
+    const contenedor = document.getElementById("destacados-carrusel");
+    if (!contenedor) return;
+
+    let destacados = productos.filter((producto) => Boolean(producto.destacado) && Number(producto.stock || 0) > 0);
+    if (!destacados.length) destacados = productos.filter(esProductoOferta);
+    if (!destacados.length) destacados = productos.slice(0, 12);
+
+    contenedor.innerHTML = "";
+
+    if (!destacados.length) {
+        contenedor.innerHTML = `<div class="mini-vacio">Pronto mostraremos productos destacados.</div>`;
+        return;
+    }
+
+    destacados.slice(0, 12).forEach((producto) => contenedor.appendChild(crearMiniProductoCard(producto)));
+}
+
+function pintarFilasPorCategoria() {
+    const contenedor = document.getElementById("filas-categorias");
+    if (!contenedor) return;
+
+    contenedor.innerHTML = "";
+    const filasConProductos = categoriasOficiales
+        .map((categoria) => ({ categoria, productos: productosPorCategoria(categoria.codigo).slice(0, 12) }))
+        .filter((fila) => fila.productos.length);
+
+    if (!filasConProductos.length) {
+        contenedor.innerHTML = `
+            <div class="fila-categoria fila-categoria-vacia">
+                <div class="seccion-top">
+                    <div>
+                        <span class="seccion-etiqueta">Categorías</span>
+                        <h2>Productos por categoría</h2>
+                        <p>Pronto mostraremos productos organizados por categoría.</p>
+                    </div>
+                </div>
+            </div>`;
+        return;
+    }
+
+    filasConProductos.forEach(({ categoria, productos: items }) => {
+        const idCarrusel = `fila-categoria-${categoria.codigo}`;
+        const bloque = document.createElement("section");
+        bloque.className = "fila-categoria";
+        bloque.innerHTML = `
+            <div class="seccion-top">
+                <div>
+                    <span class="seccion-etiqueta">${FastMarket.escapeHTML(categoria.nombre)}</span>
+                    <h2>${FastMarket.escapeHTML(categoria.nombre)}</h2>
+                    <p>Productos disponibles en esta categoría.</p>
+                </div>
+                <div class="controles-carrusel">
+                    <button type="button" data-filtrar-categoria="${FastMarket.escapeHTML(categoria.codigo)}">Ver todos</button>
+                    <button type="button" data-scroll-target="${FastMarket.escapeHTML(idCarrusel)}" data-scroll="-1">‹</button>
+                    <button type="button" data-scroll-target="${FastMarket.escapeHTML(idCarrusel)}" data-scroll="1">›</button>
+                </div>
+            </div>
+            <div class="carrusel-lineal productos-linea" id="${FastMarket.escapeHTML(idCarrusel)}"></div>`;
+
+        const carrusel = bloque.querySelector(".productos-linea");
+        items.forEach((producto) => carrusel.appendChild(crearMiniProductoCard(producto)));
+        contenedor.appendChild(bloque);
+    });
+}
+
+function crearMiniProductoCard(producto) {
+    const card = document.createElement("article");
+    const sinStock = Number(producto.stock || 0) <= 0;
+    card.className = "mini-producto";
+    card.tabIndex = 0;
+    card.setAttribute("role", "link");
+    card.setAttribute("aria-label", `Ver detalle de ${producto.nombre}`);
+    card.innerHTML = `
+        <div class="mini-producto-img">
+            <img src="${FastMarket.escapeHTML(imagenPrincipalProducto(producto))}" alt="${FastMarket.escapeHTML(producto.nombre)}" onerror="this.src='img/logo.png'">
+            ${esProductoOferta(producto) ? `<span>${FastMarket.escapeHTML(etiquetaDescuento(producto))}</span>` : ""}
+        </div>
+        <div class="mini-producto-info">
+            <small>${FastMarket.escapeHTML(nombreCategoria(producto.categoria))}</small>
+            <h3>${FastMarket.escapeHTML(producto.nombre)}</h3>
+            <div class="mini-precio">
+                <strong>${FastMarket.money(producto.precio)}</strong>
+                ${producto.precioAntes ? `<em>${FastMarket.money(producto.precioAntes)}</em>` : ""}
+            </div>
+            <button type="button" class="mini-producto-btn" ${sinStock ? "disabled" : ""}>${sinStock ? "Sin stock" : "Agregar"}</button>
+        </div>`;
+
+    card.addEventListener("click", () => {
+        window.location.href = `detalle-producto.html?id=${producto.id}`;
+    });
+
+    card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            window.location.href = `detalle-producto.html?id=${producto.id}`;
+        }
+    });
+
+    const boton = card.querySelector(".mini-producto-btn");
+    if (boton) {
+        boton.addEventListener("click", (e) => {
+            e.stopPropagation();
+            agregarAlCarrito(producto, 1);
+        });
+    }
+
+    return card;
 }
 
 async function cargarBanners() {
@@ -266,8 +611,8 @@ function mostrarProductos() {
     if (!contenedor) return;
 
     let lista = productos.filter((p) => {
-        const categoriaOk = categoriaActual === "todos" || p.categoria === categoriaActual;
-        const texto = `${p.nombre} ${p.descripcion} ${p.categoria}`.toLowerCase();
+        const categoriaOk = categoriaActual === "todos" || codigoCategoria(p.categoria) === categoriaActual;
+        const texto = `${p.nombre} ${p.descripcion} ${nombreCategoria(p.categoria)}`.toLowerCase();
         const ofertaOk = !modoOfertas || Boolean(p.oferta) || Number(p.precioAntes || 0) > Number(p.precio || 0);
         return categoriaOk && ofertaOk && texto.includes(busquedaActual);
     });
@@ -292,14 +637,14 @@ function mostrarProductos() {
 
         card.innerHTML = `
             <div class="producto-imagen-link">
-                <img src="${FastMarket.escapeHTML(producto.imagen || "img/logo.png")}" alt="${FastMarket.escapeHTML(producto.nombre)}" onerror="this.src='img/logo.png'">
+                <img src="${FastMarket.escapeHTML(imagenPrincipalProducto(producto))}" alt="${FastMarket.escapeHTML(producto.nombre)}" onerror="this.src='img/logo.png'">
                 <div class="badges-producto">
                     ${producto.oferta ? `<span class="badge-oferta">Oferta</span>` : ""}
                     ${sinStock ? `<span class="badge-stock">Sin stock</span>` : ""}
                 </div>
             </div>
             <div class="producto-info">
-                <p class="categoria-producto">${FastMarket.escapeHTML(producto.categoria || "General")}</p>
+                <p class="categoria-producto">${FastMarket.escapeHTML(nombreCategoria(producto.categoria))}</p>
                 <h3>${FastMarket.escapeHTML(producto.nombre)}</h3>
                 <p class="descripcion-producto">${FastMarket.escapeHTML(producto.descripcion || "Producto disponible en FastMarket.")}</p>
                 <div class="precio-box">

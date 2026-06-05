@@ -73,6 +73,53 @@
             </div>
         </section>
 
+        <section class="escaparate-productos" id="bloque-promociones">
+            <div class="seccion-top">
+                <div>
+                    <span class="seccion-etiqueta">Promociones</span>
+                    <h2>Descuentos y campañas</h2>
+                    <p>Encuentra campañas, descuentos y novedades en FastMarket.</p>
+                </div>
+                <div class="controles-carrusel">
+                    <button type="button" data-scroll-target="promociones-carrusel" data-scroll="-1">‹</button>
+                    <button type="button" data-scroll-target="promociones-carrusel" data-scroll="1">›</button>
+                </div>
+            </div>
+            <div class="carrusel-lineal promociones-carrusel" id="promociones-carrusel"></div>
+        </section>
+
+        <section class="escaparate-productos" id="bloque-categorias-destacadas">
+            <div class="seccion-top">
+                <div>
+                    <span class="seccion-etiqueta">Categorías</span>
+                    <h2>Compra por categoría</h2>
+                    <p>Explora nuestras categorías y encuentra productos según lo que necesitas.</p>
+                </div>
+                <div class="controles-carrusel">
+                    <button type="button" data-scroll-target="categorias-carrusel" data-scroll="-1">‹</button>
+                    <button type="button" data-scroll-target="categorias-carrusel" data-scroll="1">›</button>
+                </div>
+            </div>
+            <div class="carrusel-lineal categorias-carrusel" id="categorias-carrusel"></div>
+        </section>
+
+        <section class="escaparate-productos" id="bloque-destacados">
+            <div class="seccion-top">
+                <div>
+                    <span class="seccion-etiqueta">Destacados</span>
+                    <h2>Productos destacados</h2>
+                    <p>Productos seleccionados para comprar rápido.</p>
+                </div>
+                <div class="controles-carrusel">
+                    <button type="button" data-scroll-target="destacados-carrusel" data-scroll="-1">‹</button>
+                    <button type="button" data-scroll-target="destacados-carrusel" data-scroll="1">›</button>
+                </div>
+            </div>
+            <div class="carrusel-lineal productos-linea" id="destacados-carrusel"></div>
+        </section>
+
+        <section class="escaparate-productos filas-categorias" id="filas-categorias"></section>
+
         <section id="productos-section">
 
             <div class="titulo-productos">
@@ -90,7 +137,7 @@
                 </select>
             </div>
 
-            <div class="categorias">
+            <div class="categorias" id="categorias-filtros">
                 <button class="categoria-btn activo" data-categoria="todos">Todos</button>
                 <button class="categoria-btn" data-categoria="moda">Moda</button>
                 <button class="categoria-btn" data-categoria="tecnologia">Tecnología</button>
