@@ -535,7 +535,16 @@ function stockBadge(stock) {
 }
 
 function formatearCategoria(valor) {
-    const map = { moda: "Moda", tecnologia: "Tecnología", hogar: "Hogar", accesorios: "Accesorios", estudio: "Estudio" };
+    const map = {
+        moda: "Moda",
+        tecnologia: "Tecnología",
+        hogar: "Hogar",
+        accesorios: "Accesorios",
+        estudio: "Estudio",
+        belleza: "Belleza",
+        deportes: "Deportes",
+        juguetes: "Juguetes"
+    };
     return map[valor] || valor || "";
 }
 

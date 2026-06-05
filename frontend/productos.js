@@ -277,13 +277,6 @@ function mostrarProductos() {
     if (ordenActual === "nombre") lista.sort((a, b) => a.nombre.localeCompare(b.nombre));
     if (ordenActual === "ofertas") lista = lista.filter((p) => p.oferta);
 
-    const resultadoProductos = document.getElementById("resultado-productos");
-    if (resultadoProductos) {
-        resultadoProductos.textContent = lista.length === 1
-            ? "1 producto encontrado"
-            : `${lista.length} productos encontrados`;
-    }
-
     contenedor.innerHTML = "";
     if (mensajeVacio) mensajeVacio.style.display = lista.length ? "none" : "block";
 

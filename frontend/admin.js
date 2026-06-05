@@ -1396,7 +1396,10 @@ function formatearCategoria(valor) {
         tecnologia: "Tecnología",
         hogar: "Hogar",
         accesorios: "Accesorios",
-        estudio: "Estudio"
+        estudio: "Estudio",
+        belleza: "Belleza",
+        deportes: "Deportes",
+        juguetes: "Juguetes"
     };
     return map[valor] || valor || "";
 }

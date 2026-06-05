@@ -61,110 +61,54 @@
 
     <main id="cuerpo-productos">
 
-        <section id="ofertas-slider" class="productos-hero">
-            <div class="hero-contenido">
-                <div class="hero-copy">
-                    <span class="hero-etiqueta">Catálogo FastMarket</span>
-                    <h1>Compra fácil, rápido y con ofertas actualizadas</h1>
-                    <p>
-                        Explora productos de tecnología, moda, hogar y accesorios con una experiencia más limpia,
-                        moderna y pensada para comprar sin complicarte.
-                    </p>
+        <section id="ofertas-slider">
+            <div class="slider">
+                <div class="slider-contenedor" id="slider-contenedor">
+                                    </div>
 
-                    <div class="hero-acciones">
-                        <a href="#productos-section" class="btn-hero btn-hero-principal">Ver productos</a>
-                        <a href="productos.html?ofertas=1" class="btn-hero btn-hero-secundario">Ver ofertas</a>
-                    </div>
+                <button class="slider-btn" id="anterior">‹</button>
+                <button class="slider-btn" id="siguiente">›</button>
 
-                    <div class="hero-beneficios" aria-label="Beneficios de compra">
-                        <div>
-                            <strong>Stock</strong>
-                            <span>Actualizado</span>
-                        </div>
-                        <div>
-                            <strong>Ofertas</strong>
-                            <span>Destacadas</span>
-                        </div>
-                        <div>
-                            <strong>Compra</strong>
-                            <span>Segura</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="hero-slider-card">
-                    <div class="slider">
-                        <div class="slider-contenedor" id="slider-contenedor"></div>
-
-                        <button class="slider-btn" id="anterior" aria-label="Banner anterior">‹</button>
-                        <button class="slider-btn" id="siguiente" aria-label="Banner siguiente">›</button>
-
-                        <div class="puntos" id="puntos"></div>
-                    </div>
-                </div>
+                <div class="puntos" id="puntos"></div>
             </div>
         </section>
 
         <section id="productos-section">
-            <div class="catalogo-shell">
-                <div class="titulo-productos">
-                    <span class="mini-titulo">Catálogo</span>
-                    <h2>Productos destacados</h2>
-                    <p>Busca, filtra y ordena los productos disponibles en FastMarket.</p>
-                </div>
 
-                <div class="catalogo-panel">
-                    <aside class="filtros-productos" aria-label="Filtros de productos">
-                        <div class="filtros-header">
-                            <h3>Filtros</h3>
-                            <p>Encuentra lo que necesitas más rápido.</p>
-                        </div>
-
-                        <div class="barra-productos">
-                            <label class="campo-filtro" for="buscar-producto">
-                                <span>Buscar producto</span>
-                                <input type="text" id="buscar-producto" placeholder="Ej. laptop, audífonos, mochila...">
-                            </label>
-
-                            <label class="campo-filtro" for="ordenar-producto">
-                                <span>Ordenar por</span>
-                                <select id="ordenar-producto">
-                                    <option value="normal">Más recientes</option>
-                                    <option value="precio-menor">Menor precio</option>
-                                    <option value="precio-mayor">Mayor precio</option>
-                                    <option value="nombre">Nombre A-Z</option>
-                                    <option value="ofertas">Solo ofertas</option>
-                                </select>
-                            </label>
-                        </div>
-
-                        <div class="categorias" aria-label="Categorías de productos">
-                            <button class="categoria-btn activo" data-categoria="todos">Todos</button>
-                            <button class="categoria-btn" data-categoria="moda">Moda</button>
-                            <button class="categoria-btn" data-categoria="tecnologia">Tecnología</button>
-                            <button class="categoria-btn" data-categoria="hogar">Hogar</button>
-                            <button class="categoria-btn" data-categoria="accesorios">Accesorios</button>
-                        </div>
-                    </aside>
-
-                    <div class="catalogo-resultados">
-                        <div class="catalogo-toolbar">
-                            <div>
-                                <strong>Resultados</strong>
-                                <span id="resultado-productos">Cargando productos...</span>
-                            </div>
-                            <a href="productos.html?ofertas=1">Ver promociones</a>
-                        </div>
-
-                        <div id="productos-contenedor" class="productos-contenedor"></div>
-
-                        <div id="mensaje-vacio">
-                            <h3>No se encontraron productos</h3>
-                            <p>Intenta con otra búsqueda o categoría.</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="titulo-productos">
+                <h2>Productos</h2>
+                <p>Busca productos por nombre o filtra por categoría.</p>
             </div>
+
+            <div class="barra-productos">
+                <input type="text" id="buscar-producto" placeholder="Buscar producto...">
+
+                <select id="ordenar-producto">
+                    <option value="normal">Ordenar</option>
+                    <option value="precio-menor">Menor precio</option>
+                    <option value="precio-mayor">Mayor precio</option>
+                </select>
+            </div>
+
+            <div class="categorias">
+                <button class="categoria-btn activo" data-categoria="todos">Todos</button>
+                <button class="categoria-btn" data-categoria="moda">Moda</button>
+                <button class="categoria-btn" data-categoria="tecnologia">Tecnología</button>
+                <button class="categoria-btn" data-categoria="hogar">Hogar</button>
+                <button class="categoria-btn" data-categoria="accesorios">Accesorios</button>
+                <button class="categoria-btn" data-categoria="estudio">Estudio</button>
+                <button class="categoria-btn" data-categoria="belleza">Belleza</button>
+                <button class="categoria-btn" data-categoria="deportes">Deportes</button>
+                <button class="categoria-btn" data-categoria="juguetes">Juguetes</button>
+            </div>
+
+            <div id="productos-contenedor" class="productos-contenedor"></div>
+
+            <div id="mensaje-vacio">
+                <h3>No se encontraron productos</h3>
+                <p>Intenta con otra búsqueda o categoría.</p>
+            </div>
+
         </section>
 
     </main>

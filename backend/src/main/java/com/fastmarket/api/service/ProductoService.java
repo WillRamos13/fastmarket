@@ -2,6 +2,7 @@ package com.fastmarket.api.service;
 
 import com.fastmarket.api.dto.ProductoRequest;
 import com.fastmarket.api.dto.ProductoDtos;
+import com.fastmarket.api.model.CategoriaProducto;
 import com.fastmarket.api.model.Producto;
 import com.fastmarket.api.model.Rol;
 import com.fastmarket.api.model.Usuario;
@@ -96,7 +97,7 @@ public class ProductoService {
 
     private void aplicarDatos(Producto producto, AuthTokenService.TokenData actor, ProductoRequest request) {
         producto.setNombre(request.nombre().trim());
-        producto.setCategoria(request.categoria().trim());
+        producto.setCategoria(CategoriaProducto.normalizar(request.categoria()));
         producto.setPrecio(request.precio());
         producto.setPrecioAntes(request.precioAntes());
         producto.setStock(request.stock());

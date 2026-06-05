@@ -1,7 +1,9 @@
 package com.fastmarket.api.controller;
 
 import com.fastmarket.api.dto.ProductoRequest;
+import com.fastmarket.api.model.CategoriaProducto;
 import com.fastmarket.api.dto.ProductoDtos;
+import com.fastmarket.api.repository.CategoriaRepository;
 import com.fastmarket.api.service.AuthTokenService;
 import com.fastmarket.api.service.ProductoService;
 import jakarta.validation.Valid;
@@ -15,10 +17,12 @@ import java.util.List;
 public class ProductoController {
     private final ProductoService productoService;
     private final AuthTokenService authTokenService;
+    private final CategoriaRepository categoriaRepository;
 
-    public ProductoController(ProductoService productoService, AuthTokenService authTokenService) {
+    public ProductoController(ProductoService productoService, AuthTokenService authTokenService, CategoriaRepository categoriaRepository) {
         this.productoService = productoService;
         this.authTokenService = authTokenService;
+        this.categoriaRepository = categoriaRepository;
     }
 
     @GetMapping
@@ -49,6 +53,14 @@ public class ProductoController {
     ) {
         AuthTokenService.TokenData actor = authTokenService.requerirAdminOVendedor(authorization);
         return productoService.listarPaginado(actor, page, size, incluirInactivos);
+    }
+
+    @GetMapping("/categorias")
+    public List<CategoriaProducto.CategoriaResponse> listarCategorias() {
+        List<CategoriaProducto.CategoriaResponse> categorias = categoriaRepository.findByActivoTrueOrderByIdAsc().stream()
+                .map(categoria -> new CategoriaProducto.CategoriaResponse(categoria.getCodigo(), categoria.getNombre()))
+                .toList();
+        return categorias.isEmpty() ? CategoriaProducto.listar() : categorias;
     }
 
     @GetMapping("/{id}")

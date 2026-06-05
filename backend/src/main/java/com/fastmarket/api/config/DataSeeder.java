@@ -2,6 +2,7 @@ package com.fastmarket.api.config;
 
 import com.fastmarket.api.model.*;
 import com.fastmarket.api.repository.BannerRepository;
+import com.fastmarket.api.repository.CategoriaRepository;
 import com.fastmarket.api.repository.ProductoRepository;
 import com.fastmarket.api.repository.UsuarioRepository;
 import com.fastmarket.api.service.PasswordService;
@@ -15,6 +16,7 @@ import java.math.BigDecimal;
 public class DataSeeder implements CommandLineRunner {
     private final ProductoRepository productoRepository;
     private final BannerRepository bannerRepository;
+    private final CategoriaRepository categoriaRepository;
     private final UsuarioRepository usuarioRepository;
     private final PasswordService passwordService;
 
@@ -27,9 +29,10 @@ public class DataSeeder implements CommandLineRunner {
     @Value("${app.admin.reset-password:true}")
     private boolean resetAdminPassword;
 
-    public DataSeeder(ProductoRepository productoRepository, BannerRepository bannerRepository, UsuarioRepository usuarioRepository, PasswordService passwordService) {
+    public DataSeeder(ProductoRepository productoRepository, BannerRepository bannerRepository, CategoriaRepository categoriaRepository, UsuarioRepository usuarioRepository, PasswordService passwordService) {
         this.productoRepository = productoRepository;
         this.bannerRepository = bannerRepository;
+        this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
         this.passwordService = passwordService;
     }
@@ -37,6 +40,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         crearAdmin();
+        crearCategorias();
         crearProductos();
         crearBanners();
     }
@@ -81,14 +85,24 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
+    private void crearCategorias() {
+        for (CategoriaProducto categoria : CategoriaProducto.values()) {
+            if (categoriaRepository.existsByCodigoIgnoreCase(categoria.getCodigo())) continue;
+            categoriaRepository.save(new Categoria(categoria.getCodigo(), categoria.getNombre()));
+        }
+    }
+
     private void crearProductos() {
         if (productoRepository.count() > 0) return;
 
-        productoRepository.save(new Producto("Audífonos inalámbricos", "tecnologia", new BigDecimal("79.90"), new BigDecimal("99.90"), 12, "img/productos/audifonos.png", "Audífonos cómodos para música, clases y llamadas.", true, true));
-        productoRepository.save(new Producto("Smartwatch básico", "tecnologia", new BigDecimal("99.90"), new BigDecimal("129.90"), 8, "img/productos/smartwatch.png", "Reloj inteligente para uso diario.", true, true));
         productoRepository.save(new Producto("Casaca ligera", "moda", new BigDecimal("119.90"), new BigDecimal("149.90"), 6, "img/productos/casaca.png", "Casaca cómoda y fácil de combinar.", true, true));
+        productoRepository.save(new Producto("Audífonos inalámbricos", "tecnologia", new BigDecimal("79.90"), new BigDecimal("99.90"), 12, "img/productos/audifonos.png", "Audífonos cómodos para música, clases y llamadas.", true, true));
         productoRepository.save(new Producto("Lámpara LED", "hogar", new BigDecimal("39.90"), new BigDecimal("49.90"), 15, "img/productos/lampara.png", "Ideal para escritorio, dormitorio o sala.", true, false));
         productoRepository.save(new Producto("Mochila compacta", "accesorios", new BigDecimal("69.90"), null, 10, "img/productos/mochila.png", "Mochila ligera para clases o uso diario.", false, true));
+        productoRepository.save(new Producto("Set de resaltadores", "estudio", new BigDecimal("18.90"), new BigDecimal("24.90"), 20, "img/productos/resaltadores.png", "Resaltadores de colores para apuntes, oficina y universidad.", true, false));
+        productoRepository.save(new Producto("Crema hidratante", "belleza", new BigDecimal("29.90"), new BigDecimal("39.90"), 14, "img/productos/crema.png", "Crema de uso diario para cuidado personal.", true, true));
+        productoRepository.save(new Producto("Balón deportivo", "deportes", new BigDecimal("54.90"), new BigDecimal("69.90"), 9, "img/productos/balon.png", "Balón resistente para entrenamiento y recreación.", true, false));
+        productoRepository.save(new Producto("Set de bloques didácticos", "juguetes", new BigDecimal("45.90"), null, 11, "img/productos/bloques.png", "Juego didáctico para entretenimiento y aprendizaje.", false, true));
     }
 
     private void crearBanners() {

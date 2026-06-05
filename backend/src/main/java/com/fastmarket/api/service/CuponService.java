@@ -240,7 +240,7 @@ public class CuponService {
             cupon.setVendedor(vendedor);
         } else if (tipo == TipoCupon.CATEGORIA) {
             if (request.categoriaObjetivo() == null || request.categoriaObjetivo().isBlank()) throw new IllegalArgumentException("Selecciona una categoría para este cupón");
-            cupon.setCategoriaObjetivo(request.categoriaObjetivo().trim().toLowerCase());
+            cupon.setCategoriaObjetivo(CategoriaProducto.normalizar(request.categoriaObjetivo()));
         } else if (tipo == TipoCupon.PRODUCTO) {
             if (request.productoObjetivoId() == null) throw new IllegalArgumentException("Selecciona un producto para este cupón");
             Producto producto = productoRepository.findById(request.productoObjetivoId()).orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
