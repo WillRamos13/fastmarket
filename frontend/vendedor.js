@@ -539,7 +539,6 @@ function formatearCategoria(valor) {
         moda: "Moda",
         tecnologia: "Tecnología",
         hogar: "Hogar",
-        accesorios: "Accesorios",
         estudio: "Estudio",
         belleza: "Belleza",
         deportes: "Deportes",

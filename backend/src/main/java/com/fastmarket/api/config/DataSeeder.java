@@ -1,16 +1,23 @@
 package com.fastmarket.api.config;
 
-import com.fastmarket.api.model.*;
+import java.math.BigDecimal;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+import com.fastmarket.api.model.Banner;
+import com.fastmarket.api.model.Categoria;
+import com.fastmarket.api.model.CategoriaProducto;
+import com.fastmarket.api.model.EstadoUsuario;
+import com.fastmarket.api.model.Producto;
+import com.fastmarket.api.model.Rol;
+import com.fastmarket.api.model.Usuario;
 import com.fastmarket.api.repository.BannerRepository;
 import com.fastmarket.api.repository.CategoriaRepository;
 import com.fastmarket.api.repository.ProductoRepository;
 import com.fastmarket.api.repository.UsuarioRepository;
 import com.fastmarket.api.service.PasswordService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -98,7 +105,6 @@ public class DataSeeder implements CommandLineRunner {
         productoRepository.save(new Producto("Casaca ligera", "moda", new BigDecimal("119.90"), new BigDecimal("149.90"), 6, "img/productos/casaca.png", "Casaca cómoda y fácil de combinar.", true, true));
         productoRepository.save(new Producto("Audífonos inalámbricos", "tecnologia", new BigDecimal("79.90"), new BigDecimal("99.90"), 12, "img/productos/audifonos.png", "Audífonos cómodos para música, clases y llamadas.", true, true));
         productoRepository.save(new Producto("Lámpara LED", "hogar", new BigDecimal("39.90"), new BigDecimal("49.90"), 15, "img/productos/lampara.png", "Ideal para escritorio, dormitorio o sala.", true, false));
-        productoRepository.save(new Producto("Mochila compacta", "accesorios", new BigDecimal("69.90"), null, 10, "img/productos/mochila.png", "Mochila ligera para clases o uso diario.", false, true));
         productoRepository.save(new Producto("Set de resaltadores", "estudio", new BigDecimal("18.90"), new BigDecimal("24.90"), 20, "img/productos/resaltadores.png", "Resaltadores de colores para apuntes, oficina y universidad.", true, false));
         productoRepository.save(new Producto("Crema hidratante", "belleza", new BigDecimal("29.90"), new BigDecimal("39.90"), 14, "img/productos/crema.png", "Crema de uso diario para cuidado personal.", true, true));
         productoRepository.save(new Producto("Balón deportivo", "deportes", new BigDecimal("54.90"), new BigDecimal("69.90"), 9, "img/productos/balon.png", "Balón resistente para entrenamiento y recreación.", true, false));

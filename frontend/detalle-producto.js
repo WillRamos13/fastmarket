@@ -169,7 +169,6 @@ function obtenerColorPorCategoria(categoria) {
     if (texto.includes("ropa") || texto.includes("moda")) return "Según talla";
     if (texto.includes("hogar")) return "Variado";
     if (texto.includes("tecnología") || texto.includes("tecnologia")) return "Negro / Gris";
-    if (texto.includes("accesorios")) return "Variado";
     if (texto.includes("estudio")) return "Según modelo";
     if (texto.includes("belleza")) return "Según presentación";
     if (texto.includes("deportes")) return "Según talla / modelo";

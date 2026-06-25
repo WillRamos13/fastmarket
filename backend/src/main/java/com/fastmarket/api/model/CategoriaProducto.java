@@ -10,7 +10,6 @@ public enum CategoriaProducto {
     MODA("moda", "Moda"),
     TECNOLOGIA("tecnologia", "Tecnología"),
     HOGAR("hogar", "Hogar"),
-    ACCESORIOS("accesorios", "Accesorios"),
     ESTUDIO("estudio", "Estudio"),
     BELLEZA("belleza", "Belleza"),
     DEPORTES("deportes", "Deportes"),

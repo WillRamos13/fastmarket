@@ -14,7 +14,6 @@ const categoriasBase = [
     { codigo: "moda", nombre: "Moda" },
     { codigo: "tecnologia", nombre: "Tecnología" },
     { codigo: "hogar", nombre: "Hogar" },
-    { codigo: "accesorios", nombre: "Accesorios" },
     { codigo: "estudio", nombre: "Estudio" },
     { codigo: "belleza", nombre: "Belleza" },
     { codigo: "deportes", nombre: "Deportes" },
