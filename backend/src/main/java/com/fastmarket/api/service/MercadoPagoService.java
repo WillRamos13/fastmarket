@@ -54,13 +54,23 @@ public class MercadoPagoService {
         headers.setBearerAuth(accessToken);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
-        ResponseEntity<Map> response = restTemplate.postForEntity(baseUrl + "/checkout/preferences", entity, Map.class);
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                baseUrl + "/checkout/preferences",
+                org.springframework.http.HttpMethod.POST,
+                entity,
+                new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {}
+        );
 
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new IllegalStateException("No se pudo crear la preferencia de Mercado Pago");
         }
 
-        Map<String, Object> body = response.getBody();
+        Map<String, Object> body = new HashMap<>();
+        Object responseBody = response.getBody();
+        if (responseBody instanceof Map<?, ?> mapBody) {
+            mapBody.forEach((key, value) -> body.put(String.valueOf(key), value));
+        }
+
         Map<String, Object> resultado = new HashMap<>();
         resultado.put("id", body.get("id"));
         resultado.put("status", body.get("status"));

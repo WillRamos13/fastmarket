@@ -64,12 +64,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const total = Number(datosCompra.total || 0);
         const urlPago = `https://www.mercadopago.com.pe/checkout/v1/redirect?pref_id=TEST-${Date.now()}`;
 
+        mostrarProcesando(`Preparando el pago simulado de S/ ${total.toFixed(2)}...`);
+
         const popup = window.open(urlPago, "_blank", "noopener,noreferrer,width=1200,height=900");
         if (!popup) {
             window.location.href = urlPago;
         }
 
-        mostrarExito(`Modo prueba activado. Se simulará el pago de S/ ${total.toFixed(2)}.`);
+        setTimeout(() => {
+            mostrarExito(`Modo demo activado. Se simuló el pago de S/ ${total.toFixed(2)}.`);
+            btnProcesar.disabled = false;
+        }, 1800);
     }
 
     // Procesar pago y redirigir a Mercado Pago
