@@ -228,6 +228,13 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         const pago = document.querySelector('input[name="pago"]:checked')?.value || "Pago contra entrega";
+        
+        // Calcular totales
+        const subtotal = carrito.reduce((s, item) => s + Number(item.precio) * Number(item.cantidad), 0);
+        const descuento = Number(cuponAplicado?.descuento || 0);
+        const envioCalculado = subtotal >= 250 ? 0 : costoEnvio;
+        const total = Math.max(0, subtotal - descuento + envioCalculado);
+        
         const payload = {
             direccionEntrega: direccion.value.trim(),
             referenciaEntrega: referencia.value.trim(),
@@ -248,8 +255,23 @@ document.addEventListener("DOMContentLoaded", () => {
             sessionStorage.removeItem("fastmarket_checkout_cupon");
             sessionStorage.removeItem("fastmarket_carrito_backup");
             localStorage.removeItem("fastmarket_carrito_usuario_id");
-            mensajeCheckout.textContent = `Pedido ${pedido.codigo} creado correctamente.`;
-            window.location.href = `pedidos.html?pedido=${encodeURIComponent(pedido.codigo)}`;
+            
+            // Si es Mercado Pago, redirigir a página de pago
+            if (pago === "Mercado Pago") {
+                const params = new URLSearchParams({
+                    total: total.toFixed(2),
+                    subtotal: subtotal.toFixed(2),
+                    descuento: descuento.toFixed(2),
+                    envio: envioCalculado.toFixed(2),
+                    pedidoId: pedido.id,
+                    codigo: pedido.codigo,
+                    items: JSON.stringify(pedido.items || [])
+                });
+                window.location.href = `mercado-pago.html?${params.toString()}`;
+            } else {
+                mensajeCheckout.textContent = `Pedido ${pedido.codigo} creado correctamente.`;
+                window.location.href = `pedidos.html?pedido=${encodeURIComponent(pedido.codigo)}`;
+            }
         } catch (error) {
             mensajeCheckout.textContent = error.message;
         }
