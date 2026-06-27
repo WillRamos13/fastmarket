@@ -60,23 +60,49 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("total-mp").textContent = `S/ ${datosCompra.total.toFixed(2)}`;
     }
 
-    function abrirMercadoPago() {
-        const urlMercadoPago = "https://www.mercadopago.com.pe/";
-        const popup = window.open(urlMercadoPago, "_blank", "noopener,noreferrer,width=1200,height=900");
+    async function abrirMercadoPago() {
+        const payload = {
+            items: [
+                {
+                    title: "Pedido FastMarket",
+                    quantity: 1,
+                    unit_price: Number(datosCompra.total || 0)
+                }
+            ],
+            payer: {
+                email: "cliente@fastmarket.com"
+            },
+            external_reference: datosCompra.codigoPedido || `pedido-${Date.now()}`,
+            success_url: `${window.location.origin}/frontend/pedidos.html?status=approved`,
+            failure_url: `${window.location.origin}/frontend/mercado-pago.html?status=failure`,
+            pending_url: `${window.location.origin}/frontend/mercado-pago.html?status=pending`
+        };
 
+        const response = await FastMarket.request("/pagos/crear-preferencia", {
+            method: "POST",
+            body: payload,
+            auth: false
+        });
+
+        const urlPago = response?.init_point || response?.sandbox_init_point;
+        if (!urlPago) {
+            throw new Error("No se recibió la URL de pago de Mercado Pago");
+        }
+
+        const popup = window.open(urlPago, "_blank", "noopener,noreferrer,width=1200,height=900");
         if (!popup) {
-            window.location.href = urlMercadoPago;
+            window.location.href = urlPago;
         }
     }
 
     // Procesar pago y redirigir a Mercado Pago
     async function procesarPago() {
         btnProcesar.disabled = true;
-        mostrarProcesando("Redirigiendo a Mercado Pago...");
+        mostrarProcesando("Generando pago con Mercado Pago...");
 
         try {
-            abrirMercadoPago();
-            mostrarExito("Se abrió Mercado Pago en una nueva ventana.");
+            await abrirMercadoPago();
+            mostrarExito("Se abrió Mercado Pago para completar el pago.");
 
             setTimeout(() => {
                 btnProcesar.disabled = false;
