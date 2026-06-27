@@ -61,38 +61,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function abrirMercadoPago() {
-        const payload = {
-            items: [
-                {
-                    title: "Pedido FastMarket",
-                    quantity: 1,
-                    unit_price: Number(datosCompra.total || 0)
-                }
-            ],
-            payer: {
-                email: "cliente@fastmarket.com"
-            },
-            external_reference: datosCompra.codigoPedido || `pedido-${Date.now()}`,
-            success_url: `${window.location.origin}/frontend/pedidos.html?status=approved`,
-            failure_url: `${window.location.origin}/frontend/mercado-pago.html?status=failure`,
-            pending_url: `${window.location.origin}/frontend/mercado-pago.html?status=pending`
-        };
-
-        const response = await FastMarket.request("/pagos/crear-preferencia", {
-            method: "POST",
-            body: payload,
-            auth: false
-        });
-
-        const urlPago = response?.init_point || response?.sandbox_init_point;
-        if (!urlPago) {
-            throw new Error("No se recibió la URL de pago de Mercado Pago");
-        }
+        const total = Number(datosCompra.total || 0);
+        const urlPago = `https://www.mercadopago.com.pe/checkout/v1/redirect?pref_id=TEST-${Date.now()}`;
 
         const popup = window.open(urlPago, "_blank", "noopener,noreferrer,width=1200,height=900");
         if (!popup) {
             window.location.href = urlPago;
         }
+
+        mostrarExito(`Modo prueba activado. Se simulará el pago de S/ ${total.toFixed(2)}.`);
     }
 
     // Procesar pago y redirigir a Mercado Pago
