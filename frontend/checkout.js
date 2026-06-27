@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("form-checkout");
     const mensajeLogin = document.getElementById("mensaje-login");
     const mensajeCheckout = document.getElementById("mensaje-checkout");
+    const btnConfirmar = document.getElementById("btn-confirmar");
+    const pagoInputs = document.querySelectorAll('input[name="pago"]');
 
     const nombre = document.getElementById("nombre");
     const correo = document.getElementById("correo");
@@ -24,6 +26,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (form) form.addEventListener("submit", confirmarPedido);
     if (btnCupon) btnCupon.addEventListener("click", aplicarCupon);
+    pagoInputs.forEach((input) => input.addEventListener("change", actualizarTextoBotonPago));
+    actualizarTextoBotonPago();
+
+    function actualizarTextoBotonPago() {
+        const pago = document.querySelector('input[name="pago"]:checked')?.value;
+        if (!btnConfirmar) return;
+        btnConfirmar.textContent = pago === "Mercado Pago" ? "Pagar con Mercado Pago" : "Confirmar pedido";
+    }
 
     async function inicializarCheckout() {
         await cargarConfigPublica();

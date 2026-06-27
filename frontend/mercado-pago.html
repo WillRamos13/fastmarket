@@ -51,14 +51,27 @@
 
         <section id="mercado-pago-hero">
             <h1>🔒 Pago Seguro con Mercado Pago</h1>
-            <p>Completa tu compra de forma rápida y segura</p>
+            <p>Falta poco. Revisa tu pedido y completa el pago en Mercado Pago.</p>
         </section>
 
         <div id="pago-container">
 
+            <section class="mercado-pago-intro">
+                <div class="mp-step-badge">Paso 2 de 2</div>
+                <div class="mp-intro-grid">
+                    <div>
+                        <h2>Listo para pagar</h2>
+                        <p>En la siguiente pantalla usarás Mercado Pago para terminar la compra de forma rápida y segura.</p>
+                    </div>
+                    <div class="mp-logo-box">
+                        <img src="img/mercado-pago-logo.png" alt="Mercado Pago" class="mp-logo" onerror="this.style.display='none'">
+                    </div>
+                </div>
+            </section>
+
             <div class="pago-header">
                 <h2>Resumen de Compra</h2>
-                <p>Mercado Pago - Plataforma segura de pagos</p>
+                <p>Mercado Pago garantiza el pago seguro de tu pedido</p>
             </div>
 
             <div class="monto-pagar">
@@ -67,23 +80,23 @@
             </div>
 
             <div class="resumen-pedido" id="resumen-detalles">
-                <p>
-                    <span>Subtotal:</span>
+                <div class="resumen-line">
+                    <span>Subtotal</span>
                     <strong id="subtotal-mp">S/ 0.00</strong>
-                </p>
-                <p>
-                    <span>Descuento:</span>
+                </div>
+                <div class="resumen-line">
+                    <span>Descuento</span>
                     <strong id="descuento-mp">S/ 0.00</strong>
-                </p>
-                <p>
-                    <span>Envío:</span>
+                </div>
+                <div class="resumen-line">
+                    <span>Envío</span>
                     <strong id="envio-mp">S/ 0.00</strong>
-                </p>
-                <hr style="margin: 1rem 0; border: none; border-top: 1px solid #ddd;">
-                <p style="font-weight: bold; font-size: 1.1rem;">
-                    <span>Total:</span>
-                    <strong id="total-mp" style="color: #667eea;">S/ 0.00</strong>
-                </p>
+                </div>
+                <div class="mp-total-divider"></div>
+                <div class="resumen-line total-line">
+                    <span>Total</span>
+                    <strong id="total-mp">S/ 0.00</strong>
+                </div>
             </div>
 
             <div class="pago-info">
@@ -96,10 +109,10 @@
 
             <div class="botones-pago">
                 <button class="btn-pago btn-procesar" id="btn-procesar-pago">
-                    💳 Procesar Pago
+                    💳 Continuar a Mercado Pago
                 </button>
                 <button class="btn-pago btn-cancelar" id="btn-cancelar-pago">
-                    Cancelar
+                    Volver al checkout
                 </button>
             </div>
 
