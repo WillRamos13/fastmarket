@@ -93,12 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
             throw new Error("Mercado Pago no devolvió una URL válida de pago.");
         }
 
-        const popup = window.open(urlPago, "_blank", "noopener,noreferrer,width=1200,height=900");
-        if (!popup) {
-            window.location.href = urlPago;
-        }
-
-        mostrarExito("Se abrió la pantalla de pago de Mercado Pago.");
+        window.location.href = urlPago;
+        mostrarExito("Se está redirigiendo a la pantalla de pago de Mercado Pago.");
     }
 
     // Procesar pago y redirigir a Mercado Pago
