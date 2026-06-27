@@ -60,39 +60,29 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("total-mp").textContent = `S/ ${datosCompra.total.toFixed(2)}`;
     }
 
-    // Procesar pago (simular Mercado Pago)
+    function abrirMercadoPago() {
+        const urlMercadoPago = "https://www.mercadopago.com.pe/";
+        const popup = window.open(urlMercadoPago, "_blank", "noopener,noreferrer,width=1200,height=900");
+
+        if (!popup) {
+            window.location.href = urlMercadoPago;
+        }
+    }
+
+    // Procesar pago y redirigir a Mercado Pago
     async function procesarPago() {
         btnProcesar.disabled = true;
-
-        // Mostrar estado de procesamiento
-        mostrarProcesando("Procesando tu pago con Mercado Pago...");
+        mostrarProcesando("Redirigiendo a Mercado Pago...");
 
         try {
-            // Simular llamada a API de Mercado Pago
-            // En producción, aquí integrarías la SDK real de Mercado Pago
-            
-            // Esperar un poco para simular procesamiento
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            abrirMercadoPago();
+            mostrarExito("Se abrió Mercado Pago en una nueva ventana.");
 
-            // Aquí iría la lógica real de integración con Mercado Pago
-            // Por ahora simulamos un pago exitoso
-            
-            mostrarExito("¡Pago procesado correctamente! Redirigiendo...");
-
-            // Registrar el pago en el backend
-            await registrarPagoMercadoPago();
-
-            // Redirigir a página de confirmación después de 2 segundos
             setTimeout(() => {
-                if (datosCompra.codigoPedido) {
-                    window.location.href = `pedidos.html?pedido=${encodeURIComponent(datosCompra.codigoPedido)}&pago=completado`;
-                } else {
-                    window.location.href = "pedidos.html";
-                }
-            }, 2000);
-
+                btnProcesar.disabled = false;
+            }, 1500);
         } catch (error) {
-            mostrarError(`Error al procesar el pago: ${error.message}`);
+            mostrarError(`Error al abrir Mercado Pago: ${error.message}`);
             btnProcesar.disabled = false;
         }
     }
