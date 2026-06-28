@@ -1,14 +1,5 @@
 package com.fastmarket.api.service;
 
-import com.fastmarket.api.dto.CarritoDtos;
-import com.fastmarket.api.dto.CuponDtos;
-import com.fastmarket.api.model.*;
-import com.fastmarket.api.repository.CarritoRepository;
-import com.fastmarket.api.repository.ProductoRepository;
-import com.fastmarket.api.repository.UsuarioRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -16,6 +7,19 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.fastmarket.api.dto.CarritoDtos;
+import com.fastmarket.api.dto.CuponDtos;
+import com.fastmarket.api.model.Carrito;
+import com.fastmarket.api.model.CarritoItem;
+import com.fastmarket.api.model.Producto;
+import com.fastmarket.api.model.Usuario;
+import com.fastmarket.api.repository.CarritoRepository;
+import com.fastmarket.api.repository.ProductoRepository;
+import com.fastmarket.api.repository.UsuarioRepository;
 
 @Service
 public class CarritoService {
@@ -48,6 +52,7 @@ public class CarritoService {
         });
 
         carrito.getItems().clear();
+        carritoRepository.saveAndFlush(carrito);
         Map<Long, Integer> cantidadesPorProducto = agruparItems(request == null ? null : request.items());
         for (Map.Entry<Long, Integer> entry : cantidadesPorProducto.entrySet()) {
             Producto producto = productoRepository.findById(entry.getKey()).orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
