@@ -6,6 +6,7 @@
     <title>Panel Vendedor | FastMarket</title>
     <link rel="stylesheet" href="estilos-globales.css">
     <link rel="stylesheet" href="vendedor.css">
+    <link rel="stylesheet" href="producto-caracteristicas.css">
 </head>
 <body>
     <aside class="vendor-sidebar">
@@ -85,6 +86,11 @@
                         <option value="deportes">Deportes</option>
                         <option value="juguetes">Juguetes</option>
                     </select>
+
+                    <label>Tipo de producto <span class="texto-opcional">(opcional)</span></label>
+                    <input id="vp-tipo-producto" type="text" list="vp-tipos-producto-opciones" placeholder="Ej: Celular, zapatillas, lámpara">
+                    <datalist id="vp-tipos-producto-opciones"></datalist>
+                    <small class="texto-ayuda">El tipo ayuda a mostrar sugerencias adecuadas, pero no es obligatorio.</small>
                     <div class="form-grid-2">
                         <div>
                             <label>Precio actual</label>
@@ -98,41 +104,19 @@
                     <label>Stock</label>
                     <input id="vp-stock" type="number" placeholder="10">
 
-                    <div class="form-grid-2">
-                        <div>
-                            <label>Marca</label>
-                            <input id="vp-marca" type="text" placeholder="Ej: Samsung, Nike, Genérico">
-                        </div>
-                        <div>
-                            <label>Modelo</label>
-                            <input id="vp-modelo" type="text" placeholder="Ej: A15, Urban Pro">
+                    <div class="editor-caracteristicas">
+                        <label class="check-caracteristicas" for="vp-usar-caracteristicas">
+                            <input id="vp-usar-caracteristicas" type="checkbox">
+                            Agregar características opcionales
+                        </label>
+                        <small class="texto-ayuda">Tú decides cuáles agregar. Las sugerencias cambian según la categoría y el tipo de producto.</small>
+
+                        <div id="vp-panel-caracteristicas" class="panel-caracteristicas oculto" aria-hidden="true">
+                            <div id="vp-sugerencias-caracteristicas" class="sugerencias-caracteristicas"></div>
+                            <div id="vp-lista-caracteristicas" class="lista-caracteristicas"></div>
+                            <button type="button" id="vp-agregar-caracteristica" class="btn-agregar-caracteristica">+ Agregar otra característica</button>
                         </div>
                     </div>
-
-                    <div class="form-grid-2">
-                        <div>
-                            <label>Color</label>
-                            <input id="vp-color" type="text" placeholder="Ej: Negro, Azul, Variado">
-                        </div>
-                        <div>
-                            <label>Material</label>
-                            <input id="vp-material" type="text" placeholder="Ej: Algodón, plástico, acero">
-                        </div>
-                    </div>
-
-                    <div class="form-grid-2">
-                        <div>
-                            <label>Talla o medida</label>
-                            <input id="vp-talla" type="text" placeholder="Ej: M, 42, 30 cm">
-                        </div>
-                        <div>
-                            <label>Garantía</label>
-                            <input id="vp-garantia" type="text" placeholder="Ej: 6 meses, 1 año">
-                        </div>
-                    </div>
-
-                    <label>Condición</label>
-                    <input id="vp-condicion" type="text" placeholder="Ej: Nuevo, sellado, importado">
                     <label>Imágenes</label>
                     <input id="vp-imagen-file" type="file" accept="image/*" multiple>
                     <small class="texto-ayuda">Puedes seleccionar varias fotos al mismo tiempo o agregarlas una por una. La primera será la principal.</small>
@@ -347,6 +331,7 @@
     <div id="toast"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
     <script src="api.js"></script>
+    <script src="producto-caracteristicas.js"></script>
     <script src="vendedor.js"></script>
 </body>
 </html>

@@ -634,7 +634,7 @@ function mostrarProductos() {
 
     let lista = productos.filter((p) => {
         const categoriaOk = categoriaActual === "todos" || codigoCategoria(p.categoria) === categoriaActual;
-        const texto = `${p.nombre} ${p.descripcion} ${nombreCategoria(p.categoria)}`.toLowerCase();
+        const texto = `${p.nombre} ${p.descripcion} ${nombreCategoria(p.categoria)} ${p.tipoProducto || ""} ${JSON.stringify(p.caracteristicas || {})}`.toLowerCase();
         const ofertaOk = !modoOfertas || Boolean(p.oferta) || Number(p.precioAntes || 0) > Number(p.precio || 0);
         return categoriaOk && ofertaOk && texto.includes(busquedaActual);
     });

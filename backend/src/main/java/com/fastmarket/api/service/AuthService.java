@@ -16,19 +16,22 @@ public class AuthService {
     private final AuthTokenService authTokenService;
     private final CodigoVerificacionService codigoVerificacionService;
     private final LoginAttemptService loginAttemptService;
+    private final LoginEventoService loginEventoService;
 
     public AuthService(
             UsuarioRepository usuarioRepository,
             PasswordService passwordService,
             AuthTokenService authTokenService,
             CodigoVerificacionService codigoVerificacionService,
-            LoginAttemptService loginAttemptService
+            LoginAttemptService loginAttemptService,
+            LoginEventoService loginEventoService
     ) {
         this.usuarioRepository = usuarioRepository;
         this.passwordService = passwordService;
         this.authTokenService = authTokenService;
         this.codigoVerificacionService = codigoVerificacionService;
         this.loginAttemptService = loginAttemptService;
+        this.loginEventoService = loginEventoService;
     }
 
     @Transactional
@@ -74,20 +77,28 @@ public class AuthService {
     @Transactional
     public AuthDtos.AuthResponse login(AuthDtos.LoginRequest request) {
         String correo = request.correo().trim().toLowerCase();
-        loginAttemptService.verificarPermitido(correo);
+        try {
+            loginAttemptService.verificarPermitido(correo);
+        } catch (IllegalArgumentException ex) {
+            loginEventoService.registrarFallo(correo, null, "Acceso bloqueado temporalmente por intentos fallidos");
+            throw ex;
+        }
 
         Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(correo)
                 .orElseThrow(() -> {
                     loginAttemptService.registrarFallo(correo);
+                    loginEventoService.registrarFallo(correo, null, "Correo no registrado o credenciales incorrectas");
                     return new IllegalArgumentException("Correo o contraseña incorrectos");
                 });
 
         if (!passwordService.coincide(request.password(), usuario.getPassword())) {
             loginAttemptService.registrarFallo(correo);
+            loginEventoService.registrarFallo(correo, usuario, "Contraseña incorrecta");
             throw new IllegalArgumentException("Correo o contraseña incorrectos");
         }
 
         if (usuario.getEstado() != EstadoUsuario.ACTIVO) {
+            loginEventoService.registrarFallo(correo, usuario, "Usuario inactivo");
             throw new IllegalArgumentException("Usuario inactivo");
         }
 
@@ -97,6 +108,7 @@ public class AuthService {
         }
 
         loginAttemptService.registrarExito(correo);
+        loginEventoService.registrarExito(usuario);
         return new AuthDtos.AuthResponse(DtoMapper.toUsuarioResponse(usuario), authTokenService.generarToken(usuario));
     }
 

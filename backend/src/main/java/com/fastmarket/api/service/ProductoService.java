@@ -15,11 +15,18 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.text.Normalizer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class ProductoService {
+    private static final ObjectMapper JSON = new ObjectMapper();
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
 
@@ -98,6 +105,7 @@ public class ProductoService {
     private void aplicarDatos(Producto producto, AuthTokenService.TokenData actor, ProductoRequest request) {
         producto.setNombre(request.nombre().trim());
         producto.setCategoria(CategoriaProducto.normalizar(request.categoria()));
+        producto.setTipoProducto(limpiarTexto(request.tipoProducto()));
         producto.setPrecio(request.precio());
         producto.setPrecioAntes(request.precioAntes());
         producto.setStock(request.stock());
@@ -105,13 +113,26 @@ public class ProductoService {
         producto.setImagen(imagenes.isEmpty() ? "img/logo.png" : imagenes.get(0));
         producto.setImagenes(String.join("\n", imagenes));
         producto.setDescripcion(request.descripcion() == null ? "" : request.descripcion().trim());
-        producto.setMarca(limpiarTexto(request.marca()));
-        producto.setModelo(limpiarTexto(request.modelo()));
-        producto.setColor(limpiarTexto(request.color()));
-        producto.setMaterial(limpiarTexto(request.material()));
-        producto.setTalla(limpiarTexto(request.talla()));
-        producto.setGarantia(limpiarTexto(request.garantia()));
-        producto.setCondicion(limpiarTexto(request.condicion()));
+
+        Map<String, String> caracteristicas = limpiarCaracteristicas(request.caracteristicas());
+        if (request.caracteristicas() == null) {
+            agregarCaracteristicaSiFalta(caracteristicas, "Marca", request.marca());
+            agregarCaracteristicaSiFalta(caracteristicas, "Modelo", request.modelo());
+            agregarCaracteristicaSiFalta(caracteristicas, "Color", request.color());
+            agregarCaracteristicaSiFalta(caracteristicas, "Material", request.material());
+            agregarCaracteristicaSiFalta(caracteristicas, "Talla o medida", request.talla());
+            agregarCaracteristicaSiFalta(caracteristicas, "Garantía", request.garantia());
+            agregarCaracteristicaSiFalta(caracteristicas, "Condición", request.condicion());
+        }
+
+        producto.setCaracteristicas(serializarCaracteristicas(caracteristicas));
+        producto.setMarca(primerValor(request.marca(), buscarCaracteristica(caracteristicas, "marca")));
+        producto.setModelo(primerValor(request.modelo(), buscarCaracteristica(caracteristicas, "modelo")));
+        producto.setColor(primerValor(request.color(), buscarCaracteristica(caracteristicas, "color")));
+        producto.setMaterial(primerValor(request.material(), buscarCaracteristica(caracteristicas, "material", "composicion")));
+        producto.setTalla(primerValor(request.talla(), buscarCaracteristica(caracteristicas, "talla", "talla o medida", "numero", "tamano o medida", "medidas")));
+        producto.setGarantia(primerValor(request.garantia(), buscarCaracteristica(caracteristicas, "garantia")));
+        producto.setCondicion(primerValor(request.condicion(), buscarCaracteristica(caracteristicas, "condicion")));
         producto.setDetallesAdicionales(limpiarTexto(request.detallesAdicionales()));
         producto.setOferta(Boolean.TRUE.equals(request.oferta()));
         producto.setDestacado(Boolean.TRUE.equals(request.destacado()));
@@ -133,6 +154,63 @@ public class ProductoService {
 
     private String limpiarTexto(String valor) {
         return valor == null ? "" : valor.trim();
+    }
+
+    private String primerValor(String principal, String alternativo) {
+        String limpioPrincipal = limpiarTexto(principal);
+        return limpioPrincipal.isBlank() ? limpiarTexto(alternativo) : limpioPrincipal;
+    }
+
+    private Map<String, String> limpiarCaracteristicas(Map<String, String> recibidas) {
+        Map<String, String> resultado = new LinkedHashMap<>();
+        if (recibidas == null) return resultado;
+
+        Map<String, String> clavesNormalizadas = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entrada : recibidas.entrySet()) {
+            if (entrada.getKey() == null || entrada.getValue() == null) continue;
+            String nombre = entrada.getKey().trim();
+            String valor = entrada.getValue().trim();
+            if (nombre.isBlank() || valor.isBlank()) continue;
+
+            String clave = normalizarClave(nombre);
+            if (clave.isBlank() || clavesNormalizadas.containsKey(clave)) continue;
+            clavesNormalizadas.put(clave, nombre);
+            resultado.put(nombre, valor);
+            if (resultado.size() >= 40) break;
+        }
+        return resultado;
+    }
+
+    private void agregarCaracteristicaSiFalta(Map<String, String> caracteristicas, String nombre, String valor) {
+        String limpio = limpiarTexto(valor);
+        if (limpio.isBlank() || buscarCaracteristica(caracteristicas, nombre) != null) return;
+        caracteristicas.put(nombre, limpio);
+    }
+
+    private String buscarCaracteristica(Map<String, String> caracteristicas, String... nombres) {
+        if (caracteristicas == null || caracteristicas.isEmpty()) return null;
+        List<String> buscados = java.util.Arrays.stream(nombres).map(this::normalizarClave).toList();
+        for (Map.Entry<String, String> entrada : caracteristicas.entrySet()) {
+            if (buscados.contains(normalizarClave(entrada.getKey()))) return entrada.getValue();
+        }
+        return null;
+    }
+
+    private String normalizarClave(String valor) {
+        if (valor == null) return "";
+        return Normalizer.normalize(valor.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", " ")
+                .trim();
+    }
+
+    private String serializarCaracteristicas(Map<String, String> caracteristicas) {
+        try {
+            return JSON.writeValueAsString(caracteristicas == null ? Map.of() : caracteristicas);
+        } catch (Exception e) {
+            throw new IllegalStateException("No se pudieron guardar las características del producto", e);
+        }
     }
 
 

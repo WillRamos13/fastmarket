@@ -18,6 +18,12 @@ public class Producto {
     @Column(nullable = false, length = 80)
     private String categoria;
 
+    @Column(name = "tipo_producto", length = 120)
+    private String tipoProducto;
+
+    @Column(name = "caracteristicas", columnDefinition = "TEXT")
+    private String caracteristicas;
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal precio;
 
@@ -102,6 +108,10 @@ public class Producto {
     public void setNombre(String nombre) { this.nombre = nombre; }
     public String getCategoria() { return categoria; }
     public void setCategoria(String categoria) { this.categoria = categoria; }
+    public String getTipoProducto() { return tipoProducto; }
+    public void setTipoProducto(String tipoProducto) { this.tipoProducto = tipoProducto; }
+    public String getCaracteristicas() { return caracteristicas; }
+    public void setCaracteristicas(String caracteristicas) { this.caracteristicas = caracteristicas; }
     public BigDecimal getPrecio() { return precio; }
     public void setPrecio(BigDecimal precio) { this.precio = precio; }
     public BigDecimal getPrecioAntes() { return precioAntes; }

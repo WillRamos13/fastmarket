@@ -7,10 +7,13 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 public record ProductoRequest(
         @NotBlank String nombre,
         @NotBlank String categoria,
+        String tipoProducto,
+        Map<String, String> caracteristicas,
         @NotNull @Positive BigDecimal precio,
         BigDecimal precioAntes,
         @NotNull @PositiveOrZero Integer stock,

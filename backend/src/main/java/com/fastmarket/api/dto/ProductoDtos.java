@@ -3,12 +3,15 @@ package com.fastmarket.api.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public class ProductoDtos {
     public record ProductoResponse(
             Long id,
             String nombre,
             String categoria,
+            String tipoProducto,
+            Map<String, String> caracteristicas,
             BigDecimal precio,
             BigDecimal precioAntes,
             Integer stock,

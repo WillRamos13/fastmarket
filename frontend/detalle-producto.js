@@ -90,16 +90,9 @@ function pintarProducto() {
     setText("producto-descripcion", productoActual.descripcion || "Producto disponible en FastMarket.");
     setText("producto-precio", FastMarket.money(productoActual.precio));
     setText("producto-precio-antes", productoActual.precioAntes ? FastMarket.money(productoActual.precioAntes) : "");
-    setText("info-marca", productoActual.marca || "FastMarket");
-    setText("info-modelo", productoActual.modelo || `FM-${String(productoActual.id || 1).padStart(3, "0")}`);
-    setText("info-color", productoActual.color || obtenerColorPorCategoria(productoActual.categoria));
-    setText("info-material", productoActual.material || "Según producto");
-    setText("info-talla", productoActual.talla || "Según disponibilidad");
-    setText("info-garantia", productoActual.garantia || "12 meses");
-    setText("info-condicion", productoActual.condicion || "Nuevo");
-    setText("info-categoria", productoActual.categoria || "General");
 
     pintarCaracteristicas();
+    pintarInformacionAdicional();
 
     const etiqueta = document.getElementById("etiqueta-oferta");
     if (etiqueta) etiqueta.classList.toggle("oculto", !productoActual.oferta);
@@ -147,34 +140,70 @@ function pintarCaracteristicas() {
     const lista = document.getElementById("caracteristicas-producto");
     if (!lista || !productoActual) return;
 
-    const categoria = (productoActual.categoria || "producto").toLowerCase();
+    const caracteristicas = obtenerCaracteristicasProducto(productoActual);
     const stock = Number(productoActual.stock || 0);
-    const items = [
-        productoActual.marca ? `Marca ${productoActual.marca}` : `Categoría ${categoria}`,
-        productoActual.modelo ? `Modelo ${productoActual.modelo}` : "Producto revisado antes del envío",
-        productoActual.color ? `Color ${productoActual.color}` : null,
-        productoActual.material ? `Material ${productoActual.material}` : null,
-        productoActual.talla ? `Talla o medida ${productoActual.talla}` : null,
-        stock > 0 ? `Disponible para compra inmediata` : "Consulta disponibilidad antes de comprar",
-        productoActual.detallesAdicionales || "Atención por WhatsApp o correo"
-    ].filter(Boolean);
+    const items = [];
+
+    if (productoActual.tipoProducto) items.push(`Tipo: ${productoActual.tipoProducto}`);
+    Object.entries(caracteristicas).slice(0, 6).forEach(([nombre, valor]) => items.push(`${nombre}: ${valor}`));
+    if (productoActual.detallesAdicionales) items.push(productoActual.detallesAdicionales);
+    items.push(stock > 0 ? "Disponible para compra inmediata" : "Consulta disponibilidad antes de comprar");
 
     lista.innerHTML = items.map((item) => `<li>${FastMarket.escapeHTML(item)}</li>`).join("");
 }
 
-function obtenerColorPorCategoria(categoria) {
-    const texto = (categoria || "").toLowerCase();
+function obtenerCaracteristicasProducto(producto) {
+    if (producto?.caracteristicas && typeof producto.caracteristicas === "object" && !Array.isArray(producto.caracteristicas)) {
+        return Object.fromEntries(
+            Object.entries(producto.caracteristicas)
+                .map(([nombre, valor]) => [String(nombre || "").trim(), String(valor || "").trim()])
+                .filter(([nombre, valor]) => nombre && valor)
+        );
+    }
 
-    if (texto.includes("audio") || texto.includes("audífono") || texto.includes("audifono")) return "Negro";
-    if (texto.includes("ropa") || texto.includes("moda")) return "Según talla";
-    if (texto.includes("hogar")) return "Variado";
-    if (texto.includes("tecnología") || texto.includes("tecnologia")) return "Negro / Gris";
-    if (texto.includes("estudio")) return "Según modelo";
-    if (texto.includes("belleza")) return "Según presentación";
-    if (texto.includes("deportes")) return "Según talla / modelo";
-    if (texto.includes("juguetes")) return "Variado";
+    const resultado = {};
+    const agregar = (nombre, valor) => {
+        const limpio = String(valor || "").trim();
+        if (limpio) resultado[nombre] = limpio;
+    };
+    agregar("Marca", producto?.marca);
+    agregar("Modelo", producto?.modelo);
+    agregar("Color", producto?.color);
+    agregar("Material", producto?.material);
+    agregar("Talla o medida", producto?.talla);
+    agregar("Garantía", producto?.garantia);
+    agregar("Condición", producto?.condicion);
+    return resultado;
+}
 
-    return "Según disponibilidad";
+function pintarInformacionAdicional() {
+    const contenedor = document.getElementById("informacion-producto");
+    if (!contenedor || !productoActual) return;
+
+    const filas = [
+        ["Categoría", formatearCategoria(productoActual.categoria)]
+    ];
+    if (productoActual.tipoProducto) filas.push(["Tipo de producto", productoActual.tipoProducto]);
+    Object.entries(obtenerCaracteristicasProducto(productoActual)).forEach(([nombre, valor]) => filas.push([nombre, valor]));
+
+    contenedor.innerHTML = filas.map(([nombre, valor]) => `
+        <div>
+            <dt>${FastMarket.escapeHTML(nombre)}:</dt>
+            <dd>${FastMarket.escapeHTML(valor)}</dd>
+        </div>`).join("");
+}
+
+function formatearCategoria(valor) {
+    const categorias = {
+        moda: "Moda",
+        tecnologia: "Tecnología",
+        hogar: "Hogar",
+        estudio: "Estudio",
+        belleza: "Belleza",
+        deportes: "Deportes",
+        juguetes: "Juguetes"
+    };
+    return categorias[valor] || valor || "General";
 }
 
 function cambiarCantidad(valor) {

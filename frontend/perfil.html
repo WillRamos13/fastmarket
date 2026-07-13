@@ -47,6 +47,7 @@
                                 <a href="pedidos.html">Mis pedidos</a>
                                 <a href="#direcciones">Direcciones</a>
                                 <a href="#seguridad">Seguridad</a>
+                                <a href="#reclamos">Mis reclamos</a>
                                 <button id="cerrar-sesion-cliente">Cerrar sesión</button>
                             </div>
                         </div>
@@ -108,6 +109,7 @@
                     <a href="#direcciones">Direcciones</a>
                     <a href="#seguridad">Seguridad</a>
                     <a href="pedidos.html">Mis pedidos</a>
+                    <a href="#reclamos">Mis reclamos</a>
                     <button id="btn-cerrar-lateral">Cerrar sesión</button>
                 </aside>
 
@@ -200,6 +202,44 @@
                         </div>
                     </section>
 
+                    <section id="reclamos" class="perfil-card">
+                        <div class="titulo-card">
+                            <h2>Reclamos y atención</h2>
+                            <p>Registra una incidencia y revisa la respuesta del equipo de FastMarket.</p>
+                        </div>
+
+                        <form id="form-reclamo" class="form-reclamo-cliente">
+                            <div class="reclamo-form-grid">
+                                <div>
+                                    <label for="reclamo-pedido">Pedido relacionado <span>(opcional)</span></label>
+                                    <select id="reclamo-pedido"><option value="">Sin pedido asociado</option></select>
+                                </div>
+                                <div>
+                                    <label for="reclamo-tipo">Tipo de reclamo</label>
+                                    <select id="reclamo-tipo">
+                                        <option value="PRODUCTO">Producto</option>
+                                        <option value="ENTREGA">Entrega</option>
+                                        <option value="PAGO">Pago</option>
+                                        <option value="DEVOLUCION">Devolución</option>
+                                        <option value="ATENCION">Atención</option>
+                                        <option value="OTRO">Otro</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <label for="reclamo-asunto">Asunto</label>
+                            <input type="text" id="reclamo-asunto" maxlength="160" placeholder="Resume brevemente el problema">
+
+                            <label for="reclamo-descripcion">Descripción</label>
+                            <textarea id="reclamo-descripcion" maxlength="4000" placeholder="Describe qué ocurrió y qué solución esperas"></textarea>
+
+                            <button type="submit">Registrar reclamo</button>
+                            <p id="mensaje-reclamo" class="mensaje"></p>
+                        </form>
+
+                        <div id="lista-reclamos" class="lista-reclamos-cliente"></div>
+                    </section>
+
                 </section>
 
             </div>
@@ -222,7 +262,7 @@
         </div>
 
         <div id="chat-mensajes">
-            <div class="mensaje-chat bot">Hola 👋 Soy el asistente de FastMarket. Puedo ayudarte con productos, promociones, compras, pedidos, envíos, pagos y tu cuenta.</div>
+            <div class="mensaje-chat bot">Hola 👋 Soy el asistente de FastMarket. Puedo ayudarte con productos, promociones, compras, pedidos, envíos, pagos, reclamos y tu cuenta.</div>
         </div>
 
         <div id="chat-input">

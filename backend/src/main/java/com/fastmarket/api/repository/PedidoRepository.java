@@ -10,6 +10,7 @@ import java.util.List;
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findByUsuarioIdOrderByFechaDesc(Long usuarioId);
     List<Pedido> findAllByOrderByFechaDesc();
+    List<Pedido> findByFechaBetweenOrderByFechaAsc(java.time.LocalDateTime desde, java.time.LocalDateTime hasta);
 
     @Query("select distinct p from Pedido p join p.items i where i.vendedor.id = ?1 order by p.fecha desc")
     List<Pedido> findByVendedorIdOrderByFechaDesc(Long vendedorId);

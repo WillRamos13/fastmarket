@@ -10,6 +10,8 @@ const TIPOS_INDEX_PERMITIDOS = ["destacado", "promocion", "opinion", "ayuda"];
 const adminPages = { productos: { page: 0, size: 20, totalPages: 1 }, pedidos: { page: 0, size: 20, totalPages: 1 } };
 let filtroVendedorProductos = "todos";
 let filtroVendedorPedidos = "todos";
+let editorCaracteristicasProducto = null;
+let reporteAdmin = null;
 
 function validarPasswordSegura(password) {
     return Boolean(
@@ -48,13 +50,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     pintarPerfilAdmin(admin);
     activarMenu();
     activarPaneles();
+    editorCaracteristicasProducto = FastMarketProductoCaracteristicas.crear({
+        categoriaId: "categoria",
+        tipoId: "tipo-producto",
+        datalistId: "tipos-producto-opciones",
+        toggleId: "usar-caracteristicas",
+        panelId: "panel-caracteristicas",
+        sugerenciasId: "sugerencias-caracteristicas",
+        listaId: "lista-caracteristicas",
+        agregarId: "agregar-caracteristica"
+    });
     activarProductos();
     activarBanners();
     activarPedidos();
     activarUsuarios();
     activarCupones();
     activarIndex();
-    activarPowerBI();
+    activarReportes();
     configurarPermisosPanel();
     marcarMenuActivo("panel-inicio");
 
@@ -83,7 +95,7 @@ async function cargarTodo() {
         usuarioActual?.rol === "ADMIN" ? cargarIndexContenidos() : Promise.resolve()
     ]);
     pintarVendedoresAdmin();
-    cargarPowerBI();
+    await cargarReportes();
 }
 
 function activarMenu() {
@@ -254,7 +266,7 @@ function pintarProductos() {
     const categoria = document.getElementById("filtro-categoria")?.value || "todos";
 
     const lista = productos.filter((p) => {
-        const textoOk = `${p.nombre} ${p.descripcion} ${p.categoria} ${p.marca || ""} ${p.modelo || ""} ${p.color || ""}`.toLowerCase().includes(texto);
+        const textoOk = `${p.nombre} ${p.descripcion} ${p.categoria} ${p.tipoProducto || ""} ${JSON.stringify(p.caracteristicas || {})}`.toLowerCase().includes(texto);
         const catOk = categoria === "todos" || p.categoria === categoria;
         return textoOk && catOk;
     });
@@ -283,7 +295,10 @@ function pintarProductos() {
 }
 
 function detalleCortoProducto(p) {
-    const detalles = [p.marca, p.modelo, p.color, p.descripcion].filter(Boolean);
+    const caracteristicas = p.caracteristicas && typeof p.caracteristicas === "object"
+        ? Object.values(p.caracteristicas).filter(Boolean).slice(0, 2)
+        : [];
+    const detalles = [p.tipoProducto, ...caracteristicas, p.descripcion].filter(Boolean);
     return detalles.join(" · ") || "Sin descripción";
 }
 
@@ -292,22 +307,20 @@ async function guardarProducto(e) {
 
     const id = value("producto-id");
     const imagenesProducto = obtenerImagenesFormulario("imagenes-producto-valor", value("imagen-producto-valor"));
+    const caracteristicas = editorCaracteristicasProducto?.getCaracteristicas() || {};
+    const compatibilidad = editorCaracteristicasProducto?.getCamposCompatibilidad() || {};
     const payload = {
         nombre: value("nombre"),
         categoria: value("categoria"),
+        tipoProducto: editorCaracteristicasProducto?.getTipo() || "",
         precio: Number(value("precio")),
         precioAntes: value("precioAntes") ? Number(value("precioAntes")) : null,
         stock: Number(value("stock")),
         imagenes: imagenesProducto,
         imagen: imagenesProducto[0] || "img/logo.png",
         descripcion: value("descripcion"),
-        marca: value("marca"),
-        modelo: value("modelo"),
-        color: value("color"),
-        material: value("material"),
-        talla: value("talla"),
-        garantia: value("garantia"),
-        condicion: value("condicion"),
+        caracteristicas,
+        ...compatibilidad,
         detallesAdicionales: value("detalles-adicionales"),
         oferta: checked("oferta"),
         destacado: checked("destacado"),
@@ -348,13 +361,7 @@ function editarProducto(id) {
     setValue("imagen-producto-valor", imagenes[0] || p.imagen || "");
     setValue("imagenes-producto-valor", JSON.stringify(imagenes));
     setValue("descripcion", p.descripcion || "");
-    setValue("marca", p.marca || "");
-    setValue("modelo", p.modelo || "");
-    setValue("color", p.color || "");
-    setValue("material", p.material || "");
-    setValue("talla", p.talla || "");
-    setValue("garantia", p.garantia || "");
-    setValue("condicion", p.condicion || "");
+    editorCaracteristicasProducto?.setData(p);
     setValue("detalles-adicionales", p.detallesAdicionales || "");
     setChecked("oferta", !!p.oferta);
     setChecked("destacado", !!p.destacado);
@@ -384,6 +391,7 @@ function limpiarProducto() {
     setValue("imagen-producto-valor", "");
     setValue("imagenes-producto-valor", "");
     setText("titulo-form", "Agregar producto");
+    editorCaracteristicasProducto?.reset();
     document.getElementById("preview-producto")?.classList.add("oculto");
     const lista = document.getElementById("preview-producto-lista");
     if (lista) lista.innerHTML = "";
@@ -1253,71 +1261,301 @@ function limpiarIndex() {
 }
 
 
-function activarPowerBI() {
-    document.getElementById("btn-guardar-powerbi")?.addEventListener("click", guardarPowerBI);
-    document.getElementById("btn-limpiar-powerbi")?.addEventListener("click", limpiarPowerBI);
+function activarReportes() {
+    document.getElementById("reporte-periodo")?.addEventListener("change", () => configurarPeriodoReporte(true));
+    document.getElementById("btn-actualizar-reporte")?.addEventListener("click", cargarReportes);
+    document.getElementById("btn-exportar-reporte")?.addEventListener("click", exportarReporteCSV);
+    document.getElementById("rep-reclamos-tabla")?.addEventListener("click", async (e) => {
+        const btn = e.target.closest("[data-guardar-reclamo]");
+        if (btn) await guardarReclamoAdmin(Number(btn.dataset.guardarReclamo));
+    });
+    configurarPeriodoReporte(false);
 }
 
-async function guardarPowerBI() {
-    const entrada = value("powerbi-url");
-    const url = extraerUrlPowerBI(entrada);
-    if (!url || !url.startsWith("http")) {
-        toast("Pega un enlace o iframe válido.");
+function configurarPeriodoReporte(cargar = false) {
+    const periodo = value("reporte-periodo") || "30";
+    const desde = document.getElementById("reporte-desde");
+    const hasta = document.getElementById("reporte-hasta");
+    if (!desde || !hasta) return;
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    let inicio = new Date(hoy);
+    let fin = new Date(hoy);
+    const personalizado = periodo === "personalizado";
+
+    if (periodo === "7") inicio.setDate(inicio.getDate() - 6);
+    else if (periodo === "30") inicio.setDate(inicio.getDate() - 29);
+    else if (periodo === "90") inicio.setDate(inicio.getDate() - 89);
+    else if (periodo === "mes") inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    else if (periodo === "anio") inicio = new Date(hoy.getFullYear(), 0, 1);
+
+    desde.disabled = !personalizado;
+    hasta.disabled = !personalizado;
+    if (!personalizado || !desde.value || !hasta.value) {
+        desde.value = fechaISOReporte(inicio);
+        hasta.value = fechaISOReporte(fin);
+    }
+    if (cargar) cargarReportes();
+}
+
+async function cargarReportes() {
+    const desde = value("reporte-desde");
+    const hasta = value("reporte-hasta");
+    const estado = document.getElementById("reporte-estado");
+    if (!desde || !hasta) {
+        if (estado) estado.textContent = "Selecciona las fechas del reporte.";
+        return;
+    }
+    if (desde > hasta) {
+        if (estado) {
+            estado.textContent = "La fecha inicial no puede ser posterior a la fecha final.";
+            estado.className = "reporte-estado error";
+        }
         return;
     }
 
-    try {
-        await FastMarket.request("/config/powerbi", { method: "PUT", auth: true, body: { valor: url } });
-        mostrarPowerBI(url);
-        toast("Reporte guardado en la base de datos.");
-    } catch (error) {
-        toast(error.message);
+    if (estado) {
+        estado.textContent = "Consultando estadísticas...";
+        estado.className = "reporte-estado cargando";
     }
-}
+    const boton = document.getElementById("btn-actualizar-reporte");
+    if (boton) boton.disabled = true;
 
-async function cargarPowerBI() {
     try {
-        const config = await FastMarket.request("/config/powerbi", { auth: true });
-        const url = config?.valor || "";
-        if (url) {
-            setValue("powerbi-url", url);
-            mostrarPowerBI(url);
+        reporteAdmin = await FastMarket.request(`/admin/reportes?desde=${encodeURIComponent(desde)}&hasta=${encodeURIComponent(hasta)}`, { auth: true });
+        pintarReporteAdmin(reporteAdmin);
+        if (estado) {
+            const generado = reporteAdmin?.periodo?.generadoEn ? fecha(reporteAdmin.periodo.generadoEn) : "ahora";
+            estado.textContent = `Periodo: ${formatearFechaCorta(desde)} al ${formatearFechaCorta(hasta)}. Actualizado ${generado}.`;
+            estado.className = "reporte-estado correcto";
         }
     } catch (error) {
+        reporteAdmin = null;
+        if (estado) {
+            estado.textContent = error.message;
+            estado.className = "reporte-estado error";
+        }
         toast(error.message);
+    } finally {
+        if (boton) boton.disabled = false;
     }
 }
 
-function mostrarPowerBI(url) {
-    const cont = document.getElementById("powerbi-reporte");
+function pintarReporteAdmin(data) {
+    const r = data?.resumen || {};
+    setText("rep-usuarios-total", formatoNumero(r.usuariosTotales));
+    setText("rep-usuarios-nuevos", `${formatoNumero(r.usuariosNuevos)} nuevos · ${formatoNumero(r.usuariosActivos)} activos`);
+    setText("rep-sesiones", formatoNumero(r.sesionesExitosas));
+    setText("rep-sesiones-unicas", `${formatoNumero(r.usuariosUnicosConSesion)} usuarios únicos`);
+    setText("rep-sesiones-fallidas", formatoNumero(r.sesionesFallidas));
+    setText("rep-ventas", formatoNumero(r.ventasValidas));
+    setText("rep-pedidos-total", `${formatoNumero(r.pedidosRegistrados)} pedidos totales`);
+    setText("rep-ingresos", FastMarket.money(r.ingresos));
+    setText("rep-ticket", `Ticket promedio ${FastMarket.money(r.ticketPromedio)}`);
+    setText("rep-unidades", formatoNumero(r.unidadesVendidas));
+    setText("rep-clientes", `${formatoNumero(r.clientesCompradores)} compradores`);
+    setText("rep-entregados", formatoNumero(r.pedidosEntregados));
+    setText("rep-tasa-entrega", `${formatoPorcentaje(r.tasaEntrega)} de entrega`);
+    setText("rep-cancelados", formatoNumero(r.pedidosCancelados));
+    setText("rep-tasa-cancelacion", `${formatoPorcentaje(r.tasaCancelacion)} de cancelación`);
+    setText("rep-reclamos", formatoNumero(r.reclamos));
+    const resolucion = r.horasPromedioResolucion == null ? "sin casos resueltos" : `promedio ${Number(r.horasPromedioResolucion).toFixed(1)} h`;
+    setText("rep-reclamos-pendientes", `${formatoNumero(r.reclamosPendientes)} pendientes · ${resolucion}`);
+    setText("rep-stock-critico", formatoNumero(r.productosStockBajo));
+    setText("rep-stock-agotado", `${formatoNumero(r.productosAgotados)} agotados · ${formatoNumero(r.stockTotal)} unidades`);
+    setText("rep-descuentos", FastMarket.money(r.descuentosOtorgados));
+    setText("rep-envios", `Envíos ${FastMarket.money(r.ingresosEnvio)}`);
+    setText("rep-recurrentes", formatoNumero(r.clientesRecurrentes));
+
+    const actividad = data?.actividadDiaria || [];
+    pintarGraficoReporte("grafico-ventas-diarias", actividad, [
+        { clave: "ventas", nombre: "Ventas", clase: "", formato: (v) => FastMarket.money(v) }
+    ]);
+    pintarGraficoReporte("grafico-sesiones-diarias", actividad, [
+        { clave: "sesionesExitosas", nombre: "Correctos", clase: "", formato: formatoNumero },
+        { clave: "sesionesFallidas", nombre: "Fallidos", clase: "secundaria", formato: formatoNumero }
+    ]);
+    pintarGraficoReporte("grafico-actividad-diaria", actividad, [
+        { clave: "usuariosNuevos", nombre: "Usuarios", clase: "", formato: formatoNumero },
+        { clave: "pedidos", nombre: "Pedidos", clase: "secundaria", formato: formatoNumero },
+        { clave: "reclamos", nombre: "Reclamos", clase: "terciaria", formato: formatoNumero }
+    ]);
+
+    pintarDistribucionReporte("rep-tabla-roles", data?.usuariosPorRol);
+    pintarDistribucionReporte("rep-tabla-estados", data?.pedidosPorEstado);
+    pintarDistribucionReporte("rep-tabla-pagos", data?.ventasPorMetodoPago, true);
+    pintarDistribucionReporte("rep-tabla-reclamos-tipo", data?.reclamosPorTipo);
+    pintarDistribucionReporte("rep-tabla-reclamos-estado", data?.reclamosPorEstado);
+    pintarDistribucionReporte("rep-tabla-categorias", data?.productosPorCategoria);
+    pintarTopProductosReporte(data?.productosMasVendidos || []);
+    pintarStockReporte(data?.stockCritico || []);
+    pintarReclamosReporte(data?.reclamosRecientes || []);
+}
+
+function pintarGraficoReporte(id, datos, series) {
+    const cont = document.getElementById(id);
     if (!cont) return;
-    cont.classList.remove("powerbi-placeholder");
-    cont.innerHTML = `<iframe src="${FastMarket.escapeHTML(url)}" allowfullscreen="true"></iframe>`;
+    if (!datos?.length) {
+        cont.innerHTML = `<div class="grafico-vacio">No hay datos para el periodo seleccionado.</div>`;
+        return;
+    }
+
+    const maximo = Math.max(0, ...datos.flatMap((d) => series.map((s) => Number(d[s.clave] || 0))));
+    const ancho = Math.max(100, datos.length * Math.max(34, series.length * 17));
+    const columnas = datos.map((d) => {
+        const barras = series.map((serie) => {
+            const valor = Number(d[serie.clave] || 0);
+            const alto = maximo > 0 ? Math.max(valor > 0 ? 4 : 1, Math.round((valor / maximo) * 178)) : 1;
+            const titulo = `${serie.nombre}: ${serie.formato ? serie.formato(valor) : valor}`;
+            return `<i class="grafico-barra ${serie.clase || ""}" style="height:${alto}px" title="${FastMarket.escapeHTML(titulo)}"></i>`;
+        }).join("");
+        return `<div class="grafico-columna"><div class="grafico-columna-barras">${barras}</div><span class="grafico-etiqueta" title="${FastMarket.escapeHTML(d.fecha)}">${etiquetaFechaGrafico(d.fecha)}</span></div>`;
+    }).join("");
+    const leyenda = series.map((serie) => `<span class="${serie.clase || ""}">${FastMarket.escapeHTML(serie.nombre)}</span>`).join("");
+    cont.innerHTML = `<div class="grafico-barras-contenido" style="width:${ancho}px;min-width:100%">${columnas}</div><div class="grafico-leyenda">${leyenda}</div>`;
 }
 
-async function limpiarPowerBI() {
-    if (!(await FastMarket.confirmAction("¿Seguro que deseas eliminar el reporte Power BI guardado?"))) return;
+function pintarDistribucionReporte(id, lista = [], mostrarMonto = false) {
+    const cont = document.getElementById(id);
+    if (!cont) return;
+    const datos = (lista || []).filter((item) => Number(item.cantidad || 0) > 0 || mostrarMonto);
+    if (!datos.length) {
+        cont.innerHTML = `<p class="grafico-vacio" style="min-height:100px">Sin datos</p>`;
+        return;
+    }
+    const total = datos.reduce((acc, item) => acc + Number(item.cantidad || 0), 0);
+    cont.innerHTML = datos.map((item) => {
+        const cantidad = Number(item.cantidad || 0);
+        const ancho = total > 0 ? Math.max(cantidad > 0 ? 4 : 0, (cantidad / total) * 100) : 0;
+        const valor = mostrarMonto ? `${formatoNumero(cantidad)} · ${FastMarket.money(item.total)}` : formatoNumero(cantidad);
+        return `<div class="tabla-resumen-fila"><span>${FastMarket.escapeHTML(item.nombre || "Sin especificar")}</span><strong>${FastMarket.escapeHTML(valor)}</strong><div class="tabla-resumen-progreso"><i style="width:${ancho}%"></i></div></div>`;
+    }).join("");
+}
 
+function pintarTopProductosReporte(lista) {
+    const tbody = document.getElementById("rep-top-productos");
+    if (!tbody) return;
+    tbody.innerHTML = lista.length ? lista.map((p, i) => `<tr><td><strong>${i + 1}. ${FastMarket.escapeHTML(p.nombre)}</strong></td><td>${formatoNumero(p.unidades)}</td><td>${FastMarket.money(p.ventas)}</td></tr>`).join("") : `<tr><td colspan="3">No se registraron ventas en este periodo.</td></tr>`;
+}
+
+function pintarStockReporte(lista) {
+    const tbody = document.getElementById("rep-stock-tabla");
+    if (!tbody) return;
+    tbody.innerHTML = lista.length ? lista.map((p) => `<tr><td><strong>${FastMarket.escapeHTML(p.nombre)}</strong></td><td>${FastMarket.escapeHTML(p.categoria || "")}</td><td><span class="stock-numero ${Number(p.stock) <= 0 ? "agotado" : "bajo"}">${formatoNumero(p.stock)}</span></td><td>${FastMarket.escapeHTML(p.vendedor || "Tienda")}</td></tr>`).join("") : `<tr><td colspan="4">No hay productos con stock crítico.</td></tr>`;
+}
+
+function pintarReclamosReporte(lista) {
+    const tbody = document.getElementById("rep-reclamos-tabla");
+    if (!tbody) return;
+    if (!lista.length) {
+        tbody.innerHTML = `<tr><td colspan="6">No se registraron reclamos en este periodo.</td></tr>`;
+        return;
+    }
+    const estados = ["ABIERTO", "EN_REVISION", "RESUELTO", "CERRADO"];
+    tbody.innerHTML = lista.map((r) => `<tr data-reclamo-fila="${r.id}">
+        <td><strong>${FastMarket.escapeHTML(r.codigo)}</strong><br><small>${FastMarket.escapeHTML(fecha(r.fechaCreacion))}</small></td>
+        <td><strong>${FastMarket.escapeHTML(r.usuarioNombre)}</strong><br><small>${FastMarket.escapeHTML(r.usuarioCorreo)}</small></td>
+        <td>${FastMarket.escapeHTML(textoEnumReporte(r.tipo))}<br><small>${FastMarket.escapeHTML(r.pedidoCodigo || "Sin pedido asociado")}</small></td>
+        <td class="reclamo-descripcion"><strong>${FastMarket.escapeHTML(r.asunto)}</strong><br>${FastMarket.escapeHTML(r.descripcion)}</td>
+        <td><select data-reclamo-estado>${estados.map((estado) => `<option value="${estado}" ${r.estado === estado ? "selected" : ""}>${FastMarket.escapeHTML(textoEnumReporte(estado))}</option>`).join("")}</select><textarea data-reclamo-respuesta maxlength="4000" placeholder="Respuesta para el cliente">${FastMarket.escapeHTML(r.respuesta || "")}</textarea></td>
+        <td><button type="button" class="btn-editar btn-guardar-reclamo" data-guardar-reclamo="${r.id}">Guardar</button></td>
+    </tr>`).join("");
+}
+
+async function guardarReclamoAdmin(id) {
+    const fila = document.querySelector(`[data-reclamo-fila="${id}"]`);
+    if (!fila) return;
+    const estado = fila.querySelector("[data-reclamo-estado]")?.value || "ABIERTO";
+    const respuesta = fila.querySelector("[data-reclamo-respuesta]")?.value.trim() || "";
+    const boton = fila.querySelector("[data-guardar-reclamo]");
+    if (boton) boton.disabled = true;
     try {
-        await FastMarket.request("/config/powerbi", { method: "DELETE", auth: true });
-        setValue("powerbi-url", "");
-        const cont = document.getElementById("powerbi-reporte");
-        if (cont) {
-            cont.classList.add("powerbi-placeholder");
-            cont.innerHTML = `<p>Espacio para reporte Power BI</p><small>Cuando pegues el enlace, el reporte aparecerá aquí.</small>`;
-        }
-        toast("Reporte eliminado de la base de datos.");
+        await FastMarket.request(`/reclamos/${id}`, { method: "PUT", auth: true, body: { estado, respuesta } });
+        toast("Reclamo actualizado correctamente.");
+        await cargarReportes();
     } catch (error) {
         toast(error.message);
+    } finally {
+        if (boton) boton.disabled = false;
     }
 }
 
-function extraerUrlPowerBI(texto) {
-    if (!texto) return "";
-    const match = texto.match(/src=["']([^"']+)["']/);
-    return match ? match[1] : texto.trim();
+function exportarReporteCSV() {
+    if (!reporteAdmin) {
+        toast("Primero actualiza el reporte.");
+        return;
+    }
+    const filas = [["Sección", "Indicador", "Fecha", "Cantidad", "Monto"]];
+    const r = reporteAdmin.resumen || {};
+    [
+        ["Resumen", "Usuarios totales", "", r.usuariosTotales, ""],
+        ["Resumen", "Usuarios nuevos", "", r.usuariosNuevos, ""],
+        ["Resumen", "Sesiones exitosas", "", r.sesionesExitosas, ""],
+        ["Resumen", "Sesiones fallidas", "", r.sesionesFallidas, ""],
+        ["Resumen", "Pedidos registrados", "", r.pedidosRegistrados, ""],
+        ["Resumen", "Ventas válidas", "", r.ventasValidas, r.ingresos],
+        ["Resumen", "Unidades vendidas", "", r.unidadesVendidas, ""],
+        ["Resumen", "Reclamos", "", r.reclamos, ""]
+    ].forEach((fila) => filas.push(fila));
+    (reporteAdmin.actividadDiaria || []).forEach((d) => {
+        filas.push(["Actividad diaria", "Ventas", d.fecha, d.pedidos, d.ventas]);
+        filas.push(["Actividad diaria", "Sesiones exitosas", d.fecha, d.sesionesExitosas, ""]);
+        filas.push(["Actividad diaria", "Sesiones fallidas", d.fecha, d.sesionesFallidas, ""]);
+        filas.push(["Actividad diaria", "Usuarios nuevos", d.fecha, d.usuariosNuevos, ""]);
+        filas.push(["Actividad diaria", "Reclamos", d.fecha, d.reclamos, ""]);
+    });
+    (reporteAdmin.productosMasVendidos || []).forEach((p) => filas.push(["Productos", p.nombre, "", p.unidades, p.ventas]));
+    (reporteAdmin.reclamosRecientes || []).forEach((rec) => filas.push(["Reclamos", `${rec.codigo} - ${rec.asunto}`, rec.fechaCreacion, rec.estado, ""]));
+
+    const csv = "\uFEFF" + filas.map((fila) => fila.map(celdaCSV).join(";")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const enlace = document.createElement("a");
+    enlace.href = URL.createObjectURL(blob);
+    enlace.download = `fastmarket_reporte_${value("reporte-desde")}_${value("reporte-hasta")}.csv`;
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    URL.revokeObjectURL(enlace.href);
 }
 
+function celdaCSV(valor) {
+    let texto = String(valor ?? "");
+    if (/^[=+\-@]/.test(texto)) texto = `'${texto}`;
+    texto = texto.replaceAll('"', '""');
+    return `"${texto}"`;
+}
+
+function fechaISOReporte(fechaValor) {
+    const y = fechaValor.getFullYear();
+    const m = String(fechaValor.getMonth() + 1).padStart(2, "0");
+    const d = String(fechaValor.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
+function formatearFechaCorta(valor) {
+    if (!valor) return "";
+    return new Date(`${valor}T00:00:00`).toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function etiquetaFechaGrafico(valor) {
+    if (!valor) return "";
+    return new Date(`${valor}T00:00:00`).toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit" });
+}
+
+function formatoNumero(valor) {
+    return Number(valor || 0).toLocaleString("es-PE");
+}
+
+function formatoPorcentaje(valor) {
+    return `${Number(valor || 0).toLocaleString("es-PE", { maximumFractionDigits: 2 })}%`;
+}
+
+function textoEnumReporte(valor) {
+    const mapa = { EN_REVISION: "En revisión", DEVOLUCION: "Devolución", ATENCION: "Atención" };
+    if (mapa[valor]) return mapa[valor];
+    return String(valor || "").toLowerCase().replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase());
+}
 
 function cargarImagen(e, inputId, previewId, imgId) {
     const archivo = e.target.files[0];

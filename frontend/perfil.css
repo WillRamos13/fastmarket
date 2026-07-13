@@ -704,3 +704,104 @@ body {
         text-align: center;
     }
 }
+/* ===== Reclamos del cliente ===== */
+.form-reclamo-cliente select,
+.form-reclamo-cliente textarea {
+    padding: 14px;
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    outline: none;
+    font-size: 1rem;
+    font-family: inherit;
+    background: #fff;
+}
+
+.form-reclamo-cliente textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+.form-reclamo-cliente select:focus,
+.form-reclamo-cliente textarea:focus {
+    border-color: var(--naranja);
+}
+
+.reclamo-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.reclamo-form-grid > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.reclamo-form-grid label span {
+    color: var(--gris);
+    font-size: .82rem;
+    font-weight: normal;
+}
+
+.lista-reclamos-cliente {
+    display: grid;
+    gap: 14px;
+    margin-top: 28px;
+}
+
+.reclamo-cliente-item {
+    padding: 18px;
+    border: 1px solid var(--borde);
+    border-radius: 18px;
+    background: #f9fafb;
+}
+
+.reclamo-cliente-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.reclamo-cliente-cabecera h3 {
+    margin: 0 0 5px;
+    font-size: 1rem;
+}
+
+.reclamo-cliente-cabecera small,
+.reclamo-cliente-item p {
+    color: var(--gris);
+}
+
+.reclamo-cliente-item p {
+    margin: 8px 0;
+    line-height: 1.55;
+}
+
+.reclamo-estado {
+    display: inline-flex;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: .74rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.reclamo-estado.abierto { background: #fee2e2; color: #b91c1c; }
+.reclamo-estado.en_revision { background: #fef3c7; color: #92400e; }
+.reclamo-estado.resuelto,
+.reclamo-estado.cerrado { background: #dcfce7; color: #166534; }
+
+.reclamo-respuesta {
+    margin-top: 13px;
+    padding: 13px;
+    border-radius: 14px;
+    background: #fff7ed;
+    border-left: 4px solid var(--naranja);
+}
+
+@media (max-width: 680px) {
+    .reclamo-form-grid { grid-template-columns: 1fr; gap: 0; }
+    .reclamo-cliente-cabecera { flex-direction: column; }
+}

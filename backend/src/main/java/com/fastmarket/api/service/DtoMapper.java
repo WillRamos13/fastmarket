@@ -10,8 +10,10 @@ import com.fastmarket.api.model.Producto;
 import com.fastmarket.api.model.Usuario;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -54,11 +56,14 @@ public class DtoMapper {
     public static ProductoDtos.ProductoResponse toProductoResponse(Producto producto) {
         List<String> imagenes = imagenesProducto(producto);
         String imagenPrincipal = !imagenes.isEmpty() ? imagenes.get(0) : producto.getImagen();
+        Map<String, String> caracteristicas = caracteristicasProducto(producto);
 
         return new ProductoDtos.ProductoResponse(
                 producto.getId(),
                 producto.getNombre(),
                 producto.getCategoria(),
+                producto.getTipoProducto(),
+                caracteristicas,
                 producto.getPrecio(),
                 producto.getPrecioAntes(),
                 producto.getStock(),
@@ -80,6 +85,41 @@ public class DtoMapper {
                 producto.getVendedor() != null ? producto.getVendedor().getNombre() : null,
                 producto.getCreadoEn()
         );
+    }
+
+    private static Map<String, String> caracteristicasProducto(Producto producto) {
+        Map<String, String> resultado = new LinkedHashMap<>();
+        String raw = producto.getCaracteristicas();
+        if (raw != null && !raw.isBlank()) {
+            try {
+                Map<String, String> guardadas = JSON.readValue(raw, new TypeReference<LinkedHashMap<String, String>>() {});
+                guardadas.forEach((nombre, valor) -> agregarCaracteristica(resultado, nombre, valor));
+            } catch (Exception ignored) {
+                // Los productos antiguos no tenían este campo. Se completan debajo con sus datos heredados.
+            }
+        }
+
+        if (resultado.isEmpty()) {
+            agregarCaracteristicaSiFalta(resultado, "Marca", producto.getMarca());
+            agregarCaracteristicaSiFalta(resultado, "Modelo", producto.getModelo());
+            agregarCaracteristicaSiFalta(resultado, "Color", producto.getColor());
+            agregarCaracteristicaSiFalta(resultado, "Material", producto.getMaterial());
+            agregarCaracteristicaSiFalta(resultado, "Talla o medida", producto.getTalla());
+            agregarCaracteristicaSiFalta(resultado, "Garantía", producto.getGarantia());
+            agregarCaracteristicaSiFalta(resultado, "Condición", producto.getCondicion());
+        }
+        return resultado;
+    }
+
+    private static void agregarCaracteristica(Map<String, String> resultado, String nombre, String valor) {
+        String nombreLimpio = nombre == null ? "" : nombre.trim();
+        String valorLimpio = valor == null ? "" : valor.trim();
+        if (!nombreLimpio.isBlank() && !valorLimpio.isBlank()) resultado.put(nombreLimpio, valorLimpio);
+    }
+
+    private static void agregarCaracteristicaSiFalta(Map<String, String> resultado, String nombre, String valor) {
+        if (resultado.keySet().stream().anyMatch(clave -> clave.equalsIgnoreCase(nombre))) return;
+        agregarCaracteristica(resultado, nombre, valor);
     }
 
     private static List<String> imagenesProducto(Producto producto) {

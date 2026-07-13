@@ -6,6 +6,7 @@ let productPage = { page: 0, size: 20, totalPages: 1, totalElements: 0 };
 let estadisticas = null;
 let chartVentasDia = null;
 let chartPedidosEstado = null;
+let editorCaracteristicasProducto = null;
 
 const estadosPedido = ["PENDIENTE", "CONFIRMADO", "PREPARANDO", "CAMINO", "ENTREGADO", "CANCELADO"];
 
@@ -30,6 +31,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     setText("nombre-vendedor-hero", vendedor.nombre || "vendedor");
     pintarPerfilVendedor(vendedor);
     activarNavegacion();
+    editorCaracteristicasProducto = FastMarketProductoCaracteristicas.crear({
+        categoriaId: "vp-categoria",
+        tipoId: "vp-tipo-producto",
+        datalistId: "vp-tipos-producto-opciones",
+        toggleId: "vp-usar-caracteristicas",
+        panelId: "vp-panel-caracteristicas",
+        sugerenciasId: "vp-sugerencias-caracteristicas",
+        listaId: "vp-lista-caracteristicas",
+        agregarId: "vp-agregar-caracteristica"
+    });
     activarProductos();
     activarPedidos();
     activarCupones();
@@ -117,7 +128,7 @@ function pintarProductos() {
     const tbody = document.getElementById("vp-tabla");
     if (!tbody) return;
     const q = value("vp-buscar").toLowerCase();
-    const lista = productos.filter((p) => `${p.nombre} ${p.descripcion} ${p.categoria} ${p.marca || ""} ${p.modelo || ""} ${p.color || ""}`.toLowerCase().includes(q));
+    const lista = productos.filter((p) => `${p.nombre} ${p.descripcion} ${p.categoria} ${p.tipoProducto || ""} ${JSON.stringify(p.caracteristicas || {})}`.toLowerCase().includes(q));
     tbody.innerHTML = lista.length ? "" : `<tr><td colspan="6">No tienes productos registrados.</td></tr>`;
     lista.forEach((p) => {
         const tr = document.createElement("tr");
@@ -133,29 +144,31 @@ function pintarProductos() {
 }
 
 function detalleCortoProducto(p) {
-    const detalles = [p.marca, p.modelo, p.color, p.descripcion].filter(Boolean);
+    const caracteristicas = p.caracteristicas && typeof p.caracteristicas === "object"
+        ? Object.values(p.caracteristicas).filter(Boolean).slice(0, 2)
+        : [];
+    const detalles = [p.tipoProducto, ...caracteristicas, p.descripcion].filter(Boolean);
     return detalles.join(" · ") || "Sin descripción";
 }
 
 async function guardarProducto(e) {
     e.preventDefault();
     const id = value("vp-id");
+    const imagenesProducto = obtenerImagenesFormulario("vp-imagenes", value("vp-imagen"));
+    const caracteristicas = editorCaracteristicasProducto?.getCaracteristicas() || {};
+    const compatibilidad = editorCaracteristicasProducto?.getCamposCompatibilidad() || {};
     const payload = {
         nombre: value("vp-nombre"),
         categoria: value("vp-categoria"),
+        tipoProducto: editorCaracteristicasProducto?.getTipo() || "",
         precio: Number(value("vp-precio")),
         precioAntes: value("vp-precio-antes") ? Number(value("vp-precio-antes")) : null,
         stock: Number(value("vp-stock")),
-        imagenes: obtenerImagenesFormulario("vp-imagenes", value("vp-imagen")),
-        imagen: obtenerImagenesFormulario("vp-imagenes", value("vp-imagen"))[0] || "img/logo.png",
+        imagenes: imagenesProducto,
+        imagen: imagenesProducto[0] || "img/logo.png",
         descripcion: value("vp-descripcion"),
-        marca: value("vp-marca"),
-        modelo: value("vp-modelo"),
-        color: value("vp-color"),
-        material: value("vp-material"),
-        talla: value("vp-talla"),
-        garantia: value("vp-garantia"),
-        condicion: value("vp-condicion"),
+        caracteristicas,
+        ...compatibilidad,
         detallesAdicionales: value("vp-detalles-adicionales"),
         oferta: checked("vp-oferta"),
         destacado: checked("vp-destacado")
@@ -193,13 +206,7 @@ function editarProducto(id) {
     setValue("vp-imagen", imagenes[0] || p.imagen || "");
     setValue("vp-imagenes", JSON.stringify(imagenes));
     setValue("vp-descripcion", p.descripcion || "");
-    setValue("vp-marca", p.marca || "");
-    setValue("vp-modelo", p.modelo || "");
-    setValue("vp-color", p.color || "");
-    setValue("vp-material", p.material || "");
-    setValue("vp-talla", p.talla || "");
-    setValue("vp-garantia", p.garantia || "");
-    setValue("vp-condicion", p.condicion || "");
+    editorCaracteristicasProducto?.setData(p);
     setValue("vp-detalles-adicionales", p.detallesAdicionales || "");
     setChecked("vp-oferta", !!p.oferta);
     setChecked("vp-destacado", !!p.destacado);
@@ -225,6 +232,7 @@ function limpiarProducto() {
     setValue("vp-imagen", "");
     setValue("vp-imagenes", "");
     setText("vp-form-title", "Agregar producto");
+    editorCaracteristicasProducto?.reset();
     document.getElementById("vp-preview")?.classList.add("oculto");
     const lista = document.getElementById("vp-preview-lista");
     if (lista) lista.innerHTML = "";

@@ -5,6 +5,8 @@ import com.fastmarket.api.model.PedidoItem;
 import com.fastmarket.api.model.Producto;
 import com.fastmarket.api.repository.PedidoRepository;
 import com.fastmarket.api.repository.ProductoRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,15 +15,18 @@ import java.text.Normalizer;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class ChatContextService {
+    private static final ObjectMapper JSON = new ObjectMapper();
     private static final BigDecimal COSTO_ENVIO_DEFECTO = new BigDecimal("8.00");
     private static final BigDecimal ENVIO_GRATIS_DESDE = new BigDecimal("250.00");
     private static final DateTimeFormatter FECHA_PEDIDO = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -111,7 +116,7 @@ public class ChatContextService {
 
         StringBuilder contexto = new StringBuilder();
         contexto.append("Información funcional confirmada de FastMarket:\n");
-        contexto.append("- FastMarket es una tienda online con Inicio, Productos, carrito, checkout, Mis pedidos, perfil y Centro de ayuda.\n");
+        contexto.append("- FastMarket es una tienda online con Inicio, Productos, carrito, checkout, Mis pedidos, perfil, reclamos y Centro de ayuda.\n");
         contexto.append("- No existe una página independiente de Ofertas. Las promociones se ven en Inicio o en Productos usando el filtro de ofertas.\n");
         contexto.append("- Para comprar, el cliente inicia sesión, agrega productos al carrito, entra al checkout, completa la entrega y confirma el pedido.\n");
         contexto.append("- Métodos de pago disponibles: Pago contra entrega, Yape / Plin, Transferencia bancaria y Mercado Pago.\n");
@@ -124,7 +129,7 @@ public class ChatContextService {
         contexto.append("- Una contraseña válida tiene mínimo 8 caracteres, mayúscula, minúscula, número y no contiene espacios.\n");
         contexto.append("- Estados del pedido: PENDIENTE, CONFIRMADO, PREPARANDO, CAMINO, ENTREGADO y CANCELADO.\n");
         contexto.append("- El chatbot orienta, pero no ejecuta pagos, compras, cancelaciones ni modificaciones de cuenta o pedidos.\n");
-        contexto.append("- Si falta información comercial o de soporte, dirige al Centro de ayuda o a los datos de contacto visibles en el pie de página.\n\n");
+        contexto.append("- Los clientes autenticados pueden registrar reclamos desde Mi perfil > Reclamos y atención, asociarlos opcionalmente a un pedido y revisar la respuesta del administrador.\n- Si falta información comercial o de soporte, dirige al Centro de ayuda o a los datos de contacto visibles en el pie de página.\n\n");
 
         if (hablaOfertas) {
             contexto.append("Productos reales en oferta coincidentes con la consulta:\n");
@@ -189,12 +194,16 @@ public class ChatContextService {
             return "¡Hasta luego! Gracias por visitar FastMarket. 👋";
         }
 
-        if (contiene(texto, "hablar con una persona", "asesor", "soporte", "atencion al cliente", "contacto", "reclamo")) {
-            return "Para atención personal, revisa el Centro de ayuda o los datos de contacto visibles en el pie de página de FastMarket. No compartas contraseñas ni códigos de verificación por el chat.";
+        if (contiene(texto, "reclamo", "queja", "incidencia", "problema con mi compra")) {
+            return "Para registrar un reclamo, inicia sesión y entra a Mi perfil > Reclamos y atención. Puedes seleccionar el pedido relacionado, indicar el tipo de problema, describir lo ocurrido y luego revisar allí el estado y la respuesta del administrador.";
+        }
+
+        if (contiene(texto, "hablar con una persona", "asesor", "soporte", "atencion al cliente", "contacto")) {
+            return "Para atención personal, revisa el Centro de ayuda o los datos de contacto visibles en el pie de página de FastMarket. También puedes registrar un reclamo desde Mi perfil. No compartas contraseñas ni códigos de verificación por el chat.";
         }
 
         if (contiene(texto, "devolucion", "devolver", "reembolso", "cambio de producto")) {
-            return "FastMarket no tiene un proceso automático de devoluciones dentro del chatbot. Revisa tu pedido en Mis pedidos y comunícate con soporte mediante los datos de contacto del sitio para evaluar tu caso.";
+            return "Revisa el pedido en Mis pedidos y registra el caso desde Mi perfil > Reclamos y atención, seleccionando el tipo Devolución. El equipo de FastMarket podrá evaluar y responder tu solicitud.";
         }
 
         if (contiene(texto, "olvide mi contraseña", "olvide la contraseña", "recuperar contraseña", "cambiar contraseña", "codigo de recuperacion")) {
@@ -372,10 +381,12 @@ public class ChatContextService {
     private int puntuarProducto(Producto producto, String consulta, List<String> terminos) {
         String nombre = normalizar(producto.getNombre());
         String categoria = normalizar(producto.getCategoria());
+        String tipoProducto = normalizar(producto.getTipoProducto());
         String marca = normalizar(producto.getMarca());
         String modelo = normalizar(producto.getModelo());
         String secundarios = normalizar(String.join(" ",
                 seguroVacio(producto.getDescripcion()),
+                textoCaracteristicas(producto),
                 seguroVacio(producto.getColor()),
                 seguroVacio(producto.getMaterial()),
                 seguroVacio(producto.getTalla()),
@@ -386,12 +397,14 @@ public class ChatContextService {
         int puntaje = 0;
         if (!nombre.isBlank() && consulta.contains(nombre)) puntaje += 30;
         if (!categoria.isBlank() && consulta.contains(categoria)) puntaje += 16;
+        if (!tipoProducto.isBlank() && consulta.contains(tipoProducto)) puntaje += 16;
         if (!marca.isBlank() && consulta.contains(marca)) puntaje += 14;
         if (!modelo.isBlank() && consulta.contains(modelo)) puntaje += 14;
 
         for (String termino : terminos) {
             if (coincide(nombre, termino)) puntaje += 9;
             if (coincide(categoria, termino)) puntaje += 7;
+            if (coincide(tipoProducto, termino)) puntaje += 7;
             if (coincide(marca, termino)) puntaje += 6;
             if (coincide(modelo, termino)) puntaje += 6;
             if (coincide(secundarios, termino)) puntaje += 2;
@@ -465,13 +478,9 @@ public class ChatContextService {
         if (incluirDetalles) {
             List<String> detalles = new ArrayList<>();
             agregarDetalle(detalles, "categoría", p.getCategoria());
-            agregarDetalle(detalles, "marca", p.getMarca());
-            agregarDetalle(detalles, "modelo", p.getModelo());
-            agregarDetalle(detalles, "color", p.getColor());
-            agregarDetalle(detalles, "talla", p.getTalla());
-            agregarDetalle(detalles, "material", p.getMaterial());
-            agregarDetalle(detalles, "condición", p.getCondicion());
-            agregarDetalle(detalles, "garantía", p.getGarantia());
+            agregarDetalle(detalles, "tipo", p.getTipoProducto());
+            caracteristicasProducto(p).entrySet().stream().limit(8)
+                    .forEach(entrada -> agregarDetalle(detalles, entrada.getKey(), entrada.getValue()));
             if (!detalles.isEmpty()) linea.append("\n  ").append(String.join(" | ", detalles));
         }
 
@@ -520,19 +529,54 @@ public class ChatContextService {
         return "- ID " + p.getId()
                 + ": " + seguro(p.getNombre())
                 + " | categoría: " + seguro(p.getCategoria())
-                + " | marca: " + seguro(p.getMarca())
-                + " | modelo: " + seguro(p.getModelo())
+                + " | tipo: " + seguro(p.getTipoProducto())
+                + " | características: " + textoCaracteristicas(p)
                 + " | precio: " + dinero(p.getPrecio())
                 + (p.getPrecioAntes() != null ? " | precio anterior: " + dinero(p.getPrecioAntes()) : "")
                 + " | stock: " + Optional.ofNullable(p.getStock()).orElse(0)
                 + " | oferta: " + siNo(p.getOferta())
                 + " | destacado: " + siNo(p.getDestacado())
-                + " | color: " + seguro(p.getColor())
-                + " | material: " + seguro(p.getMaterial())
-                + " | talla: " + seguro(p.getTalla())
-                + " | garantía: " + seguro(p.getGarantia())
-                + " | condición: " + seguro(p.getCondicion())
                 + " | descripción: " + recortar(seguro(p.getDescripcion()), 160);
+    }
+
+    private Map<String, String> caracteristicasProducto(Producto producto) {
+        Map<String, String> resultado = new LinkedHashMap<>();
+        String raw = producto.getCaracteristicas();
+        if (raw != null && !raw.isBlank()) {
+            try {
+                Map<String, String> guardadas = JSON.readValue(raw, new TypeReference<LinkedHashMap<String, String>>() {});
+                guardadas.forEach((nombre, valor) -> agregarCaracteristica(resultado, nombre, valor));
+            } catch (Exception ignored) {
+                // Compatibilidad con productos creados antes de las características dinámicas.
+            }
+        }
+        if (resultado.isEmpty()) {
+            agregarCaracteristicaSiFalta(resultado, "Marca", producto.getMarca());
+            agregarCaracteristicaSiFalta(resultado, "Modelo", producto.getModelo());
+            agregarCaracteristicaSiFalta(resultado, "Color", producto.getColor());
+            agregarCaracteristicaSiFalta(resultado, "Material", producto.getMaterial());
+            agregarCaracteristicaSiFalta(resultado, "Talla o medida", producto.getTalla());
+            agregarCaracteristicaSiFalta(resultado, "Garantía", producto.getGarantia());
+            agregarCaracteristicaSiFalta(resultado, "Condición", producto.getCondicion());
+        }
+        return resultado;
+    }
+
+    private void agregarCaracteristica(Map<String, String> destino, String nombre, String valor) {
+        String nombreLimpio = nombre == null ? "" : nombre.trim();
+        String valorLimpio = valor == null ? "" : valor.trim();
+        if (!nombreLimpio.isBlank() && !valorLimpio.isBlank()) destino.put(nombreLimpio, valorLimpio);
+    }
+
+    private void agregarCaracteristicaSiFalta(Map<String, String> destino, String nombre, String valor) {
+        if (destino.keySet().stream().anyMatch(clave -> normalizar(clave).equals(normalizar(nombre)))) return;
+        agregarCaracteristica(destino, nombre, valor);
+    }
+
+    private String textoCaracteristicas(Producto producto) {
+        return caracteristicasProducto(producto).entrySet().stream()
+                .map(entrada -> entrada.getKey() + ": " + entrada.getValue())
+                .collect(Collectors.joining("; "));
     }
 
     private String formatearPedido(Pedido p) {

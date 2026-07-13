@@ -6,6 +6,7 @@
     <title>Panel Administrador | FastMarket</title>
     <link rel="stylesheet" href="estilos-globales.css">
     <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="producto-caracteristicas.css">
 </head>
 
 <body>
@@ -34,7 +35,7 @@
                     <button class="opcion-admin solo-admin" data-panel="panel-vendedores">Equipo de vendedores</button>
                     <button class="opcion-admin solo-admin" data-panel="panel-usuarios">Usuarios y permisos</button>
                     <button class="opcion-admin" data-panel="panel-indices">Analítica</button>
-                    <button class="opcion-admin" data-panel="panel-powerbi">Reportes Power BI</button>
+                    <button class="opcion-admin" data-panel="panel-powerbi">Reportes y estadísticas</button>
                     <a href="login.html" id="cerrar-sesion">Salir</a>
                 </div>
             </div>
@@ -155,6 +156,11 @@
                         <option value="juguetes">Juguetes</option>
                     </select>
 
+                    <label for="tipo-producto">Tipo de producto <span class="texto-opcional">(opcional)</span></label>
+                    <input type="text" id="tipo-producto" list="tipos-producto-opciones" placeholder="Ej: Celular, zapatillas, lámpara">
+                    <datalist id="tipos-producto-opciones"></datalist>
+                    <small class="ayuda-campo">El tipo ayuda a mostrar sugerencias adecuadas, pero no es obligatorio.</small>
+
                     <div class="form-doble">
                         <div>
                             <label for="precio">Precio actual</label>
@@ -170,41 +176,19 @@
                     <label for="stock">Stock</label>
                     <input type="number" id="stock" placeholder="10">
 
-                    <div class="form-doble">
-                        <div>
-                            <label for="marca">Marca</label>
-                            <input type="text" id="marca" placeholder="Ej: Samsung, Nike, Genérico">
-                        </div>
-                        <div>
-                            <label for="modelo">Modelo</label>
-                            <input type="text" id="modelo" placeholder="Ej: A15, Urban Pro">
+                    <div class="editor-caracteristicas">
+                        <label class="check-caracteristicas" for="usar-caracteristicas">
+                            <input type="checkbox" id="usar-caracteristicas">
+                            Agregar características opcionales
+                        </label>
+                        <small class="ayuda-campo">Tú decides cuáles agregar. Las sugerencias cambian según la categoría y el tipo de producto.</small>
+
+                        <div id="panel-caracteristicas" class="panel-caracteristicas oculto" aria-hidden="true">
+                            <div id="sugerencias-caracteristicas" class="sugerencias-caracteristicas"></div>
+                            <div id="lista-caracteristicas" class="lista-caracteristicas"></div>
+                            <button type="button" id="agregar-caracteristica" class="btn-agregar-caracteristica">+ Agregar otra característica</button>
                         </div>
                     </div>
-
-                    <div class="form-doble">
-                        <div>
-                            <label for="color">Color</label>
-                            <input type="text" id="color" placeholder="Ej: Negro, Azul, Variado">
-                        </div>
-                        <div>
-                            <label for="material">Material</label>
-                            <input type="text" id="material" placeholder="Ej: Algodón, plástico, acero">
-                        </div>
-                    </div>
-
-                    <div class="form-doble">
-                        <div>
-                            <label for="talla">Talla o medida</label>
-                            <input type="text" id="talla" placeholder="Ej: M, 42, 30 cm">
-                        </div>
-                        <div>
-                            <label for="garantia">Garantía</label>
-                            <input type="text" id="garantia" placeholder="Ej: 6 meses, 1 año">
-                        </div>
-                    </div>
-
-                    <label for="condicion">Condición</label>
-                    <input type="text" id="condicion" placeholder="Ej: Nuevo, sellado, importado">
 
                     <div id="grupo-vendedor-producto" class="oculto">
                         <label for="producto-vendedor">Vendedor asignado</label>
@@ -685,38 +669,103 @@
         </section>
 
         <section id="panel-powerbi" class="panel-admin">
-
-            <div class="titulo-section">
-                <h2>Reportes Power BI</h2>
-                <p>
-                    Aquí puedes integrar un reporte de Power BI para visualizar ventas,
-                    productos más vendidos, usuarios o crecimiento de la tienda.
-                </p>
+            <div class="titulo-section titulo-reporte-admin">
+                <div>
+                    <h2>Reportes y estadísticas</h2>
+                    <p>Analiza usuarios, accesos, ventas, pedidos, productos y reclamos usando información real de FastMarket.</p>
+                </div>
+                <span class="reporte-insignia">Datos de la tienda</span>
             </div>
 
-            <div class="powerbi-contenedor">
-
-                <div class="powerbi-info">
-                    <h3>Integrar reporte</h3>
-                    <p>
-                        Pega el enlace del reporte o el iframe generado desde Power BI.
-                    </p>
-
-                    <input type="text" id="powerbi-url" placeholder="Pega aquí el enlace o iframe de Power BI">
-
-                    <div class="powerbi-botones">
-                        <button id="btn-guardar-powerbi">Guardar reporte</button>
-                        <button id="btn-limpiar-powerbi">Limpiar</button>
-                    </div>
+            <div class="reporte-filtros">
+                <div>
+                    <label for="reporte-periodo">Periodo</label>
+                    <select id="reporte-periodo">
+                        <option value="hoy">Hoy</option>
+                        <option value="7">Últimos 7 días</option>
+                        <option value="30" selected>Últimos 30 días</option>
+                        <option value="90">Últimos 90 días</option>
+                        <option value="mes">Este mes</option>
+                        <option value="anio">Este año</option>
+                        <option value="personalizado">Personalizado</option>
+                    </select>
                 </div>
-
-                <div id="powerbi-reporte" class="powerbi-placeholder">
-                    <p>Espacio para reporte Power BI</p>
-                    <small>Cuando pegues el enlace, el reporte aparecerá aquí.</small>
+                <div>
+                    <label for="reporte-desde">Desde</label>
+                    <input type="date" id="reporte-desde">
                 </div>
-
+                <div>
+                    <label for="reporte-hasta">Hasta</label>
+                    <input type="date" id="reporte-hasta">
+                </div>
+                <div class="reporte-acciones">
+                    <button type="button" id="btn-actualizar-reporte">Actualizar</button>
+                    <button type="button" id="btn-exportar-reporte" class="btn-secundario">Exportar CSV</button>
+                </div>
+                <p id="reporte-estado" class="reporte-estado">Selecciona un periodo para consultar los indicadores.</p>
             </div>
 
+            <div class="reporte-kpis">
+                <article><span>Usuarios registrados</span><strong id="rep-usuarios-total">0</strong><small id="rep-usuarios-nuevos">0 nuevos</small></article>
+                <article><span>Inicios de sesión</span><strong id="rep-sesiones">0</strong><small id="rep-sesiones-unicas">0 usuarios únicos</small></article>
+                <article><span>Intentos fallidos</span><strong id="rep-sesiones-fallidas">0</strong><small>Accesos no completados</small></article>
+                <article><span>Ventas registradas</span><strong id="rep-ventas">0</strong><small id="rep-pedidos-total">0 pedidos totales</small></article>
+                <article class="kpi-destacado"><span>Ingresos</span><strong id="rep-ingresos">S/ 0.00</strong><small id="rep-ticket">Ticket S/ 0.00</small></article>
+                <article><span>Unidades vendidas</span><strong id="rep-unidades">0</strong><small id="rep-clientes">0 compradores</small></article>
+                <article><span>Pedidos entregados</span><strong id="rep-entregados">0</strong><small id="rep-tasa-entrega">0% de entrega</small></article>
+                <article><span>Pedidos cancelados</span><strong id="rep-cancelados">0</strong><small id="rep-tasa-cancelacion">0% de cancelación</small></article>
+                <article><span>Reclamos</span><strong id="rep-reclamos">0</strong><small id="rep-reclamos-pendientes">0 pendientes</small></article>
+                <article><span>Stock crítico</span><strong id="rep-stock-critico">0</strong><small id="rep-stock-agotado">0 agotados</small></article>
+                <article><span>Descuentos otorgados</span><strong id="rep-descuentos">S/ 0.00</strong><small id="rep-envios">Envíos S/ 0.00</small></article>
+                <article><span>Clientes recurrentes</span><strong id="rep-recurrentes">0</strong><small>Más de una compra</small></article>
+            </div>
+
+            <div class="reporte-graficos-grid">
+                <article class="reporte-card reporte-card-ancha">
+                    <div class="reporte-card-titulo"><div><h3>Ventas por día</h3><p>Ingresos de pedidos no cancelados.</p></div></div>
+                    <div id="grafico-ventas-diarias" class="grafico-barras"></div>
+                </article>
+                <article class="reporte-card">
+                    <div class="reporte-card-titulo"><div><h3>Inicios de sesión</h3><p>Accesos correctos y fallidos.</p></div></div>
+                    <div id="grafico-sesiones-diarias" class="grafico-barras"></div>
+                </article>
+                <article class="reporte-card">
+                    <div class="reporte-card-titulo"><div><h3>Actividad del sistema</h3><p>Registros, pedidos y reclamos por día.</p></div></div>
+                    <div id="grafico-actividad-diaria" class="grafico-barras"></div>
+                </article>
+            </div>
+
+            <div class="reporte-distribuciones">
+                <article class="reporte-card"><h3>Usuarios por rol</h3><div id="rep-tabla-roles" class="tabla-resumen"></div></article>
+                <article class="reporte-card"><h3>Pedidos por estado</h3><div id="rep-tabla-estados" class="tabla-resumen"></div></article>
+                <article class="reporte-card"><h3>Métodos de pago</h3><div id="rep-tabla-pagos" class="tabla-resumen"></div></article>
+                <article class="reporte-card"><h3>Reclamos por tipo</h3><div id="rep-tabla-reclamos-tipo" class="tabla-resumen"></div></article>
+                <article class="reporte-card"><h3>Reclamos por estado</h3><div id="rep-tabla-reclamos-estado" class="tabla-resumen"></div></article>
+                <article class="reporte-card"><h3>Productos por categoría</h3><div id="rep-tabla-categorias" class="tabla-resumen"></div></article>
+            </div>
+
+            <div class="reporte-tablas-grid">
+                <article class="reporte-card">
+                    <div class="reporte-card-titulo"><div><h3>Productos más vendidos</h3><p>Ranking por unidades dentro del periodo.</p></div></div>
+                    <div class="tabla-scroll"><table><thead><tr><th>Producto</th><th>Unidades</th><th>Ventas</th></tr></thead><tbody id="rep-top-productos"></tbody></table></div>
+                </article>
+                <article class="reporte-card">
+                    <div class="reporte-card-titulo"><div><h3>Stock crítico</h3><p>Productos con cinco unidades o menos.</p></div></div>
+                    <div class="tabla-scroll"><table><thead><tr><th>Producto</th><th>Categoría</th><th>Stock</th><th>Responsable</th></tr></thead><tbody id="rep-stock-tabla"></tbody></table></div>
+                </article>
+            </div>
+
+            <article class="reporte-card reporte-reclamos-card">
+                <div class="reporte-card-titulo">
+                    <div><h3>Reclamos recientes</h3><p>Revisa el detalle, cambia el estado y registra la respuesta al cliente.</p></div>
+                </div>
+                <div class="tabla-scroll">
+                    <table class="tabla-reclamos-admin">
+                        <thead><tr><th>Código / fecha</th><th>Cliente</th><th>Tipo y pedido</th><th>Detalle</th><th>Estado y respuesta</th><th>Acción</th></tr></thead>
+                        <tbody id="rep-reclamos-tabla"></tbody>
+                    </table>
+                </div>
+            </article>
         </section>
 
     </main>
@@ -774,6 +823,7 @@
     <div id="toast"></div>
 
     <script src="api.js"></script>
+    <script src="producto-caracteristicas.js"></script>
     <script src="admin.js"></script>
 </body>
 </html>
