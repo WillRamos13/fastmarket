@@ -23,7 +23,7 @@ public class ChatController {
             @Valid @RequestBody ChatDtos.ChatRequest request
     ) {
         Long usuarioId = obtenerUsuarioIdSiExiste(authorization);
-        return chatService.responder(request.mensaje(), usuarioId);
+        return chatService.responder(request.mensaje(), request.historial(), usuarioId);
     }
 
     private Long obtenerUsuarioIdSiExiste(String authorization) {

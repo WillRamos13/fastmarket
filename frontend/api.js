@@ -511,13 +511,18 @@ const FastMarket = (() => {
         const mensajes = document.getElementById("chat-mensajes");
         if (!boton || !chatBox || !input || !mensajes) return;
 
+        const historialChat = [];
+        input.maxLength = 1000;
+
         if (boton.dataset.fmChatActivo) return;
         boton.dataset.fmChatActivo = "true";
 
         boton.addEventListener("click", () => {
             chatBox.style.display = "flex";
             if (!mensajes.dataset.fmBienvenida) {
-                agregar("bot", "Hola 👋 Soy el asistente de FastMarket. Puedo ayudarte con productos, ofertas, stock, pedidos, envíos y pagos.");
+                if (!mensajes.children.length) {
+                    agregar("bot", "Hola 👋 Soy el asistente de FastMarket. Puedo ayudarte con productos, promociones, stock, compras, pedidos, envíos, pagos y tu cuenta.");
+                }
                 mensajes.dataset.fmBienvenida = "true";
             }
             input.focus();
@@ -531,6 +536,7 @@ const FastMarket = (() => {
 
             const contenido = document.createElement("div");
             contenido.className = "mensaje-contenido";
+            contenido.style.whiteSpace = "pre-wrap";
             contenido.textContent = texto;
 
             div.appendChild(contenido);
@@ -551,7 +557,10 @@ const FastMarket = (() => {
             const texto = input.value.trim();
             if (!texto) return;
 
+            const historialAnterior = historialChat.slice(-8);
             agregar("user", texto);
+            historialChat.push({ rol: "user", contenido: texto });
+            if (historialChat.length > 8) historialChat.splice(0, historialChat.length - 8);
             input.value = "";
             input.disabled = true;
             if (enviar) enviar.disabled = true;
@@ -561,11 +570,17 @@ const FastMarket = (() => {
             try {
                 const data = await request("/chat", {
                     method: "POST",
-                    body: { mensaje: texto },
+                    body: {
+                        mensaje: texto,
+                        historial: historialAnterior
+                    },
                     auth: true
                 });
 
-                cambiarTextoMensaje(mensajeCarga, data?.respuesta || "No recibí respuesta del asistente.");
+                const respuesta = data?.respuesta || "No recibí respuesta del asistente.";
+                cambiarTextoMensaje(mensajeCarga, respuesta);
+                historialChat.push({ rol: "assistant", contenido: respuesta });
+                if (historialChat.length > 8) historialChat.splice(0, historialChat.length - 8);
             } catch (error) {
                 cambiarTextoMensaje(
                     mensajeCarga,

@@ -23,7 +23,7 @@ public class IndexContenidoSeeder implements CommandLineRunner {
         guardarSiNoExiste("promocion", "punto-1", "Descuentos por lanzamiento", null, null, null, true, 2);
         guardarSiNoExiste("promocion", "punto-2", "Promociones semanales", null, null, null, true, 3);
         guardarSiNoExiste("promocion", "punto-3", "Productos con stock limitado", null, null, null, true, 4);
-        guardarSiNoExiste("promocion", "boton", "Ver ofertas disponibles", null, null, "ofertas.html", true, 5);
+        guardarSiNoExiste("promocion", "boton", "Ver ofertas disponibles", null, null, "productos.html?ofertas=1", true, 5);
         guardarSiNoExiste("promocion", "oferta", "Oferta", "Mini figura Peppa Pig", null, "S/ 50.00 antes S/ 60.00", true, 6);
 
         guardarSiNoExiste("opinion", "intro", "Lo que valoran nuestros clientes", "La confianza se construye con buena atención, claridad y cumplimiento en cada pedido.", null, null, true, 1);

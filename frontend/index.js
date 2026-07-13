@@ -92,7 +92,7 @@ function aplicarPromocionesIndex(items) {
 
     if (boton && link) {
         link.textContent = boton.titulo || "Ver ofertas disponibles";
-        link.href = boton.enlace || "ofertas.html";
+        link.href = "productos.html?ofertas=1";
     }
 
     const oferta = items.find((item) => item.clave === "oferta");

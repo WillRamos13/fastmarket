@@ -33,7 +33,7 @@ const imagenesCategoriaBase = {
 };
 
 const tarjetasPromocionBase = [
-    { titulo: "Descuentos destacados", descripcion: "25% OFF", imagen: "img/fondo1.png", url: "ofertas.html" },
+    { titulo: "Descuentos destacados", descripcion: "25% OFF", imagen: "img/fondo1.png", url: "productos.html?ofertas=1" },
     { titulo: "Tecnología y accesorios", descripcion: "Ofertas disponibles", imagen: "img/intro.png", url: "productos.html?categoria=tecnologia" },
     { titulo: "Renueva tu estilo", descripcion: "Promos seleccionadas", imagen: "img/fondo1.png", url: "productos.html?categoria=moda" },
     { titulo: "Especial para estudiantes", descripcion: "Compra fácil y rápido", imagen: "img/envios.png", url: "productos.html?categoria=estudio" }
@@ -368,7 +368,7 @@ function pintarPromociones() {
         promocionesAdmin.forEach((banner) => {
             const card = document.createElement("a");
             card.className = "promo-card promo-card-admin";
-            card.href = "ofertas.html";
+            card.href = "productos.html?ofertas=1";
             const titulo = banner.titulo || "Promoción FastMarket";
             const descripcion = banner.descripcion || "Ver ofertas";
             card.innerHTML = `
