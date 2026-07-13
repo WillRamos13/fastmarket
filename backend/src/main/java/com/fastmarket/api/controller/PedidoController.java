@@ -1,5 +1,6 @@
 package com.fastmarket.api.controller;
 
+import com.fastmarket.api.dto.EstadisticasDtos;
 import com.fastmarket.api.dto.PedidoDtos;
 import com.fastmarket.api.model.EstadoPedido;
 import com.fastmarket.api.service.AuthTokenService;
@@ -55,6 +56,12 @@ public class PedidoController {
     public PedidoDtos.PedidoResponse crear(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long usuarioId, @Valid @RequestBody PedidoDtos.CrearPedidoRequest request) {
         authTokenService.requerirUsuarioOAdmin(authorization, usuarioId);
         return pedidoService.crear(usuarioId, request);
+    }
+
+    @GetMapping("/vendedor/{vendedorId}/estadisticas")
+    public EstadisticasDtos.EstadisticasVendedorResponse estadisticasVendedor(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long vendedorId, @RequestParam(defaultValue = "14") int dias) {
+        AuthTokenService.TokenData actor = authTokenService.requerirVendedorOAdmin(authorization, vendedorId);
+        return pedidoService.obtenerEstadisticasVendedor(actor, vendedorId, dias);
     }
 
     @PutMapping("/{pedidoId}/estado")

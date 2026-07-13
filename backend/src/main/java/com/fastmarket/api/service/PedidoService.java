@@ -1,6 +1,7 @@
 package com.fastmarket.api.service;
 
 import com.fastmarket.api.dto.CuponDtos;
+import com.fastmarket.api.dto.EstadisticasDtos;
 import com.fastmarket.api.dto.PedidoDtos;
 import com.fastmarket.api.model.*;
 import com.fastmarket.api.repository.PedidoRepository;
@@ -15,7 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,5 +210,142 @@ public class PedidoService {
 
     private String valor(String valor, String defecto) {
         return valor == null || valor.isBlank() ? defecto : valor.trim();
+    }
+    public EstadisticasDtos.EstadisticasVendedorResponse obtenerEstadisticasVendedor(AuthTokenService.TokenData actor, Long vendedorId, int diasGrafico) {
+        if (actor.rol() == Rol.VENDEDOR && !actor.usuarioId().equals(vendedorId)) {
+            throw new SecurityException("No autorizado para ver estas estadísticas");
+        }
+        if (actor.rol() == Rol.CLIENTE) {
+            throw new SecurityException("No autorizado para ver estas estadísticas");
+        }
+
+        int rango = diasGrafico <= 0 ? 14 : Math.min(diasGrafico, 90);
+        List<Pedido> pedidos = pedidoRepository.findByVendedorIdOrderByFechaDesc(vendedorId);
+
+        LocalDate hoy = LocalDate.now();
+        LocalDate inicioSemana = hoy.minusDays(6);
+        LocalDate inicioMes = hoy.withDayOfMonth(1);
+
+        BigDecimal ventasHoy = BigDecimal.ZERO;
+        BigDecimal ventasSemana = BigDecimal.ZERO;
+        BigDecimal ventasMes = BigDecimal.ZERO;
+        BigDecimal ventasTotal = BigDecimal.ZERO;
+        long pedidosHoy = 0;
+        long pedidosSemana = 0;
+        long pedidosMes = 0;
+        long pedidosValidos = 0;
+        long unidadesVendidas = 0;
+
+        Map<LocalDate, BigDecimal> ventasPorDiaMap = new LinkedHashMap<>();
+        Map<LocalDate, Long> pedidosPorDiaMap = new LinkedHashMap<>();
+        for (int i = rango - 1; i >= 0; i--) {
+            LocalDate dia = hoy.minusDays(i);
+            ventasPorDiaMap.put(dia, BigDecimal.ZERO);
+            pedidosPorDiaMap.put(dia, 0L);
+        }
+
+        Map<Long, String> nombreProducto = new LinkedHashMap<>();
+        Map<Long, Long> unidadesPorProducto = new LinkedHashMap<>();
+        Map<Long, BigDecimal> totalPorProducto = new LinkedHashMap<>();
+
+        Map<EstadoPedido, Long> cantidadPorEstado = new EnumMap<>(EstadoPedido.class);
+        Map<EstadoPedido, BigDecimal> totalPorEstado = new EnumMap<>(EstadoPedido.class);
+        for (EstadoPedido estado : EstadoPedido.values()) {
+            cantidadPorEstado.put(estado, 0L);
+            totalPorEstado.put(estado, BigDecimal.ZERO);
+        }
+
+        for (Pedido pedido : pedidos) {
+            List<PedidoItem> itemsVendedor = pedido.getItems().stream()
+                    .filter(i -> i.getVendedor() != null && i.getVendedor().getId().equals(vendedorId))
+                    .toList();
+            if (itemsVendedor.isEmpty()) continue;
+
+            BigDecimal totalPedidoVendedor = itemsVendedor.stream()
+                    .map(i -> i.getSubtotal() == null ? BigDecimal.ZERO : i.getSubtotal())
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            long unidadesPedido = itemsVendedor.stream()
+                    .mapToLong(i -> i.getCantidad() == null ? 0 : i.getCantidad())
+                    .sum();
+            LocalDate fechaPedido = pedido.getFecha() != null ? pedido.getFecha().toLocalDate() : hoy;
+            EstadoPedido estado = pedido.getEstado() != null ? pedido.getEstado() : EstadoPedido.PENDIENTE;
+
+            cantidadPorEstado.merge(estado, 1L, Long::sum);
+            totalPorEstado.merge(estado, totalPedidoVendedor, BigDecimal::add);
+
+            boolean cancelado = estado == EstadoPedido.CANCELADO;
+            if (cancelado) continue;
+
+            pedidosValidos++;
+            ventasTotal = ventasTotal.add(totalPedidoVendedor);
+            unidadesVendidas += unidadesPedido;
+
+            if (!fechaPedido.isBefore(hoy)) {
+                ventasHoy = ventasHoy.add(totalPedidoVendedor);
+                pedidosHoy++;
+            }
+            if (!fechaPedido.isBefore(inicioSemana)) {
+                ventasSemana = ventasSemana.add(totalPedidoVendedor);
+                pedidosSemana++;
+            }
+            if (!fechaPedido.isBefore(inicioMes)) {
+                ventasMes = ventasMes.add(totalPedidoVendedor);
+                pedidosMes++;
+            }
+            if (ventasPorDiaMap.containsKey(fechaPedido)) {
+                ventasPorDiaMap.merge(fechaPedido, totalPedidoVendedor, BigDecimal::add);
+                pedidosPorDiaMap.merge(fechaPedido, 1L, Long::sum);
+            }
+
+            for (PedidoItem item : itemsVendedor) {
+                Long productoId = item.getProducto() != null ? item.getProducto().getId() : null;
+                if (productoId == null) continue;
+                nombreProducto.putIfAbsent(productoId, item.getProductoNombre());
+                long cantidad = item.getCantidad() == null ? 0 : item.getCantidad();
+                BigDecimal subtotal = item.getSubtotal() == null ? BigDecimal.ZERO : item.getSubtotal();
+                unidadesPorProducto.merge(productoId, cantidad, Long::sum);
+                totalPorProducto.merge(productoId, subtotal, BigDecimal::add);
+            }
+        }
+
+        BigDecimal ticketPromedio = pedidosValidos == 0
+                ? BigDecimal.ZERO
+                : ventasTotal.divide(BigDecimal.valueOf(pedidosValidos), 2, RoundingMode.HALF_UP);
+
+        EstadisticasDtos.ResumenVentas resumen = new EstadisticasDtos.ResumenVentas(
+                escala(ventasHoy), escala(ventasSemana), escala(ventasMes), escala(ventasTotal),
+                pedidosHoy, pedidosSemana, pedidosMes, pedidosValidos, unidadesVendidas, escala(ticketPromedio)
+        );
+
+        List<EstadisticasDtos.VentaPorDia> ventasPorDia = new ArrayList<>();
+        for (Map.Entry<LocalDate, BigDecimal> entrada : ventasPorDiaMap.entrySet()) {
+            ventasPorDia.add(new EstadisticasDtos.VentaPorDia(
+                    entrada.getKey(), escala(entrada.getValue()), pedidosPorDiaMap.getOrDefault(entrada.getKey(), 0L)
+            ));
+        }
+
+        List<EstadisticasDtos.ProductoTop> topProductos = unidadesPorProducto.entrySet().stream()
+                .map(entrada -> new EstadisticasDtos.ProductoTop(
+                        entrada.getKey(),
+                        nombreProducto.getOrDefault(entrada.getKey(), "Producto"),
+                        entrada.getValue(),
+                        escala(totalPorProducto.getOrDefault(entrada.getKey(), BigDecimal.ZERO))
+                ))
+                .sorted(Comparator.comparing(EstadisticasDtos.ProductoTop::totalVentas).reversed())
+                .limit(5)
+                .toList();
+
+        List<EstadisticasDtos.VentaPorEstado> porEstado = new ArrayList<>();
+        for (EstadoPedido estado : EstadoPedido.values()) {
+            long cantidad = cantidadPorEstado.getOrDefault(estado, 0L);
+            if (cantidad == 0) continue;
+            porEstado.add(new EstadisticasDtos.VentaPorEstado(estado, cantidad, escala(totalPorEstado.getOrDefault(estado, BigDecimal.ZERO))));
+        }
+
+        return new EstadisticasDtos.EstadisticasVendedorResponse(resumen, ventasPorDia, topProductos, porEstado);
+    }
+
+    private BigDecimal escala(BigDecimal valor) {
+        return (valor == null ? BigDecimal.ZERO : valor).setScale(2, RoundingMode.HALF_UP);
     }
 }

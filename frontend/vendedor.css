@@ -306,6 +306,41 @@ textarea:focus {
 }
 
 .table-card { overflow: hidden; }
+
+.vendor-layout-stats {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+@media (max-width: 900px) {
+    .vendor-layout-stats { grid-template-columns: 1fr; }
+}
+
+.chart-card { display: flex; flex-direction: column; gap: 14px; }
+
+.chart-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.chart-card-header h3 { margin: 0; color: var(--ink); }
+
+.chart-card-header select {
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 12px;
+    padding: 8px 12px;
+    font: inherit;
+    color: var(--ink);
+    background: #fff;
+}
+
+.chart-wrap { position: relative; height: 280px; }
+.chart-wrap-small { height: 240px; }
 .table-tools { margin-bottom: 14px; }
 .table-wrap { overflow-x: auto; }
 

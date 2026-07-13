@@ -22,6 +22,7 @@
             <button data-panel="panel-productos">Mis productos</button>
             <button data-panel="panel-pedidos">Mis pedidos</button>
             <button data-panel="panel-cupones">Mis cupones</button>
+            <button data-panel="panel-estadisticas">Estadísticas de ventas</button>
             <button data-panel="panel-ayuda">Ayuda</button>
         </nav>
         <button id="cerrar-sesion-vendedor" class="vendor-logout">Cerrar sesión</button>
@@ -231,6 +232,54 @@
                 </div>
             </div>
         </section>
+<section id="panel-estadisticas" class="vendor-panel">
+            <div class="section-title">
+                <h2>Estadísticas de ventas</h2>
+                <p>Datos calculados a partir de tus propios pedidos y productos vendidos.</p>
+            </div>
+
+            <div class="metric-grid">
+                <article><span>Ventas hoy</span><strong id="est-ventas-hoy">S/ 0.00</strong></article>
+                <article><span>Ventas últimos 7 días</span><strong id="est-ventas-semana">S/ 0.00</strong></article>
+                <article><span>Ventas del mes</span><strong id="est-ventas-mes">S/ 0.00</strong></article>
+                <article><span>Ventas totales</span><strong id="est-ventas-total">S/ 0.00</strong></article>
+                <article><span>Pedidos válidos</span><strong id="est-pedidos-total">0</strong></article>
+                <article><span>Unidades vendidas</span><strong id="est-unidades">0</strong></article>
+                <article><span>Ticket promedio</span><strong id="est-ticket">S/ 0.00</strong></article>
+            </div>
+
+            <div class="vendor-layout vendor-layout-stats">
+                <div class="vendor-card chart-card">
+                    <div class="chart-card-header">
+                        <h3>Ventas por día</h3>
+                        <select id="est-rango-dias">
+                            <option value="7">Últimos 7 días</option>
+                            <option value="14" selected>Últimos 14 días</option>
+                            <option value="30">Últimos 30 días</option>
+                        </select>
+                    </div>
+                    <div class="chart-wrap"><canvas id="grafico-ventas-dia"></canvas></div>
+                </div>
+
+                <div class="vendor-card chart-card">
+                    <h3>Pedidos por estado</h3>
+                    <div class="chart-wrap chart-wrap-small"><canvas id="grafico-pedidos-estado"></canvas></div>
+                </div>
+            </div>
+
+            <div class="vendor-card table-card">
+                <div class="section-title" style="margin-bottom:12px;">
+                    <h3>Top 5 productos más vendidos</h3>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Producto</th><th>Unidades vendidas</th><th>Total en ventas</th></tr></thead>
+                        <tbody id="est-top-productos"></tbody>
+                    </table>
+                </div>
+                <p id="est-sin-datos" class="texto-ayuda oculto">Aún no tienes ventas registradas. Cuando tengas pedidos con estado distinto a "Cancelado", aparecerán aquí.</p>
+            </div>
+        </section>
 
         <section id="panel-ayuda" class="vendor-panel">
             <div class="section-title">
@@ -296,6 +345,7 @@
         </footer>
 
     <div id="toast"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
     <script src="api.js"></script>
     <script src="vendedor.js"></script>
 </body>

@@ -3,6 +3,9 @@ let productos = [];
 let pedidos = [];
 let cupones = [];
 let productPage = { page: 0, size: 20, totalPages: 1, totalElements: 0 };
+let estadisticas = null;
+let chartVentasDia = null;
+let chartPedidosEstado = null;
 
 const estadosPedido = ["PENDIENTE", "CONFIRMADO", "PREPARANDO", "CAMINO", "ENTREGADO", "CANCELADO"];
 
@@ -30,6 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     activarProductos();
     activarPedidos();
     activarCupones();
+    activarEstadisticas();
     document.getElementById("cerrar-sesion-vendedor")?.addEventListener("click", () => {
         FastMarket.cerrarSesion();
         window.location.href = "login.html";
@@ -49,7 +53,7 @@ function pintarPerfilVendedor(usuario) {
 }
 
 async function cargarTodo() {
-    await Promise.allSettled([cargarProductos(), cargarPedidos(), cargarCupones()]);
+    await Promise.allSettled([cargarProductos(), cargarPedidos(), cargarCupones(), cargarEstadisticas()]);
     pintarMetricas();
 }
 
@@ -518,6 +522,121 @@ function toDatetimeLocal(valor) {
     if (Number.isNaN(d.getTime())) return "";
     const pad = (n) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function activarEstadisticas() {
+    document.getElementById("est-rango-dias")?.addEventListener("change", async (e) => {
+        await cargarEstadisticas(Number(e.target.value) || 14);
+    });
+}
+
+async function cargarEstadisticas(dias) {
+    if (!vendedor?.id) return;
+    const rango = dias || Number(value("est-rango-dias") || 14);
+    try {
+        estadisticas = await FastMarket.request(`/pedidos/vendedor/${vendedor.id}/estadisticas?dias=${rango}`, { auth: true });
+        pintarEstadisticas();
+    } catch (error) {
+        toast(error.message);
+    }
+}
+
+function pintarEstadisticas() {
+    if (!estadisticas) return;
+    const resumen = estadisticas.resumen || {};
+    setText("est-ventas-hoy", FastMarket.money(resumen.ventasHoy || 0));
+    setText("est-ventas-semana", FastMarket.money(resumen.ventasSemana || 0));
+    setText("est-ventas-mes", FastMarket.money(resumen.ventasMes || 0));
+    setText("est-ventas-total", FastMarket.money(resumen.ventasTotal || 0));
+    setText("est-pedidos-total", resumen.pedidosTotal || 0);
+    setText("est-unidades", resumen.unidadesVendidas || 0);
+    setText("est-ticket", FastMarket.money(resumen.ticketPromedio || 0));
+
+    const sinDatos = document.getElementById("est-sin-datos");
+    if (sinDatos) sinDatos.classList.toggle("oculto", Number(resumen.pedidosTotal || 0) > 0);
+
+    pintarGraficoVentasPorDia(estadisticas.ventasPorDia || []);
+    pintarGraficoPedidosPorEstado(estadisticas.porEstado || []);
+    pintarTopProductos(estadisticas.topProductos || []);
+}
+
+function pintarGraficoVentasPorDia(datos) {
+    const canvas = document.getElementById("grafico-ventas-dia");
+    if (!canvas || typeof Chart === "undefined") return;
+    const etiquetas = datos.map((d) => new Date(`${d.fecha}T00:00:00`).toLocaleDateString("es-PE", { day: "2-digit", month: "short" }));
+    const valores = datos.map((d) => Number(d.total || 0));
+
+    if (chartVentasDia) chartVentasDia.destroy();
+    chartVentasDia = new Chart(canvas.getContext("2d"), {
+        type: "line",
+        data: {
+            labels: etiquetas,
+            datasets: [{
+                label: "Ventas (S/)",
+                data: valores,
+                borderColor: "#fd6403",
+                backgroundColor: "rgba(253, 100, 3, .15)",
+                tension: .3,
+                fill: true,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { callback: (v) => `S/ ${v}` } } }
+        }
+    });
+}
+
+function pintarGraficoPedidosPorEstado(datos) {
+    const canvas = document.getElementById("grafico-pedidos-estado");
+    if (!canvas || typeof Chart === "undefined") return;
+    const colores = {
+        PENDIENTE: "#f59e0b",
+        CONFIRMADO: "#3b82f6",
+        PREPARANDO: "#8b5cf6",
+        CAMINO: "#06b6d4",
+        ENTREGADO: "#22c55e",
+        CANCELADO: "#ef4444"
+    };
+    const etiquetas = datos.map((d) => FastMarket.estadoTexto(d.estado));
+    const valores = datos.map((d) => Number(d.cantidad || 0));
+    const fondos = datos.map((d) => colores[d.estado] || "#9ca3af");
+
+    if (chartPedidosEstado) {
+        chartPedidosEstado.destroy();
+        chartPedidosEstado = null;
+    }
+    if (!datos.length) return;
+    chartPedidosEstado = new Chart(canvas.getContext("2d"), {
+        type: "doughnut",
+        data: { labels: etiquetas, datasets: [{ data: valores, backgroundColor: fondos, borderWidth: 0 }] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "bottom" } }
+        }
+    });
+}
+
+function pintarTopProductos(lista) {
+    const tbody = document.getElementById("est-top-productos");
+    if (!tbody) return;
+    if (!lista.length) {
+        tbody.innerHTML = `<tr><td colspan="3">Todavía no hay productos vendidos.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = "";
+    lista.forEach((p) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${FastMarket.escapeHTML(p.nombre || "Producto")}</td>
+            <td>${p.unidadesVendidas || 0}</td>
+            <td>${FastMarket.money(p.totalVentas || 0)}</td>`;
+        tbody.appendChild(tr);
+    });
 }
 
 function pintarMetricas() {
