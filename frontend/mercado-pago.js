@@ -16,7 +16,58 @@ document.addEventListener("DOMContentLoaded", () => {
         codigoPedido: null
     };
 
-    // Obtener datos de la URL
+    function obtenerUrlRetorno() {
+        const params = new URLSearchParams(window.location.search);
+        const returnTo = params.get("returnTo");
+        if (returnTo) {
+            try {
+                return decodeURIComponent(returnTo);
+            } catch (error) {
+                return returnTo;
+            }
+        }
+
+        const retornoGuardado = sessionStorage.getItem("mercadoPagoReturnUrl");
+        if (retornoGuardado) {
+            return retornoGuardado;
+        }
+
+        if (document.referrer) {
+            try {
+                const referrerUrl = new URL(document.referrer);
+                if (referrerUrl.origin === window.location.origin) {
+                    return `${referrerUrl.pathname}${referrerUrl.search}${referrerUrl.hash}`;
+                }
+            } catch (error) {
+                console.warn("No se pudo leer el referrer para retorno de Mercado Pago:", error);
+            }
+        }
+
+        return "pedidos.html";
+    }
+
+    function manejarRetornoMercadoPago() {
+        const params = new URLSearchParams(window.location.search);
+        const status = params.get("status");
+        if (!status) {
+            return false;
+        }
+
+        const urlRetorno = obtenerUrlRetorno();
+        if (!urlRetorno) {
+            return false;
+        }
+
+        const destino = new URL(urlRetorno, window.location.origin);
+        if (!destino.searchParams.has("status")) {
+            destino.searchParams.set("status", status);
+        }
+
+        sessionStorage.removeItem("mercadoPagoReturnUrl");
+        window.location.replace(`${destino.pathname}${destino.search}${destino.hash}`);
+        return true;
+    }
+
     function obtenerDatos() {
         const params = new URLSearchParams(window.location.search);
         
@@ -36,7 +87,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        // Si no hay datos válidos, redirigir a checkout
         if (datosCompra.total <= 0) {
             mostrarError("Error: datos de compra inválidos. Redirigiendo...");
             setTimeout(() => window.location.href = "checkout.html", 3000);
@@ -48,10 +98,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function mostrarDatos() {
-        // Mostrar el monto total
         totalElement.textContent = `S/ ${datosCompra.total.toFixed(2)}`;
 
-        // Mostrar detalles del resumen
         document.getElementById("subtotal-mp").textContent = `S/ ${datosCompra.subtotal.toFixed(2)}`;
         document.getElementById("descuento-mp").textContent = datosCompra.descuento > 0 
             ? `- S/ ${datosCompra.descuento.toFixed(2)}`
@@ -62,9 +110,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function abrirMercadoPago() {
         const total = Number(datosCompra.total || 0);
+        const urlRetorno = obtenerUrlRetorno();
+        sessionStorage.setItem("mercadoPagoReturnUrl", urlRetorno);
 
         mostrarProcesando(`Creando la orden de pago de S/ ${total.toFixed(2)}...`);
 
+        const returnToEncoded = encodeURIComponent(urlRetorno);
         const payload = {
             items: [
                 {
@@ -77,9 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 email: "cliente@fastmarket.com"
             },
             external_reference: datosCompra.codigoPedido || `pedido-${Date.now()}`,
-            success_url: `${window.location.origin}/frontend/pedidos.html?status=approved`,
-            failure_url: `${window.location.origin}/frontend/mercado-pago.html?status=failure`,
-            pending_url: `${window.location.origin}/frontend/mercado-pago.html?status=pending`
+            success_url: `${window.location.origin}/frontend/mercado-pago.html?status=approved&returnTo=${returnToEncoded}`,
+            failure_url: `${window.location.origin}/frontend/mercado-pago.html?status=failure&returnTo=${returnToEncoded}`,
+            pending_url: `${window.location.origin}/frontend/mercado-pago.html?status=pending&returnTo=${returnToEncoded}`
         };
 
         const response = await FastMarket.request("/pagos/crear-preferencia", {
@@ -97,7 +148,6 @@ document.addEventListener("DOMContentLoaded", () => {
         mostrarExito("Se está redirigiendo a la pantalla de pago de Mercado Pago.");
     }
 
-    // Procesar pago y redirigir a Mercado Pago
     async function procesarPago() {
         btnProcesar.disabled = true;
         mostrarProcesando("Generando pago con Mercado Pago...");
@@ -115,7 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Registrar pago en el backend
     async function registrarPagoMercadoPago() {
         const usuario = FastMarket.getCliente();
         if (!usuario || !datosCompra.pedidoId) return;
@@ -133,7 +182,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         } catch (error) {
             console.error("Error registrando pago:", error);
-            // No interrumpir el flujo si falla el registro
         }
     }
 
@@ -164,14 +212,12 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
     }
 
-    // Event Listeners
     btnProcesar.addEventListener("click", () => {
         if (!datosCompra.total || datosCompra.total <= 0) {
             mostrarError("El monto a pagar no es válido.");
             return;
         }
 
-        // Confirmar antes de procesar
         if (confirm(`¿Deseas procesar un pago de S/ ${datosCompra.total.toFixed(2)} con Mercado Pago?`)) {
             procesarPago();
         }
@@ -183,7 +229,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Inicializar
+    if (manejarRetornoMercadoPago()) {
+        return;
+    }
+
     if (!obtenerDatos()) {
         return;
     }
