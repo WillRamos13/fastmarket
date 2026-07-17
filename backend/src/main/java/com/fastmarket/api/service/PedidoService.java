@@ -37,7 +37,7 @@ public class PedidoService {
     private final SystemConfigService systemConfigService;
     private final com.fastmarket.api.repository.CuponUsoRepository cuponUsoRepository;
 
-    public PedidoService(PedidoRepository pedidoRepository, ProductoRepository productoRepository, UsuarioRepository usuarioRepository, CuponService cuponService, PedidoHistorialRepository pedidoHistorialRepository, CarritoService carritoService, SystemConfigService systemConfigService) {
+    public PedidoService(PedidoRepository pedidoRepository, ProductoRepository productoRepository, UsuarioRepository usuarioRepository, CuponService cuponService, PedidoHistorialRepository pedidoHistorialRepository, CarritoService carritoService, SystemConfigService systemConfigService, com.fastmarket.api.repository.CuponUsoRepository cuponUsoRepository) {
         this.pedidoRepository = pedidoRepository;
         this.productoRepository = productoRepository;
         this.usuarioRepository = usuarioRepository;

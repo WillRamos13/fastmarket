@@ -53,6 +53,6 @@ public class EstadisticasDtos {
             List<VentaPorDia> ventasPorDia,
             List<ProductoTop> topProductos,
             List<VentaPorEstado> porEstado,
-            List<CuposUsoResumen> cupones
+            List<CuponUsoResumen> cupones
     ) {}
 }
