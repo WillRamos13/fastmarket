@@ -43,11 +43,25 @@ public class MercadoPagoService {
         Map<String, String> backUrls = new HashMap<>();
         if (solicitud.get("back_urls") instanceof Map<?, ?> mapa) {
             mapa.forEach((clave, valor) -> backUrls.put(String.valueOf(clave), String.valueOf(valor)));
-        } else {
-            backUrls.put("success", String.valueOf(solicitud.getOrDefault("success_url", "http://localhost:5500/frontend/pedidos.html?status=approved")));
-            backUrls.put("failure", String.valueOf(solicitud.getOrDefault("failure_url", "http://localhost:5500/frontend/mercado-pago.html?status=failure")));
-            backUrls.put("pending", String.valueOf(solicitud.getOrDefault("pending_url", "http://localhost:5500/frontend/mercado-pago.html?status=pending")));
         }
+        
+        // Usar las URLs proporcionadas o las predeterminadas
+        if (!backUrls.containsKey("failure")) {
+            String failureUrl = String.valueOf(solicitud.getOrDefault("failure_url", ""));
+            if (!failureUrl.isEmpty()) {
+                backUrls.put("failure", failureUrl);
+            }
+        }
+        
+        if (!backUrls.containsKey("pending")) {
+            String pendingUrl = String.valueOf(solicitud.getOrDefault("pending_url", ""));
+            if (!pendingUrl.isEmpty()) {
+                backUrls.put("pending", pendingUrl);
+            }
+        }
+        
+        backUrls.put("success", String.valueOf(solicitud.getOrDefault("success_url", "http://localhost:5500/frontend/pedidos.html?status=approved")));
+        
         payload.put("back_urls", backUrls);
 
         if (solicitud.containsKey("notification_url")) {

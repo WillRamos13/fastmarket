@@ -129,8 +129,9 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             external_reference: datosCompra.codigoPedido || `pedido-${Date.now()}`,
             success_url: `${window.location.origin}/frontend/mercado-pago.html?status=approved&returnTo=${returnToEncoded}`,
-            failure_url: `${window.location.origin}/frontend/mercado-pago.html?status=failure&returnTo=${returnToEncoded}`,
-            pending_url: `${window.location.origin}/frontend/mercado-pago.html?status=pending&returnTo=${returnToEncoded}`
+            failure_url: `${window.location.origin}/frontend/${urlRetorno}`,
+            pending_url: `${window.location.origin}/frontend/${urlRetorno}`,
+            return_url: `${window.location.origin}/frontend/${urlRetorno}`
         };
 
         const response = await FastMarket.request("/pagos/crear-preferencia", {
