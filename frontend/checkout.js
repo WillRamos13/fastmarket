@@ -269,9 +269,15 @@ document.addEventListener("DOMContentLoaded", () => {
             // Si es Mercado Pago, redirigir a página de pago
             if (pago === "Mercado Pago") {
                 // Guardar URL de retorno: si viene de un referrer interno, usarlo; si no, ir a productos
-                const urlRetorno = document.referrer && document.referrer.includes(window.location.origin) 
-                    ? document.referrer 
-                    : `${window.location.origin}/productos.html`;
+                let urlRetorno = "productos.html";
+                if (document.referrer && document.referrer.includes(window.location.origin)) {
+                    try {
+                        const referrerUrl = new URL(document.referrer);
+                        urlRetorno = `${referrerUrl.pathname}${referrerUrl.search}${referrerUrl.hash}`.replace(/^\//, '');
+                    } catch (e) {
+                        urlRetorno = "productos.html";
+                    }
+                }
                 sessionStorage.setItem("mercadoPagoReturnUrl", urlRetorno);
                 
                 const params = new URLSearchParams({
