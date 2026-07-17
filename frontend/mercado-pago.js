@@ -224,8 +224,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     btnCancelar.addEventListener("click", () => {
-        if (confirm("¿Deseas cancelar este pago? Volverás al checkout.")) {
-            window.location.href = "checkout.html";
+        if (confirm("¿Deseas cancelar este pago? Volverás a la tienda.")) {
+            const urlRetorno = obtenerUrlRetorno() || "productos.html";
+            window.location.href = urlRetorno;
         }
     });
 
