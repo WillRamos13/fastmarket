@@ -116,6 +116,12 @@ document.addEventListener("DOMContentLoaded", () => {
         mostrarProcesando(`Creando la orden de pago de S/ ${total.toFixed(2)}...`);
 
         const returnToEncoded = encodeURIComponent(urlRetorno);
+        
+        // Construir URLs de retorno correctamente sin duplicar /frontend/
+        const baseUrl = window.location.origin + window.location.pathname.split('/mercado-pago.html')[0];
+        const failureUrl = `${baseUrl}/${urlRetorno}`;
+        const pendingUrl = `${baseUrl}/${urlRetorno}`;
+        
         const payload = {
             items: [
                 {
@@ -129,9 +135,8 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             external_reference: datosCompra.codigoPedido || `pedido-${Date.now()}`,
             success_url: `${window.location.origin}/frontend/mercado-pago.html?status=approved&returnTo=${returnToEncoded}`,
-            failure_url: `${window.location.origin}/frontend/${urlRetorno}`,
-            pending_url: `${window.location.origin}/frontend/${urlRetorno}`,
-            return_url: `${window.location.origin}/frontend/${urlRetorno}`
+            failure_url: failureUrl,
+            pending_url: pendingUrl
         };
 
         const response = await FastMarket.request("/pagos/crear-preferencia", {
