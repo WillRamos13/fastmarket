@@ -40,10 +40,19 @@ public class EstadisticasDtos {
             BigDecimal total
     ) {}
 
+    public record CuponUsoResumen(
+        String codigo,
+        String descripcion,
+        long usos,
+        BigDecimal descuentoTotal,
+        long clientesUnicos
+    ) {}
+
     public record EstadisticasVendedorResponse(
             ResumenVentas resumen,
             List<VentaPorDia> ventasPorDia,
             List<ProductoTop> topProductos,
-            List<VentaPorEstado> porEstado
+            List<VentaPorEstado> porEstado,
+            List<CuposUsoResumen> cupones
     ) {}
 }

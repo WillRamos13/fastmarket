@@ -8,4 +8,5 @@ public interface CuponUsoRepository extends JpaRepository<CuponUso, Long> {
     long countByCuponIdAndUsuarioId(Long cuponId, Long usuarioId);
     List<CuponUso> findByCuponIdOrderByFechaDesc(Long cuponId);
     List<CuponUso> findByUsuarioIdOrderByFechaDesc(Long usuarioId);
+    List<CuponUso> findByCupon_VendedorIdOrderByFechaDesc(Long vendedorId);
 }

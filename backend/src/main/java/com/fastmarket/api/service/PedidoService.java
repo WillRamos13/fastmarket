@@ -35,6 +35,7 @@ public class PedidoService {
     private final PedidoHistorialRepository pedidoHistorialRepository;
     private final CarritoService carritoService;
     private final SystemConfigService systemConfigService;
+    private final com.fastmarket.api.repository.CuponUsoRepository cuponUsoRepository;
 
     public PedidoService(PedidoRepository pedidoRepository, ProductoRepository productoRepository, UsuarioRepository usuarioRepository, CuponService cuponService, PedidoHistorialRepository pedidoHistorialRepository, CarritoService carritoService, SystemConfigService systemConfigService) {
         this.pedidoRepository = pedidoRepository;
@@ -44,6 +45,7 @@ public class PedidoService {
         this.pedidoHistorialRepository = pedidoHistorialRepository;
         this.carritoService = carritoService;
         this.systemConfigService = systemConfigService;
+        this.cuponUsoRepository = cuponUsoRepository;
     }
 
     public Page<PedidoDtos.PedidoResponse> listarPaginado(AuthTokenService.TokenData actor, int page, int size) {
@@ -341,8 +343,35 @@ public class PedidoService {
             if (cantidad == 0) continue;
             porEstado.add(new EstadisticasDtos.VentaPorEstado(estado, cantidad, escala(totalPorEstado.getOrDefault(estado, BigDecimal.ZERO))));
         }
+    
+        List<CuponUso> usosCupon = cuponUsoRepository.findByCupon_VendedorIdOrderByFechaDesc(vendedorId);
+        Map<String, String> descripcionPorCodigo = new LinkedHashMap<>();
+        Map<String, Long> usosPorCodigo = new LinkedHashMap<>();
+        Map<String, BigDecimal> descuentoPorCodigo = new LinkedHashMap<>();
+        Map<String, java.util.Set<Long>> clientesPorCodigo = new LinkedHashMap<>();
+        for (CuponUso uso : usosCupon) {
+            if (uso.getCupon() == null) continue;
+            String codigo = uso.getCupon().getCodigo();
+            descripcionPorCodigo.putIfAbsent(codigo, uso.getCupon().getDescripcion());
+            usosPorCodigo.merge(codigo, 1L, Long::sum);
+            BigDecimal descuento = uso.getDescuentoAplicado() == null ? BigDecimal.ZERO : uso.getDescuentoAplicado();
+            descuentoPorCodigo.merge(codigo, descuento, BigDecimal::add);
+            if (uso.getUsuario() != null) {
+                clientesPorCodigo.computeIfAbsent(codigo, k -> new java.util.HashSet<>()).add(uso.getUsuario().getId());
+            }
+        }
+        List<EstadisticasDtos.CuponUsoResumen> cupones = usosPorCodigo.entrySet().stream()
+                .map(entrada -> new EstadisticasDtos.CuponUsoResumen(
+                        entrada.getKey(),
+                        descripcionPorCodigo.getOrDefault(entrada.getKey(), ""),
+                        entrada.getValue(),
+                        escala(descuentoPorCodigo.getOrDefault(entrada.getKey(), BigDecimal.ZERO)),
+                        clientesPorCodigo.getOrDefault(entrada.getKey(), java.util.Set.of()).size()
+                ))
+                .sorted(Comparator.comparing(EstadisticasDtos.CuponUsoResumen::usos).reversed())
+                .toList();
 
-        return new EstadisticasDtos.EstadisticasVendedorResponse(resumen, ventasPorDia, topProductos, porEstado);
+        return new EstadisticasDtos.EstadisticasVendedorResponse(resumen, ventasPorDia, topProductos, porEstado, cupones);
     }
 
     private BigDecimal escala(BigDecimal valor) {

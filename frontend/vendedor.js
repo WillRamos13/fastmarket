@@ -566,6 +566,7 @@ function pintarEstadisticas() {
     pintarGraficoVentasPorDia(estadisticas.ventasPorDia || []);
     pintarGraficoPedidosPorEstado(estadisticas.porEstado || []);
     pintarTopProductos(estadisticas.topProductos || []);
+    pintarTablaCupones(estadisticas.cupones || []);
 }
 
 function pintarGraficoVentasPorDia(datos) {
@@ -643,6 +644,26 @@ function pintarTopProductos(lista) {
             <td>${FastMarket.escapeHTML(p.nombre || "Producto")}</td>
             <td>${p.unidadesVendidas || 0}</td>
             <td>${FastMarket.money(p.totalVentas || 0)}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function pintarTablaCupones(lista) {
+    const tbody = document.getElementById("est-cupones");
+    if (!tbody) return;
+    if (!lista.length) {
+        tbody.innerHTML = `<tr><td colspan="5">Todavía no se ha usado ningún cupón tuyo.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = "";
+    lista.forEach((c) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${FastMarket.escapeHTML(c.codigo || "")}</td>
+            <td>${FastMarket.escapeHTML(c.descripcion || "-")}</td>
+            <td>${c.usos || 0}</td>
+            <td>${c.clientesUnicos || 0}</td>
+            <td>${FastMarket.money(c.descuentoTotal || 0)}</td>`;
         tbody.appendChild(tr);
     });
 }
