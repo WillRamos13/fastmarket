@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,13 +16,17 @@ import java.util.Map;
 @Service
 public class MercadoPagoService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Value("${mercadopago.access-token:}")
     private String accessToken;
 
     @Value("${mercadopago.base-url:https://api.mercadopago.com}")
     private String baseUrl;
+
+    public MercadoPagoService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     public Map<String, Object> crearPreferencia(Map<String, Object> solicitud) {
         if (accessToken == null || accessToken.isBlank()) {
@@ -54,12 +59,18 @@ public class MercadoPagoService {
         headers.setBearerAuth(accessToken);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/checkout/preferences",
-                org.springframework.http.HttpMethod.POST,
-                entity,
-                new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {}
-        );
+        ResponseEntity<Map<String, Object>> response;
+        
+        try {
+            response = restTemplate.exchange(
+                    baseUrl + "/checkout/preferences",
+                    org.springframework.http.HttpMethod.POST,
+                    entity,
+                    new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+        } catch (RestClientException e) {
+            throw new IllegalStateException("Error al conectar con Mercado Pago: " + e.getMessage(), e);
+        }
 
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new IllegalStateException("No se pudo crear la preferencia de Mercado Pago");
