@@ -116,8 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
         mostrarProcesando(`Creando la orden de pago de S/ ${total.toFixed(2)}...`);
 
         const returnToEncoded = encodeURIComponent(urlRetorno);
-        
-        // Construir URLs de retorno correctamente sin duplicar /frontend/
         const baseUrl = window.location.origin + window.location.pathname.split('/mercado-pago.html')[0];
         const failureUrl = `${baseUrl}/${urlRetorno}`;
         const pendingUrl = `${baseUrl}/${urlRetorno}`;
