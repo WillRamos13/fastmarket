@@ -1,14 +1,5 @@
 package com.fastmarket.api.service;
 
-import com.fastmarket.api.model.Pedido;
-import com.fastmarket.api.model.PedidoItem;
-import com.fastmarket.api.model.Producto;
-import com.fastmarket.api.repository.PedidoRepository;
-import com.fastmarket.api.repository.ProductoRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.Normalizer;
@@ -23,6 +14,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fastmarket.api.model.Pedido;
+import com.fastmarket.api.model.PedidoItem;
+import com.fastmarket.api.model.Producto;
+import com.fastmarket.api.repository.PedidoRepository;
+import com.fastmarket.api.repository.ProductoRepository;
 
 @Service
 public class ChatContextService {
@@ -547,7 +548,6 @@ public class ChatContextService {
                 Map<String, String> guardadas = JSON.readValue(raw, new TypeReference<LinkedHashMap<String, String>>() {});
                 guardadas.forEach((nombre, valor) -> agregarCaracteristica(resultado, nombre, valor));
             } catch (Exception ignored) {
-                // Compatibilidad con productos creados antes de las características dinámicas.
             }
         }
         if (resultado.isEmpty()) {

@@ -239,7 +239,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const pago = document.querySelector('input[name="pago"]:checked')?.value || "Pago contra entrega";
         
-        // Calcular totales
         const subtotal = carrito.reduce((s, item) => s + Number(item.precio) * Number(item.cantidad), 0);
         const descuento = Number(cuponAplicado?.descuento || 0);
         const envioCalculado = subtotal >= 250 ? 0 : costoEnvio;
@@ -266,9 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
             sessionStorage.removeItem("fastmarket_carrito_backup");
             localStorage.removeItem("fastmarket_carrito_usuario_id");
             
-            // Si es Mercado Pago, redirigir a página de pago
             if (pago === "Mercado Pago") {
-                // Guardar URL de retorno: si viene de un referrer interno, usarlo; si no, ir a productos
                 let urlRetorno = "productos.html";
                 if (document.referrer && document.referrer.includes(window.location.origin)) {
                     try {

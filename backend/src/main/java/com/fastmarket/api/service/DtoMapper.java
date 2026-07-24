@@ -95,7 +95,6 @@ public class DtoMapper {
                 Map<String, String> guardadas = JSON.readValue(raw, new TypeReference<LinkedHashMap<String, String>>() {});
                 guardadas.forEach((nombre, valor) -> agregarCaracteristica(resultado, nombre, valor));
             } catch (Exception ignored) {
-                // Los productos antiguos no tenían este campo. Se completan debajo con sus datos heredados.
             }
         }
 

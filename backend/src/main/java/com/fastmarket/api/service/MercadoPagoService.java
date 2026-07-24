@@ -1,17 +1,17 @@
 package com.fastmarket.api.service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.RestClientException;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class MercadoPagoService {
@@ -45,7 +45,6 @@ public class MercadoPagoService {
             mapa.forEach((clave, valor) -> backUrls.put(String.valueOf(clave), String.valueOf(valor)));
         }
         
-        // Usar las URLs proporcionadas o las predeterminadas
         if (!backUrls.containsKey("failure")) {
             String failureUrl = String.valueOf(solicitud.getOrDefault("failure_url", ""));
             if (!failureUrl.isEmpty()) {

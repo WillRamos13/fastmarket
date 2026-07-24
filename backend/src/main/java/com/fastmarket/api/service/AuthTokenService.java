@@ -1,17 +1,19 @@
 package com.fastmarket.api.service;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Base64;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import com.fastmarket.api.model.EstadoUsuario;
 import com.fastmarket.api.model.Rol;
 import com.fastmarket.api.model.Usuario;
 import com.fastmarket.api.repository.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.Base64;
 
 @Service
 public class AuthTokenService {
@@ -62,7 +64,7 @@ public class AuthTokenService {
             }
             usuarioId = Long.parseLong(datos[0]);
             expira = Long.parseLong(datos[3]);
-            Rol.valueOf(datos[2]); // valida el formato del rol guardado en tokens antiguos
+            Rol.valueOf(datos[2]);
         } catch (IllegalArgumentException ex) {
             throw new SecurityException("Token inválido");
         }
